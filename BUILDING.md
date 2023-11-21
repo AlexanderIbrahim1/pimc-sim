@@ -1,9 +1,5 @@
 # Building with CMake
 
-## Dependencies
-
-For a list of dependencies, please refer to [vcpkg.json](vcpkg.json).
-
 ## Build
 
 Here are the steps for users to build in high performance mode with the

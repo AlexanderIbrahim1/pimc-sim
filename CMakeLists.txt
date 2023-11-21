@@ -13,31 +13,7 @@ project(
 include(cmake/project-is-top-level.cmake)
 include(cmake/variables.cmake)
 
-# ---- Declare library ----
-
-add_library(
-    pimc-sim_lib OBJECT
-    source/lib.cpp
-)
-
-target_include_directories(
-    pimc-sim_lib ${warning_guard}
-    PUBLIC
-    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/source>"
-)
-
-target_compile_features(pimc-sim_lib PUBLIC cxx_std_20)
-
-# ---- Declare executable ----
-
-add_executable(pimc-sim_exe source/main.cpp)
-add_executable(pimc-sim::exe ALIAS pimc-sim_exe)
-
-set_property(TARGET pimc-sim_exe PROPERTY OUTPUT_NAME pimc-sim)
-
-target_compile_features(pimc-sim_exe PRIVATE cxx_std_20)
-
-target_link_libraries(pimc-sim_exe PRIVATE pimc-sim_lib)
+add_subdirectory(source) # pimc-sim_exe
 
 # ---- Install rules ----
 

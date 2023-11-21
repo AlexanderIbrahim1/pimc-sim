@@ -7,7 +7,6 @@ project(pimc-simTests LANGUAGES CXX)
 # ---- Tests ----
 
 add_executable(pimc-sim_test source/pimc-sim_test.cpp)
-target_link_libraries(pimc-sim_test PRIVATE pimc-sim_lib)
 target_compile_features(pimc-sim_test PRIVATE cxx_std_20)
 
 add_test(NAME pimc-sim_test COMMAND pimc-sim_test)
