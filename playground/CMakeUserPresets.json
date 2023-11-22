@@ -12,7 +12,8 @@
       "inherits": ["dev-mode"],
       "cacheVariables": {
         "BUILD_MCSS_DOCS": "ON",
-        "CMAKE_PREFIX_PATH": "/home/a68ibrah/libtorch_workspace/versions/libtorch"
+        "CMAKE_PREFIX_PATH": "/home/a68ibrah/libtorch_workspace/versions/libtorch",
+        "CMAKE_MODULE_PATH": "/home/a68ibrah/libtorch_workspace/versions/Catch2/extras"
       }
     },
     {
