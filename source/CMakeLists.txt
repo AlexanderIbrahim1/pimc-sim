@@ -34,6 +34,7 @@ target_include_directories(
     pimc-sim_exe
     ${warning_guard}
     PUBLIC "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/source>"
+    PUBLIC "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/extern>"
 )
 
 target_link_libraries(
