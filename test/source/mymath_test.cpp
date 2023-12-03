@@ -2,7 +2,6 @@
 
 #include "mymath.hpp"
 
-
 TEST_CASE("add", "[MyMath]") {
     int x = 1;
     int y = 2;
