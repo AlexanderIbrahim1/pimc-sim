@@ -8,3 +8,22 @@ The goal of this project is to simulate solid parahydrogen with many-body intera
 - I should suppose distance functions both with and without periodicity
 - I should have separate sections of code for sampling and estimation
 - I should have a way to collect information from a TOML file, to support simulations with different parameters
+
+
+## Particles
+The simulation's performance is mostly bound by its ability to calculate interaction potentials
+- interaction potentials are only calculated between particles on the same worldline
+- this implies that, for cache optimization, the beads should be worldline-contiguous, not particle-contiguous
+
+### Worldline-contiguity
++ better cache layout (points are closer to each other in memory)
++ probably easier to go from the classical case (1 bead) to the quantum case (many beads)
+  + because the classical case is just a single worldline
+
+- code becomes more complicated if there is more than a single variety of particle
+
+### Particle-contiguity
++ simpler to implement in general
++ more intuitive to think about
+
+- worse cache locality, worse performance for large systems
