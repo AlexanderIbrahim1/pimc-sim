@@ -3,7 +3,6 @@
 
 #include "coordinates/cartesian.hpp"
 
-
 TEST_CASE("construction", "[Cartesian]") {
     const auto c = coord::Cartesian<double, 3>(1.0, 2.0, 3.0);
     REQUIRE_THAT(c[0], Catch::Matchers::WithinRel(1.0));
