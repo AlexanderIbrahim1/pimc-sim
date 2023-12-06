@@ -22,15 +22,34 @@ include(Catch)
 cmake_path(GET PROJECT_SOURCE_DIR PARENT_PATH PIMC_SIM_SOURCE_DIR)
 set(SOURCE_FILES_DIR "${PIMC_SIM_SOURCE_DIR}/source")
 
-add_executable(mymath_test source/mymath_test.cpp)
-target_compile_features(mymath_test PRIVATE cxx_std_20)
-target_include_directories(mymath_test PRIVATE "${SOURCE_FILES_DIR}")
-target_link_libraries(
-    mymath_test
-    PRIVATE Catch2::Catch2WithMain
-)
+function(add_test_target TARGET_NAME SOURCE_FILE)
+    add_executable(
+        ${TARGET_NAME}
+        ${SOURCE_FILE}
+    )
 
-catch_discover_tests(mymath_test)
+    target_compile_features(
+        ${TARGET_NAME}
+        PRIVATE cxx_std_20
+    )
+
+    target_include_directories(
+        ${TARGET_NAME}
+        ${warning_guard}
+        PRIVATE "${SOURCE_FILES_DIR}"
+    )
+
+    target_link_libraries(
+        ${TARGET_NAME}
+        PRIVATE Catch2::Catch2WithMain
+    )
+
+    catch_discover_tests(${TARGET_NAME})
+endfunction()
+
+add_test_target(mymath_test "source/mymath_test.cpp")
+add_test_target(cartesian_test "source/cartesian_test.cpp")
+
 
 # ---- End-of-file commands ----
 
