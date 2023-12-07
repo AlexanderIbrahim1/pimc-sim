@@ -10,6 +10,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 #include "constants.hpp"
 
@@ -99,7 +100,7 @@ public:
             coord_str << std::fixed << std::setprecision(prec) << value;
 
             if (i_dim < NDIM - 1) {
-                coord_str << ";";
+                coord_str << ", ";
             }
             else {
                 coord_str << ")";
@@ -151,6 +152,19 @@ public:
         }
 
         return *this;
+    }
+
+    constexpr auto operator-() const -> Cartesian<FP, NDIM> {
+        auto new_coordinates = std::array<FP, NDIM> {};
+        for (std::size_t i_dim = 0; i_dim < NDIM; ++i_dim) {
+            new_coordinates[i_dim] = -m_coords[i_dim];
+        }
+
+        return Cartesian<FP, NDIM> {std::move(new_coordinates)};
+    }
+
+    constexpr auto operator+() const -> Cartesian<FP, NDIM> {
+        return Cartesian<FP, NDIM>(m_coords);
     }
 
     constexpr static auto origin() -> Cartesian<FP, NDIM> {
