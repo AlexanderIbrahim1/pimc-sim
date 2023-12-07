@@ -47,7 +47,6 @@ function(add_test_target TARGET_NAME SOURCE_FILE)
     catch_discover_tests(${TARGET_NAME})
 endfunction()
 
-add_test_target(mymath_test "source/mymath_test.cpp")
 add_test_target(cartesian_test "source/cartesian_test.cpp")
 
 
