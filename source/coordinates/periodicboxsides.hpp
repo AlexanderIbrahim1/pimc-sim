@@ -70,10 +70,10 @@ public:
             coord_str << std::fixed << std::setprecision(prec) << value;
 
             if (i_dim < NDIM - 1) {
-                coord_str << ";";
+                coord_str << ", ";
             }
             else {
-                coord_str << ")"
+                coord_str << ")";
             }
         }
 
