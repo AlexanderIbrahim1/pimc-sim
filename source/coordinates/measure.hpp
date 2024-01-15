@@ -4,16 +4,9 @@
 #include <cmath>
 #include <cstdint>
 
+#include "constants.hpp"
 #include "coordinates.hpp"
 #include "periodicboxsides.hpp"
-
-namespace coord
-{
-
-template <typename FP>
-const static FP APPROX_EQ_SEPARATION_TOLERANCE_SQ = 1.0e-8;
-
-}  // namespace coord
 
 namespace coord
 {
@@ -96,7 +89,7 @@ FP norm_periodic(const Cartesian<FP, NDIM>& point, const PeriodicBoxSides<FP, ND
 template <typename FP, std::size_t NDIM>
 bool approx_eq(const Cartesian<FP, NDIM>& point0,
                const Cartesian<FP, NDIM>& point1,
-               FP tolerance_sq = APPROX_EQ_SEPARATION_TOLERANCE_SQ<FP>) {
+               FP tolerance_sq = EPSILON_APPROX_EQ_SEPARATION_SQUARED<FP>) {
     const auto separation_dist_sq = distance_squared(point0, point1);
     return separation_dist_sq < tolerance_sq;
 }
@@ -105,7 +98,7 @@ template <typename FP, std::size_t NDIM>
 bool approx_eq_periodic(const Cartesian<FP, NDIM>& point0,
                         const Cartesian<FP, NDIM>& point1,
                         const PeriodicBoxSides<FP, NDIM>& box,
-                        FP tolerance_sq = APPROX_EQ_SEPARATION_TOLERANCE_SQ<FP>) {
+                        FP tolerance_sq = EPSILON_APPROX_EQ_SEPARATION_SQUARED<FP>) {
     const auto separation_dist_sq = distance_squared_periodic(point0, point1, box);
     return separation_dist_sq < tolerance_sq;
 }
