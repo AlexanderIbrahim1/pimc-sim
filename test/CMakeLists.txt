@@ -48,6 +48,7 @@ function(add_test_target TARGET_NAME SOURCE_FILE)
 endfunction()
 
 add_test_target(cartesian_test "source/cartesian_test.cpp")
+add_test_target(measure_test "source/measure_test.cpp")
 
 
 # ---- End-of-file commands ----
