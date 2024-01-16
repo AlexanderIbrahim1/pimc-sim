@@ -180,6 +180,92 @@ TEST_CASE("norm : three_dimensional", "[Cartesian3D]") {
     );
 
     const auto actual_norm = coord::norm(pairs.point);
-    const auto expected_norm_sq = pairs.norm;
-    REQUIRE_THAT(actual_norm, Catch::Matchers::WithinRel(expected_norm_sq));
+    const auto expected_norm = pairs.norm;
+    REQUIRE_THAT(actual_norm, Catch::Matchers::WithinRel(expected_norm));
+}
+
+TEST_CASE("approx_eq : three_dimensional", "[Cartesian3D]") {
+    using Cartesian3D = coord::Cartesian<double, 3>;
+
+    struct TestPair {
+        Cartesian3D point0 {};
+        Cartesian3D point1 {};
+    };
+
+    auto eps = std::sqrt(coord::EPSILON_APPROX_EQ_SEPARATION_SQUARED<double>) / 2.0;
+
+    auto pairs = GENERATE_COPY(
+        TestPair(Cartesian3D{1.0, 2.0, 3.0}, Cartesian3D{1.0/1.0, 4.0/2.0, 9.0/3.0}),
+        TestPair(Cartesian3D{1.0, 2.0, 3.0}, Cartesian3D{1.0 + eps, 2.0 + eps, 3.0 + eps}),
+        TestPair(Cartesian3D{0.0, 0.0, 0.0}, Cartesian3D{eps, eps, eps})
+    );
+
+    REQUIRE(coord::approx_eq(pairs.point0, pairs.point1));
+}
+
+TEST_CASE("not approx_eq : three_dimensional", "[Cartesian3D]") {
+    using Cartesian3D = coord::Cartesian<double, 3>;
+
+    struct TestPair {
+        Cartesian3D point0 {};
+        Cartesian3D point1 {};
+    };
+
+    auto eps = std::sqrt(coord::EPSILON_APPROX_EQ_SEPARATION_SQUARED<double>);
+
+    auto pairs = GENERATE_COPY(
+        TestPair(Cartesian3D{1.0, 2.0, 3.0}, Cartesian3D{1.0 + eps, 2.0 + eps, 3.0 + eps}),
+        TestPair(Cartesian3D{0.0, 0.0, 0.0}, Cartesian3D{eps, eps, eps}),
+        TestPair(Cartesian3D{0.0, 0.0, 0.0}, Cartesian3D{10.0, 20.0, 30.0}),
+        TestPair(Cartesian3D{0.0, 0.0, 0.0}, Cartesian3D{-10.0, -20.0, -30.0}),
+        TestPair(Cartesian3D{1.0, 2.0, 3.0}, Cartesian3D{-10.0, -20.0, -30.0})
+    );
+
+    REQUIRE(!coord::approx_eq(pairs.point0, pairs.point1));
+}
+
+TEST_CASE("approx_eq_periodic : three_dimensional", "[Cartesian3D]") {
+    using Cartesian3D = coord::Cartesian<double, 3>;
+
+    struct TestPair {
+        Cartesian3D point0 {};
+        Cartesian3D point1 {};
+    };
+
+    auto eps = std::sqrt(coord::EPSILON_APPROX_EQ_SEPARATION_SQUARED<double>) / 2.0;
+    const auto box = coord::PeriodicBoxSides<double, 3> {6.0, 7.0, 8.0};
+    const auto p = Cartesian3D {1.0, 2.0, 3.0};
+
+    auto pairs = GENERATE_COPY(
+        TestPair(p, p),
+        TestPair(p, Cartesian3D {p[0] + box[0], p[1] + box[1], p[2] + box[2]}),
+        TestPair(p, Cartesian3D {p[0] + box[0] + eps, p[1] + box[1] + eps, p[2] + box[2] + eps}),
+        TestPair(p, Cartesian3D {p[0] - box[0], p[1] - box[1], p[2] - box[2]}),
+        TestPair(p, Cartesian3D {p[0] - box[0] - eps, p[1] - box[1] - eps, p[2] - box[2] - eps}),
+        TestPair(Cartesian3D{0.0, 0.0, 0.0}, Cartesian3D{eps, eps, eps})
+    );
+
+    REQUIRE(coord::approx_eq_periodic(pairs.point0, pairs.point1, box));
+}
+
+TEST_CASE("not approx_eq_periodic : three_dimensional", "[Cartesian3D]") {
+    using Cartesian3D = coord::Cartesian<double, 3>;
+
+    struct TestPair {
+        Cartesian3D point0 {};
+        Cartesian3D point1 {};
+    };
+
+    auto eps = std::sqrt(coord::EPSILON_APPROX_EQ_SEPARATION_SQUARED<double>);
+    const auto box = coord::PeriodicBoxSides<double, 3> {6.0, 7.0, 8.0};
+    const auto p = Cartesian3D {1.0, 2.0, 3.0};
+
+    auto pairs = GENERATE_COPY(
+        TestPair(p, Cartesian3D {p[0] + box[0] + eps, p[1] + box[1] + eps, p[2] + box[2] + eps}),
+        TestPair(p, Cartesian3D {p[0] - box[0] - eps, p[1] - box[1] - eps, p[2] - box[2] - eps}),
+        TestPair(Cartesian3D{0.0, 0.0, 0.0}, Cartesian3D{eps, eps, eps}),
+        TestPair(Cartesian3D{1.0, 2.0, 3.0}, Cartesian3D{4.0, 5.0, 6.0})
+    );
+
+    REQUIRE(!coord::approx_eq_periodic(pairs.point0, pairs.point1, box));
 }
