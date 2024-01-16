@@ -4,6 +4,8 @@
 
 #include <tomlplusplus/toml.hpp>
 
+#include <coordinates/coordinates.hpp>
+
 auto main() -> int {
     const auto some_toml = std::string_view {R"(
         [library]
@@ -30,6 +32,9 @@ auto main() -> int {
         std::cerr << "Parsing failed:\n" << err << "\n";
         return 1;
     }
+
+    const auto point = coord::Cartesian<double, 2> {1.0, 2.0};
+    std::cout << point.as_string() << '\n';
 
     return 0;
 }
