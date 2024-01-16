@@ -18,8 +18,8 @@ TEST_CASE("worldline construction", "[Worldline]") {
 
     SECTION("from array") {
         const auto arr = std::array<Point, 3> {point0, point1, point2};
-        const auto wline = worldline::Worldline<double, 3>{arr};
-        
+        const auto wline = worldline::Worldline<double, 3> {arr};
+
         const auto points = wline.points();
         REQUIRE(coord::approx_eq(point0, points[0]));
         REQUIRE(coord::approx_eq(point1, points[1]));
@@ -28,8 +28,8 @@ TEST_CASE("worldline construction", "[Worldline]") {
 
     SECTION("from vector") {
         const auto vec = std::vector<Point> {point0, point1, point2};
-        const auto wline = worldline::Worldline<double, 3>{vec};
-        
+        const auto wline = worldline::Worldline<double, 3> {vec};
+
         const auto points = wline.points();
         REQUIRE(coord::approx_eq(point0, points[0]));
         REQUIRE(coord::approx_eq(point1, points[1]));
@@ -39,13 +39,13 @@ TEST_CASE("worldline construction", "[Worldline]") {
     SECTION("from initializer list") {
         const auto ilist = std::initializer_list<Point> {point0, point1, point2};
         const auto wline = worldline::Worldline<double, 3> {ilist};
-        
+
         const auto points = wline.points();
         REQUIRE(coord::approx_eq(point0, points[0]));
         REQUIRE(coord::approx_eq(point1, points[1]));
         REQUIRE(coord::approx_eq(point2, points[2]));
     }
-    
+
     SECTION("with initializer list") {
         const auto wline = worldline::Worldline<double, 3> {point0, point1, point2};
 

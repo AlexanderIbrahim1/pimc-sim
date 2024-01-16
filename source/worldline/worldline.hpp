@@ -6,7 +6,8 @@
 
 #include <coordinates/coordinates.hpp>
 
-namespace {
+namespace
+{
 
 template <typename Container>
 concept IterableContainer = requires(Container c) {
@@ -15,7 +16,7 @@ concept IterableContainer = requires(Container c) {
     typename Container::value_type;
 };
 
-} // anonymous
+}  // namespace
 
 namespace worldline
 {
@@ -29,13 +30,11 @@ public:
     Worldline() = default;
 
     Worldline(std::initializer_list<Point> ilist)
-        : points_{ilist}
-    {}
+        : points_ {ilist} {}
 
     template <IterableContainer Container>
     Worldline(const Container& container)
-        : points_{std::begin(container), std::end(container)}
-    {
+        : points_ {std::begin(container), std::end(container)} {
         static_assert(std::same_as<typename Container::value_type, Point>);
     }
 
