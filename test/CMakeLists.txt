@@ -50,6 +50,7 @@ endfunction()
 add_test_target(cartesian_test "source/cartesian_test.cpp")
 add_test_target(measure_test "source/measure_test.cpp")
 add_test_target(worldline_test "source/worldline_test.cpp")
+add_test_target(two_body_test "source/two_body_test.cpp")
 
 
 # ---- End-of-file commands ----

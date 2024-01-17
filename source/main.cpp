@@ -5,6 +5,12 @@
 #include <tomlplusplus/toml.hpp>
 
 #include <coordinates/coordinates.hpp>
+#include <interactions/two_body/two_body_pointwise.hpp>
+
+template <interact::PairDistancePotential Potential>
+auto takes_pointwise_pair_distance_potential(Potential pot) {
+    std::cout << pot(2.0) << '\n';
+}
 
 auto main() -> int {
     const auto some_toml = std::string_view {R"(
@@ -35,6 +41,9 @@ auto main() -> int {
 
     const auto point = coord::Cartesian<double, 2> {1.0, 2.0};
     std::cout << point.as_string() << '\n';
+
+    const auto potential = interact::LennardJonesPotential<double> {1.0, 1.0};
+    takes_pointwise_pair_distance_potential(potential);
 
     return 0;
 }
