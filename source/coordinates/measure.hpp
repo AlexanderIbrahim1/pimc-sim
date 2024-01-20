@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <concepts>
 #include <cstdint>
 
 #include "constants.hpp"
@@ -10,7 +11,7 @@
 
 namespace coord
 {
-template <typename FP, std::size_t NDIM>
+template <std::floating_point FP, std::size_t NDIM>
 FP distance_squared(const Cartesian<FP, NDIM>& point0, const Cartesian<FP, NDIM>& point1)
 {
     FP dist_sq = 0.0;
@@ -22,7 +23,7 @@ FP distance_squared(const Cartesian<FP, NDIM>& point0, const Cartesian<FP, NDIM>
     return dist_sq;
 }
 
-template <typename FP, std::size_t NDIM>
+template <std::floating_point FP, std::size_t NDIM>
 FP distance_squared_periodic(
     const Cartesian<FP, NDIM>& point0,
     const Cartesian<FP, NDIM>& point1,
@@ -42,13 +43,13 @@ FP distance_squared_periodic(
     return dist_sq;
 }
 
-template <typename FP, std::size_t NDIM>
+template <std::floating_point FP, std::size_t NDIM>
 FP distance(const Cartesian<FP, NDIM>& point0, const Cartesian<FP, NDIM>& point1)
 {
     return std::sqrt(distance_squared(point0, point1));
 }
 
-template <typename FP, std::size_t NDIM>
+template <std::floating_point FP, std::size_t NDIM>
 FP distance_periodic(
     const Cartesian<FP, NDIM>& point0,
     const Cartesian<FP, NDIM>& point1,
@@ -58,7 +59,7 @@ FP distance_periodic(
     return std::sqrt(distance_squared_periodic(point0, point1, box));
 }
 
-template <typename FP, std::size_t NDIM>
+template <std::floating_point FP, std::size_t NDIM>
 FP norm_squared(const Cartesian<FP, NDIM>& point)
 {
     FP norm_sq = 0.0;
@@ -70,7 +71,7 @@ FP norm_squared(const Cartesian<FP, NDIM>& point)
     return norm_sq;
 }
 
-template <typename FP, std::size_t NDIM>
+template <std::floating_point FP, std::size_t NDIM>
 FP norm_squared_periodic(const Cartesian<FP, NDIM>& point, const PeriodicBoxSides<FP, NDIM>& box)
 {
     FP norm_sq = 0.0;
@@ -86,30 +87,47 @@ FP norm_squared_periodic(const Cartesian<FP, NDIM>& point, const PeriodicBoxSide
     return norm_sq;
 }
 
-template <typename FP, std::size_t NDIM>
+template <std::floating_point FP, std::size_t NDIM>
 FP norm(const Cartesian<FP, NDIM>& point)
 {
     return std::sqrt(norm_squared(point));
 }
 
-template <typename FP, std::size_t NDIM>
+template <std::floating_point FP, std::size_t NDIM>
 FP norm_periodic(const Cartesian<FP, NDIM>& point, const PeriodicBoxSides<FP, NDIM>& box)
 {
     return std::sqrt(norm_squared_periodic(point, box));
 }
 
-template <typename FP, std::size_t NDIM>
+template <std::floating_point FP, std::size_t NDIM>
 bool approx_eq(const Cartesian<FP, NDIM>& point0, const Cartesian<FP, NDIM>& point1, FP tolerance_sq = EPSILON_APPROX_EQ_SEPARATION_SQUARED<FP>)
 {
     const auto separation_dist_sq = distance_squared(point0, point1);
     return separation_dist_sq < tolerance_sq;
 }
 
-template <typename FP, std::size_t NDIM>
+template <std::floating_point FP, std::size_t NDIM>
 bool approx_eq_periodic(const Cartesian<FP, NDIM>& point0, const Cartesian<FP, NDIM>& point1, const PeriodicBoxSides<FP, NDIM>& box, FP tolerance_sq = EPSILON_APPROX_EQ_SEPARATION_SQUARED<FP>)
 {
     const auto separation_dist_sq = distance_squared_periodic(point0, point1, box);
     return separation_dist_sq < tolerance_sq;
+}
+
+template <typename SizedContainer1, typename SizedContainer2>
+bool approx_eq_containers(const SizedContainer1& cont1, const SizedContainer2& cont2)
+{
+    if (cont1.size() != cont2.size()) {
+        return false;
+    }
+
+    for (auto it1 = std::begin(cont1), it2 = std::begin(cont2); it1 < std::end(cont1);
+         ++it1, ++it2) {
+        if (!approx_eq(*it1, *it2)) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 }  // namespace coord
