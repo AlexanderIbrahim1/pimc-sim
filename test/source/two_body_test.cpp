@@ -9,7 +9,7 @@
 constexpr auto EPSILON_ENERGY = double {1.0e-8};
 
 TEST_CASE("lennard-jones potential : concept properties") {
-    static_assert(interact::PairDistancePotential<interact::LennardJonesPotential<double>>,
+    static_assert(interact::PairDistancePotential<interact::LennardJonesPotential<float>>,
                   "ERROR: the LennardJonesPotential was found not to satisfy the "
                   "PairDistancePotential concept!");
 }

@@ -10,9 +10,7 @@ namespace interact
 
 template <typename Potential>
 concept PairDistancePotential = requires(Potential pot) {
-    std::is_floating_point_v<typename Potential::value_type>;
-
-    { pot(typename Potential::value_type {}) } -> std::same_as<typename Potential::value_type>;
+    { pot(0.0) } -> std::floating_point;
 };
 
 template <std::floating_point FP>
@@ -37,7 +35,6 @@ template <std::floating_point FP>
 class LennardJonesPotential
 {
 public:
-    using value_type = FP;
     explicit LennardJonesPotential(FP well_depth, FP particle_size)
         : well_depth4_ {FP {4.0} * well_depth}
         , particle_size_ {particle_size} {
