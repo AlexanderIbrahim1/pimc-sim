@@ -8,11 +8,13 @@
 #include <interactions/two_body/two_body_pointwise.hpp>
 
 template <interact::PairDistancePotential Potential>
-auto takes_pointwise_pair_distance_potential(Potential pot) {
+auto takes_pointwise_pair_distance_potential(Potential pot)
+{
     std::cout << pot(2.0) << '\n';
 }
 
-auto main() -> int {
+auto main() -> int
+{
     const auto some_toml = std::string_view {R"(
         [library]
         name = "toml++"

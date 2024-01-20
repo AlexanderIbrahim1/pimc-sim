@@ -9,14 +9,16 @@
 #include "coordinates/measure.hpp"
 #include "worldline/worldline.hpp"
 
-TEST_CASE("worldline construction", "[Worldline]") {
+TEST_CASE("worldline construction", "[Worldline]")
+{
     using Point = coord::Cartesian<double, 3>;
 
     const auto point0 = Point {1.0, 2.0, 3.0};
     const auto point1 = Point {4.0, 5.0, 6.0};
     const auto point2 = Point {7.0, 8.0, 9.0};
 
-    SECTION("from array") {
+    SECTION("from array")
+    {
         const auto arr = std::array<Point, 3> {point0, point1, point2};
         const auto wline = worldline::Worldline<double, 3> {arr};
 
@@ -26,7 +28,8 @@ TEST_CASE("worldline construction", "[Worldline]") {
         REQUIRE(coord::approx_eq(point2, points[2]));
     }
 
-    SECTION("from vector") {
+    SECTION("from vector")
+    {
         const auto vec = std::vector<Point> {point0, point1, point2};
         const auto wline = worldline::Worldline<double, 3> {vec};
 
@@ -36,7 +39,8 @@ TEST_CASE("worldline construction", "[Worldline]") {
         REQUIRE(coord::approx_eq(point2, points[2]));
     }
 
-    SECTION("from initializer list") {
+    SECTION("from initializer list")
+    {
         const auto ilist = std::initializer_list<Point> {point0, point1, point2};
         const auto wline = worldline::Worldline<double, 3> {ilist};
 
@@ -46,7 +50,8 @@ TEST_CASE("worldline construction", "[Worldline]") {
         REQUIRE(coord::approx_eq(point2, points[2]));
     }
 
-    SECTION("with initializer list") {
+    SECTION("with initializer list")
+    {
         const auto wline = worldline::Worldline<double, 3> {point0, point1, point2};
 
         const auto points = wline.points();

@@ -1,7 +1,7 @@
 ---
 Language: Cpp
 AccessModifierOffset: -4
-AlignAfterOpenBracket: Align
+AlignAfterOpenBracket: BlockIndent
 AlignArrayOfStructures: Left
 AlignConsecutiveAssignments: false
 AlignConsecutiveBitFields: false
@@ -30,7 +30,7 @@ BraceWrapping:
   AfterClass: true
   AfterControlStatement: Never
   AfterEnum: true
-  AfterFunction: false
+  AfterFunction: true
   AfterNamespace: true
   AfterObjCDeclaration: false
   AfterStruct: true

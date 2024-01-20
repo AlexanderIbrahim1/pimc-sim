@@ -30,15 +30,18 @@ public:
     Worldline() = default;
 
     Worldline(std::initializer_list<Point> ilist)
-        : points_ {ilist} {}
+        : points_ {ilist}
+    {}
 
     template <IterableContainer Container>
     Worldline(const Container& container)
-        : points_ {std::begin(container), std::end(container)} {
+        : points_ {std::begin(container), std::end(container)}
+    {
         static_assert(std::same_as<typename Container::value_type, Point>);
     }
 
-    constexpr auto points() const -> const std::vector<Point>& {
+    constexpr auto points() const -> const std::vector<Point>&
+    {
         return points_;
     }
 
