@@ -1,6 +1,8 @@
 #pragma once
 
+#include <algorithm>
 #include <array>
+#include <cmath>
 #include <concepts>
 #include <cstddef>
 #include <format>
@@ -16,7 +18,6 @@ namespace geom
 
 // TODO: add a check to make sure the lattice site lies inside the unit cell
 //      - this was done in the Python version using some matrix trick
-// TODO: add a function that checks if a unit cell is orthogonal and elementary
 
 template <std::floating_point FP, std::size_t NDIM>
 class UnitCell
@@ -72,6 +73,54 @@ constexpr auto unit_cell_sites(const UnitCell<FP, NDIM>& unit_cell, const coord:
     }
 
     return sites;
+}
+
+struct NonzeroResult
+{
+    bool is_valid {};
+    std::size_t index {};
+};
+
+template <std::floating_point FP, std::size_t NDIM>
+constexpr auto find_unique_nonzero_index(const coord::Cartesian<FP, NDIM>& point) -> NonzeroResult
+{
+    const auto is_nonzero = [](FP x) { return std::fabs(x) >= EPSILON_MINIMUM_COORDINATE_ABSOLUTE_VALUE<FP>; };
+
+    auto n_nonzeroes = std::size_t {0};
+    auto i_nonzero = std::size_t {0};
+
+    for (std::size_t i {0}; i < NDIM; ++i) {
+        if (is_nonzero(point[i])) {
+            i_nonzero = i;
+            ++n_nonzeroes;
+        }
+    }
+
+    if (n_nonzeroes != 1) {
+        return {false, 0};
+    }
+    else {
+        return {true, i_nonzero};
+    }
+}
+
+template <std::floating_point FP, std::size_t NDIM>
+constexpr auto is_orthogonal_and_elementary(const std::array<coord::Cartesian<FP, NDIM>, NDIM>& basis_lattice_vectors
+) noexcept -> bool
+{
+    auto nonzero_flags = std::array<bool, NDIM> {};
+
+    for (const auto& lvec : basis_lattice_vectors) {
+        const auto result = find_unique_nonzero_index(lvec);
+        if (result.is_valid && !nonzero_flags[result.index]) {
+            nonzero_flags[result.index] = true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    return std::all_of(std::begin(nonzero_flags), std::end(nonzero_flags), [](bool flag) { return flag; });
 }
 
 }  // namespace geom

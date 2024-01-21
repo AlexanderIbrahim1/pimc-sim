@@ -95,3 +95,48 @@ TEST_CASE("unit cell sites", "[UnitCell]")
         }
     }
 }
+
+TEST_CASE("orthogonal and elementary", "[UnitCell]")
+{
+    SECTION("is orthogonal and elementary : 2D")
+    {
+        using Point = coord::Cartesian<double, 2>;
+        const auto basis_lattice_vectors = std::array {
+            Point {1.0, 0.0},
+             Point {0.0, 1.0}
+        };
+        REQUIRE(geom::is_orthogonal_and_elementary(basis_lattice_vectors));
+    }
+
+    SECTION("is orthogonal and elementary : 3D")
+    {
+        using Point = coord::Cartesian<double, 3>;
+        const auto basis_lattice_vectors = std::array {
+            Point {0.0, 2.0, 0.0},
+            Point {1.0, 0.0, 0.0},
+            Point {0.0, 0.0, 3.0}
+        };
+        REQUIRE(geom::is_orthogonal_and_elementary(basis_lattice_vectors));
+    }
+
+    SECTION("is not orthogonal and elementary : 2D")
+    {
+        using Point = coord::Cartesian<double, 2>;
+        const auto basis_lattice_vectors = std::array {
+            Point {1.0, 0.4},
+             Point {0.0, 1.0}
+        };
+        REQUIRE(!geom::is_orthogonal_and_elementary(basis_lattice_vectors));
+    }
+
+    SECTION("is orthogonal and elementary : 3D")
+    {
+        using Point = coord::Cartesian<double, 3>;
+        const auto basis_lattice_vectors = std::array {
+            Point {1.0, 2.0, 3.0},
+            Point {4.0, 5.0, 6.0},
+            Point {7.0, 8.0, 9.0}
+        };
+        REQUIRE(!geom::is_orthogonal_and_elementary(basis_lattice_vectors));
+    }
+}

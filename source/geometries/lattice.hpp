@@ -4,6 +4,7 @@
 #include <cstddef>
 
 #include <coordinates/cartesian.hpp>
+#include <coordinates/periodicboxsides.hpp>
 #include <geometries/unit_cell.hpp>
 #include <geometries/unit_cell_translations.hpp>
 
@@ -54,5 +55,10 @@ constexpr auto lattice_particle_positions(
 
     return particle_positions;
 }
+
+// template <std::floating_point FP, std::size_t NDIM>
+// constexpr auto lattice_box(const UnitCell<FP, NDIM>& unit_cell, const UnitCellTranslations<NDIM>& translations)
+//     -> coord::PeriodicBoxSides<FP, NDIM>
+// {}
 
 }  // namespace geom
