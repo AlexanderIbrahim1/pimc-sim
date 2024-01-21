@@ -135,10 +135,7 @@ TEST_CASE("distance_squared_periodic : three_dimensional : unit box no origins",
     REQUIRE_THAT(actual_dist_sq, Catch::Matchers::WithinRel(expected_dist_sq));
 }
 
-TEST_CASE(
-    "distance_squared_periodic : three_dimensional : non-unit-box from origin",
-    "[Cartesian3D]"
-)
+TEST_CASE("distance_squared_periodic : three_dimensional : non-unit-box from origin", "[Cartesian3D]")
 {
     const auto box = coord::PeriodicBoxSides<float, 3> {1.0f, 2.0f, 3.0f};
     const auto origin = coord::Cartesian<float, 3> {0.0f, 0.0f, 0.0f};

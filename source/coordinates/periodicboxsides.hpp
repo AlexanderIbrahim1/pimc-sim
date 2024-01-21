@@ -31,9 +31,7 @@ public:
 
         const auto is_nonpositive = [](FP x) { return x <= 0.0; };
         if (std::any_of(m_coords.cbegin(), m_coords.cend(), is_nonpositive)) {
-            throw std::runtime_error(
-                "All the box sides in a `PeriodicBoxSides` instance must be positive."
-            );
+            throw std::runtime_error("All the box sides in a `PeriodicBoxSides` instance must be positive.");
         }
     }
 
@@ -53,9 +51,7 @@ public:
     {
         // non-modifying access coordinates with bounds checking always on
         if (index >= NDIM) {
-            throw std::runtime_error(
-                "Out of bounds access. Tried to access index " + std::to_string(index)
-            );
+            throw std::runtime_error("Out of bounds access. Tried to access index " + std::to_string(index));
         }
 
         return m_coords[index];

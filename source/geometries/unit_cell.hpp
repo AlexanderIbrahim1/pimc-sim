@@ -24,24 +24,19 @@ class UnitCell
     using Point = coord::Cartesian<FP, NDIM>;
 
 public:
-    constexpr explicit UnitCell(
-        std::array<Point, NDIM> lattice_vectors,
-        std::vector<Point> unit_cell_sites
-    )
+    constexpr explicit UnitCell(std::array<Point, NDIM> lattice_vectors, std::vector<Point> unit_cell_sites)
         : basis_lattice_vectors_ {std::move(lattice_vectors)}
         , basis_unit_cell_sites_ {std::move(unit_cell_sites)}
     {
         if (basis_unit_cell_sites_.size() < 1) {
-            throw std::runtime_error(
-                "There must be at least one lattice site per conventional unit cell."
-            );
+            throw std::runtime_error("There must be at least one lattice site per conventional unit cell.");
         }
 
         for (const auto& lvec : basis_lattice_vectors_) {
             if (coord::norm_squared(lvec) < EPSILON_MINIMUM_LATTICE_VECTOR_NORM_SQUARED<FP>) {
-                throw std::runtime_error(std::format(
-                    "All lattice vectors must have a non-zero length.\nFound: {}", lvec.as_string()
-                ));
+                throw std::runtime_error(
+                    std::format("All lattice vectors must have a non-zero length.\nFound: {}", lvec.as_string())
+                );
             }
         }
     }
@@ -67,10 +62,8 @@ private:
 };
 
 template <std::floating_point FP, std::size_t NDIM>
-constexpr auto unit_cell_sites(
-    const UnitCell<FP, NDIM>& unit_cell,
-    const coord::Cartesian<FP, NDIM>& lattice_point
-) -> std::vector<coord::Cartesian<FP, NDIM>>
+constexpr auto unit_cell_sites(const UnitCell<FP, NDIM>& unit_cell, const coord::Cartesian<FP, NDIM>& lattice_point)
+    -> std::vector<coord::Cartesian<FP, NDIM>>
 {
     auto sites = std::vector<coord::Cartesian<FP, NDIM>> {};
     sites.reserve(unit_cell.n_basis_unit_cell_sites());

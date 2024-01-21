@@ -120,8 +120,7 @@ bool approx_eq_containers(const SizedContainer1& cont1, const SizedContainer2& c
         return false;
     }
 
-    for (auto it1 = std::begin(cont1), it2 = std::begin(cont2); it1 < std::end(cont1);
-         ++it1, ++it2) {
+    for (auto it1 = std::begin(cont1), it2 = std::begin(cont2); it1 < std::end(cont1); ++it1, ++it2) {
         if (!approx_eq(*it1, *it2)) {
             return false;
         }

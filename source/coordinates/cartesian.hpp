@@ -53,9 +53,7 @@ public:
     {
         // version of `shift_coord` with bounds checking always on
         if (index >= NDIM) {
-            throw std::runtime_error(
-                "Out of bounds access. Tried to access index " + std::to_string(index)
-            );
+            throw std::runtime_error("Out of bounds access. Tried to access index " + std::to_string(index));
         }
         m_coords[index] += value;
     }
@@ -78,9 +76,7 @@ public:
     {
         // non-modifying access coordinates with bounds checking always on
         if (index >= NDIM) {
-            throw std::runtime_error(
-                "Out of bounds access. Tried to access index " + std::to_string(index)
-            );
+            throw std::runtime_error("Out of bounds access. Tried to access index " + std::to_string(index));
         }
 
         return m_coords[index];
@@ -90,9 +86,7 @@ public:
     {
         // modifying access coordinates with bounds checking always on
         if (index >= NDIM) {
-            throw std::runtime_error(
-                "Out of bounds access. Tried to access index " + std::to_string(index)
-            );
+            throw std::runtime_error("Out of bounds access. Tried to access index " + std::to_string(index));
         }
 
         m_coords[index] = new_coord;
@@ -198,16 +192,14 @@ public:
 // instance
 
 template <std::floating_point FP, std::size_t NDIM>
-constexpr auto operator+(Cartesian<FP, NDIM> lhs, const Cartesian<FP, NDIM>& rhs)
-    -> Cartesian<FP, NDIM>
+constexpr auto operator+(Cartesian<FP, NDIM> lhs, const Cartesian<FP, NDIM>& rhs) -> Cartesian<FP, NDIM>
 {
     lhs += rhs;
     return lhs;
 }
 
 template <std::floating_point FP, std::size_t NDIM>
-constexpr auto operator-(Cartesian<FP, NDIM> lhs, const Cartesian<FP, NDIM>& rhs)
-    -> Cartesian<FP, NDIM>
+constexpr auto operator-(Cartesian<FP, NDIM> lhs, const Cartesian<FP, NDIM>& rhs) -> Cartesian<FP, NDIM>
 {
     lhs -= rhs;
     return lhs;

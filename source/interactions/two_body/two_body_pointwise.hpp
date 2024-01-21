@@ -19,9 +19,8 @@ template <std::floating_point FP>
 void ctr_check_well_depth_positive(FP well_depth)
 {
     if (well_depth <= FP {0.0}) {
-        const std::string msg = std::format(
-            "The Lennard-Jones well depth must be positive\nFound: {: .6e}", well_depth
-        );
+        const std::string msg =
+            std::format("The Lennard-Jones well depth must be positive\nFound: {: .6e}", well_depth);
         throw std::runtime_error(msg);
     }
 }
@@ -30,9 +29,8 @@ template <std::floating_point FP>
 void ctr_check_particle_size_positive(FP particle_size)
 {
     if (particle_size <= FP {0.0}) {
-        const std::string msg = std::format(
-            "The Lennard-Jones particle size must be positive\nFound: {: .6e}", particle_size
-        );
+        const std::string msg =
+            std::format("The Lennard-Jones particle size must be positive\nFound: {: .6e}", particle_size);
         throw std::runtime_error(msg);
     }
 }
