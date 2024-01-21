@@ -16,21 +16,43 @@ enum class LatticeType
 };
 
 template <std::floating_point FP, std::size_t NDIM>
+constexpr auto make_lattice_site(
+    const std::array<std::size_t, NDIM>& indices,
+    const std::array<coord::Cartesian<FP, NDIM>, NDIM>& basis_lattice_vectors
+) -> coord::Cartesian<FP, NDIM>
+{
+    auto lattice_site_ = coord::Cartesian<FP, NDIM> {};
+
+    for (std::size_t i {0}; i < NDIM; ++i) {
+        lattice_site_ += static_cast<FP>(indices[i]) * basis_lattice_vectors[i];
+    }
+
+    return lattice_site_;
+}
+
+template <std::floating_point FP, std::size_t NDIM>
 constexpr auto lattice_particle_positions(
     const UnitCell<FP, NDIM>& unit_cell,
     const UnitCellTranslations<NDIM>& translations
 ) -> std::vector<coord::Cartesian<FP, NDIM>>
 {
     const auto n_sites = n_total_boxes(translations);
-    const auto basis_size = unit_cell.n_basis_unit_cell_sites();
+    const auto n_particles = n_sites * unit_cell.n_basis_unit_cell_sites();
 
-    auto sites = std::vector<coord::Cartesian<FP, NDIM>> {};
-    sites.reserve(n_sites);
+    auto particle_positions = std::vector<coord::Cartesian<FP, NDIM>> {};
+    particle_positions.reserve(n_particles);
 
-    const auto unit_cell_incrementer = UnitCellIncrementer<NDIM> {translations};
+    auto incrementer = UnitCellIncrementer<NDIM> {translations};
 
-    for (std::size_t i_site {0}; i_size < n_sites; ++i_site) {
+    for (std::size_t i_site {0}; i_site < n_sites; ++i_site) {
+        const auto lattice_site = make_lattice_site(incrementer.indices(), unit_cell.basis_lattice_vectors());
+        for (const auto& unit_cell_site : unit_cell.basis_unit_cell_sites()) {
+            particle_positions.push_back(lattice_site + unit_cell_site);
+        }
+        incrementer.increment();
     }
+
+    return particle_positions;
 }
 
 }  // namespace geom
