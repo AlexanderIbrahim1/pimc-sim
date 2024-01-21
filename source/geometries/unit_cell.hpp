@@ -56,7 +56,7 @@ public:
         return basis_unit_cell_sites_;
     }
 
-    constexpr auto n_unit_cell_sites() const noexcept -> std::size_t
+    constexpr auto n_basis_unit_cell_sites() const noexcept -> std::size_t
     {
         return basis_unit_cell_sites_.size();
     }
@@ -73,7 +73,7 @@ constexpr auto unit_cell_sites(
 ) -> std::vector<coord::Cartesian<FP, NDIM>>
 {
     auto sites = std::vector<coord::Cartesian<FP, NDIM>> {};
-    sites.reserve(unit_cell.n_unit_cell_sites());
+    sites.reserve(unit_cell.n_basis_unit_cell_sites());
     for (const auto& lvec : unit_cell.basis_unit_cell_sites()) {
         sites.emplace_back(lattice_point + lvec);
     }

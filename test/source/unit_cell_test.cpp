@@ -26,7 +26,7 @@ TEST_CASE("unit cell construction", "[UnitCell]")
 
     REQUIRE(coord::approx_eq_containers(unit_cell.basis_lattice_vectors(), lattice_vectors));
     REQUIRE(coord::approx_eq_containers(unit_cell.basis_unit_cell_sites(), unit_cell_sites));
-    REQUIRE(unit_cell.n_unit_cell_sites() == unit_cell_sites.size());
+    REQUIRE(unit_cell.n_basis_unit_cell_sites() == unit_cell_sites.size());
 }
 
 TEST_CASE("unit cell construction : throwing", "[UnitCell]")
