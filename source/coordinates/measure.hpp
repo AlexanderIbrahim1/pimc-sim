@@ -9,6 +9,9 @@
 #include "coordinates.hpp"
 #include "periodicboxsides.hpp"
 
+// NOTE: any function involving the use of `sqrt()` cannot be `constexpr` until C++26
+// - the fact that it compiles on GCC is apparently a bug, and it won't work on other compilers
+
 namespace coord
 {
 
