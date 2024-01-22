@@ -4,6 +4,7 @@
 #include "coordinates/cartesian.hpp"
 #include "coordinates/measure.hpp"
 #include "geometries/lattice.hpp"
+#include "geometries/lattice_type.hpp"
 #include "geometries/unit_cell.hpp"
 #include "geometries/unit_cell_translations.hpp"
 
@@ -47,4 +48,14 @@ TEST_CASE("lattice box")
     const auto actual_lattice_box = geom::lattice_box(unit_cell_box_sides, translations);
 
     REQUIRE(coord::approx_eq(expected_lattice_box, actual_lattice_box));
+}
+
+TEST_CASE("density_to_lattice_constant")
+{
+    const auto ltype = geom::LatticeType::HCP;
+    const auto hcp_eq_density = double {0.0259};  // inverse cubic angstroms
+    const auto expected = double {3.794};         // angstroms
+    const auto actual = geom::density_to_lattice_constant(hcp_eq_density, ltype);
+
+    REQUIRE_THAT(expected, Catch::Matchers::WithinAbs(actual, 0.01));
 }

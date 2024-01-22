@@ -11,11 +11,6 @@
 namespace geom
 {
 
-enum class LatticeType
-{
-    HCP
-};
-
 template <std::floating_point FP, std::size_t NDIM>
 constexpr auto make_lattice_site(
     const std::array<std::size_t, NDIM>& indices,
