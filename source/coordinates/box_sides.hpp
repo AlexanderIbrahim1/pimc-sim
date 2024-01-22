@@ -11,6 +11,9 @@
 
 #include "constants.hpp"
 
+#include <coordinates/cartesian.hpp>
+#include <coordinates/coord_utils.hpp>
+
 namespace coord
 {
 template <std::floating_point FP, std::size_t NDIM>
@@ -26,11 +29,13 @@ public:
         : m_coords {(coords)...}
     {
         static_assert(sizeof...(coords) == NDIM);
+        coord_utils::check_all_entries_are_positive(m_coords);
+    }
 
-        const auto is_nonpositive = [](FP x) { return x <= 0.0; };
-        if (std::any_of(m_coords.cbegin(), m_coords.cend(), is_nonpositive)) {
-            throw std::runtime_error("All the box sides in a `BoxSides` instance must be positive.");
-        }
+    explicit BoxSides(const Cartesian<FP, NDIM>& point)
+        : m_coords {point.coordinates()}
+    {
+        coord_utils::check_all_entries_are_positive(m_coords);
     }
 
     constexpr auto coordinates() const noexcept -> const std::array<FP, NDIM>&
@@ -40,7 +45,7 @@ public:
 
     constexpr auto operator[](std::size_t index) const noexcept -> FP
     {
-        // modifying access coordinates with bounds checking on in debug mode only
+        // non-modifying access coordinates with bounds checking on in debug mode only
         assert(index < NDIM);
         return m_coords[index];
     }
