@@ -11,8 +11,9 @@
 
 namespace coord
 {
+
 template <std::floating_point FP, std::size_t NDIM>
-FP distance_squared(const Cartesian<FP, NDIM>& point0, const Cartesian<FP, NDIM>& point1)
+constexpr auto distance_squared(const Cartesian<FP, NDIM>& point0, const Cartesian<FP, NDIM>& point1) noexcept -> FP
 {
     FP dist_sq = 0.0;
     for (std::size_t i_dim = 0; i_dim < NDIM; ++i_dim) {
@@ -24,11 +25,11 @@ FP distance_squared(const Cartesian<FP, NDIM>& point0, const Cartesian<FP, NDIM>
 }
 
 template <std::floating_point FP, std::size_t NDIM>
-FP distance_squared_periodic(
+constexpr auto distance_squared_periodic(
     const Cartesian<FP, NDIM>& point0,
     const Cartesian<FP, NDIM>& point1,
     const PeriodicBoxSides<FP, NDIM>& box
-)
+) noexcept -> FP
 {
     FP dist_sq = 0.0;
     for (std::size_t i_dim = 0; i_dim < NDIM; ++i_dim) {
@@ -44,23 +45,23 @@ FP distance_squared_periodic(
 }
 
 template <std::floating_point FP, std::size_t NDIM>
-FP distance(const Cartesian<FP, NDIM>& point0, const Cartesian<FP, NDIM>& point1)
+auto distance(const Cartesian<FP, NDIM>& point0, const Cartesian<FP, NDIM>& point1) noexcept -> FP
 {
     return std::sqrt(distance_squared(point0, point1));
 }
 
 template <std::floating_point FP, std::size_t NDIM>
-FP distance_periodic(
+auto distance_periodic(
     const Cartesian<FP, NDIM>& point0,
     const Cartesian<FP, NDIM>& point1,
-    const PeriodicBoxSides<FP, NDIM>& box
-)
+    const PeriodicBoxSides<FP, NDIM>& box  //
+) noexcept -> FP
 {
     return std::sqrt(distance_squared_periodic(point0, point1, box));
 }
 
 template <std::floating_point FP, std::size_t NDIM>
-FP norm_squared(const Cartesian<FP, NDIM>& point)
+constexpr auto norm_squared(const Cartesian<FP, NDIM>& point) noexcept -> FP
 {
     FP norm_sq = 0.0;
     for (std::size_t i_dim = 0; i_dim < NDIM; ++i_dim) {
@@ -72,7 +73,10 @@ FP norm_squared(const Cartesian<FP, NDIM>& point)
 }
 
 template <std::floating_point FP, std::size_t NDIM>
-FP norm_squared_periodic(const Cartesian<FP, NDIM>& point, const PeriodicBoxSides<FP, NDIM>& box)
+constexpr auto norm_squared_periodic(
+    const Cartesian<FP, NDIM>& point,
+    const PeriodicBoxSides<FP, NDIM>& box  //
+) noexcept -> FP
 {
     FP norm_sq = 0.0;
     for (std::size_t i_dim = 0; i_dim < NDIM; ++i_dim) {
@@ -88,33 +92,42 @@ FP norm_squared_periodic(const Cartesian<FP, NDIM>& point, const PeriodicBoxSide
 }
 
 template <std::floating_point FP, std::size_t NDIM>
-FP norm(const Cartesian<FP, NDIM>& point)
+auto norm(const Cartesian<FP, NDIM>& point) noexcept -> FP
 {
     return std::sqrt(norm_squared(point));
 }
 
 template <std::floating_point FP, std::size_t NDIM>
-FP norm_periodic(const Cartesian<FP, NDIM>& point, const PeriodicBoxSides<FP, NDIM>& box)
+auto norm_periodic(const Cartesian<FP, NDIM>& point, const PeriodicBoxSides<FP, NDIM>& box) noexcept -> FP
 {
     return std::sqrt(norm_squared_periodic(point, box));
 }
 
 template <std::floating_point FP, std::size_t NDIM>
-bool approx_eq(const Cartesian<FP, NDIM>& point0, const Cartesian<FP, NDIM>& point1, FP tolerance_sq = EPSILON_APPROX_EQ_SEPARATION_SQUARED<FP>)
+constexpr auto approx_eq(
+    const Cartesian<FP, NDIM>& point0,
+    const Cartesian<FP, NDIM>& point1,
+    FP tolerance_sq = EPSILON_APPROX_EQ_SEPARATION_SQUARED<FP>  //
+) noexcept -> bool
 {
     const auto separation_dist_sq = distance_squared(point0, point1);
     return separation_dist_sq < tolerance_sq;
 }
 
 template <std::floating_point FP, std::size_t NDIM>
-bool approx_eq_periodic(const Cartesian<FP, NDIM>& point0, const Cartesian<FP, NDIM>& point1, const PeriodicBoxSides<FP, NDIM>& box, FP tolerance_sq = EPSILON_APPROX_EQ_SEPARATION_SQUARED<FP>)
+constexpr auto approx_eq_periodic(
+    const Cartesian<FP, NDIM>& point0,
+    const Cartesian<FP, NDIM>& point1,
+    const PeriodicBoxSides<FP, NDIM>& box,
+    FP tolerance_sq = EPSILON_APPROX_EQ_SEPARATION_SQUARED<FP>  //
+) noexcept -> bool
 {
     const auto separation_dist_sq = distance_squared_periodic(point0, point1, box);
     return separation_dist_sq < tolerance_sq;
 }
 
 template <typename SizedContainer1, typename SizedContainer2>
-bool approx_eq_containers(const SizedContainer1& cont1, const SizedContainer2& cont2)
+auto approx_eq_containers(const SizedContainer1& cont1, const SizedContainer2& cont2) noexcept -> bool
 {
     if (cont1.size() != cont2.size()) {
         return false;
