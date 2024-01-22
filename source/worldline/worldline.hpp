@@ -4,19 +4,8 @@
 #include <initializer_list>
 #include <vector>
 
+#include <common/common_utils.hpp>
 #include <coordinates/coordinates.hpp>
-
-namespace
-{
-
-template <typename Container>
-concept IterableContainer = requires(Container c) {
-    std::begin(c);
-    std::end(c);
-    typename Container::value_type;
-};
-
-}  // namespace
 
 namespace worldline
 {
@@ -33,7 +22,7 @@ public:
         : points_ {ilist}
     {}
 
-    template <IterableContainer Container>
+    template <common_utils::IterableContainer Container>
     Worldline(const Container& container)
         : points_ {std::begin(container), std::end(container)}
     {
