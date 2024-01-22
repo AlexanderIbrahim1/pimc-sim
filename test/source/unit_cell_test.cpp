@@ -2,6 +2,7 @@
 #include <vector>
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include "coordinates/cartesian.hpp"
@@ -138,5 +139,42 @@ TEST_CASE("orthogonal and elementary", "[UnitCell]")
              Point {7.0, 8.0, 9.0}
         };
         REQUIRE(!geom::is_orthogonal_and_elementary(basis_lattice_vectors));
+    }
+}
+
+TEST_CASE("unit_cell_box_sides", "[UnitCell]")
+{
+    SECTION("2-dimensional lattice cell")
+    {
+        using Point = coord::Cartesian<double, 2>;
+
+        // clang-format off
+        const auto basis_lattice_vectors = GENERATE_COPY(
+            std::array {Point {1.0, 0.0}, Point {0.0, 2.0}},
+            std::array {Point {-1.0, 0.0}, Point {0.0, 2.0}},
+            std::array {Point {1.0, 0.0}, Point {0.0, -2.0}},
+            std::array {Point {-1.0, 0.0}, Point {0.0, -2.0}}
+        );
+        const auto basis_unit_cell_sites = std::vector {Point {0.0, 0.0}};
+        // clang-format on
+
+        const auto unit_cell = geom::UnitCell<double, 2> {basis_lattice_vectors, basis_unit_cell_sites};
+
+        const auto expected_box = Point {1.0, 2.0};
+        const auto actual_box = geom::unit_cell_box_sides(unit_cell);
+
+        REQUIRE(coord::approx_eq(expected_box, actual_box));
+    }
+
+    SECTION("throw if unit cell is not orthogonal and elementary") {
+        using Point = coord::Cartesian<double, 2>;
+
+        // clang-format off
+        const auto basis_lattice_vectors = std::array {Point {1.0, 0.5}, Point {0.0, 2.0}};
+        const auto basis_unit_cell_sites = std::vector {Point {0.0, 0.0}};
+        const auto unit_cell = geom::UnitCell<double, 2> {basis_lattice_vectors, basis_unit_cell_sites};
+        // clang-format on
+
+        REQUIRE_THROWS_AS(geom::unit_cell_box_sides(unit_cell), std::runtime_error);
     }
 }

@@ -6,6 +6,7 @@
 #include <concepts>
 #include <cstddef>
 #include <format>
+#include <numeric>
 #include <utility>
 #include <vector>
 
@@ -121,6 +122,31 @@ constexpr auto is_orthogonal_and_elementary(const std::array<coord::Cartesian<FP
     }
 
     return std::all_of(std::begin(nonzero_flags), std::end(nonzero_flags), [](bool flag) { return flag; });
+}
+
+template <std::floating_point FP, std::size_t NDIM>
+constexpr auto unit_cell_box_sides(const UnitCell<FP, NDIM>& unit_cell) -> coord::Cartesian<FP, NDIM>
+{
+    const auto basis = unit_cell.basis_lattice_vectors();
+    if (!is_orthogonal_and_elementary(basis)) {
+        throw std::runtime_error(
+            "Right now, we can only get unit cell box sides for unit cells whose basis lattice vectors are\n"
+            "orthogonal and elementary.\n"
+        );
+    }
+
+    auto unit_cell_sides = coord::Cartesian<FP, NDIM>::origin();
+    for (const auto& bvec : basis) {
+        unit_cell_sides += bvec;
+    }
+
+    // the basis lattice vectors aren't guaranteed to all point in the positive cardinal directions, but
+    // the box (whose entries are defined as lengths) must all be positive
+    for (std::size_t i {0}; i < NDIM; ++i) {
+        unit_cell_sides[i] = std::fabs(unit_cell_sides[i]);
+    }
+
+    return unit_cell_sides;
 }
 
 }  // namespace geom
