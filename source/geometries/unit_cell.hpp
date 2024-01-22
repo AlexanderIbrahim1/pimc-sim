@@ -125,7 +125,7 @@ constexpr auto is_orthogonal_and_elementary(const std::array<coord::Cartesian<FP
 }
 
 template <std::floating_point FP, std::size_t NDIM>
-constexpr auto unit_cell_box_sides(const UnitCell<FP, NDIM>& unit_cell) -> coord::Cartesian<FP, NDIM>
+constexpr auto unit_cell_box_sides(const UnitCell<FP, NDIM>& unit_cell) -> coord::BoxSides<FP, NDIM>
 {
     const auto basis = unit_cell.basis_lattice_vectors();
     if (!is_orthogonal_and_elementary(basis)) {
@@ -146,7 +146,7 @@ constexpr auto unit_cell_box_sides(const UnitCell<FP, NDIM>& unit_cell) -> coord
         unit_cell_sides[i] = std::fabs(unit_cell_sides[i]);
     }
 
-    return unit_cell_sides;
+    return coord::BoxSides<FP, NDIM> {unit_cell_sides};
 }
 
 }  // namespace geom

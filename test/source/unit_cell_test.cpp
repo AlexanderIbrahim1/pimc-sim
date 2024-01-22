@@ -147,6 +147,7 @@ TEST_CASE("unit_cell_box_sides", "[UnitCell]")
     SECTION("2-dimensional lattice cell")
     {
         using Point = coord::Cartesian<double, 2>;
+        using Box = coord::BoxSides<double, 2>;
 
         // clang-format off
         const auto basis_lattice_vectors = GENERATE_COPY(
@@ -160,7 +161,7 @@ TEST_CASE("unit_cell_box_sides", "[UnitCell]")
 
         const auto unit_cell = geom::UnitCell<double, 2> {basis_lattice_vectors, basis_unit_cell_sites};
 
-        const auto expected_box = Point {1.0, 2.0};
+        const auto expected_box = Box {1.0, 2.0};
         const auto actual_box = geom::unit_cell_box_sides(unit_cell);
 
         REQUIRE(coord::approx_eq(expected_box, actual_box));
