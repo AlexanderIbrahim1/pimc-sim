@@ -184,20 +184,6 @@ TEST_CASE("division", "[Cartesian]")
 
         REQUIRE(coord::approx_eq(actual_point, expect_point));
     }
-
-#ifndef NDEBUG
-    // operator/ explicitly does not throw an exception when NDEBUG is defined
-    SECTION("division by 0.0")
-    {
-        REQUIRE_THROWS_AS(point / 0.0, std::runtime_error);
-    }
-
-    SECTION("division by very small number")
-    {
-        const auto small_number = coord::EPSILON_CARTESIAN_ZERO_DIVIDE<double> / 2.0;
-        REQUIRE_THROWS_AS(point / small_number, std::runtime_error);
-    }
-#endif
 }
 
 TEST_CASE("origin", "[Cartesian]")

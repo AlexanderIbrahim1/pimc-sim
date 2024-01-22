@@ -38,12 +38,12 @@ public:
         : m_coords {{}}
     {}
 
-    constexpr auto coordinates() const -> std::array<FP, NDIM>
+    constexpr auto coordinates() const noexcept -> std::array<FP, NDIM>
     {
         return m_coords;
     }
 
-    constexpr void shift_coord(std::size_t index, FP value)
+    constexpr void shift_coord(std::size_t index, FP value) noexcept
     {
         assert(index < NDIM);
         m_coords[index] += value;
@@ -58,14 +58,14 @@ public:
         m_coords[index] += value;
     }
 
-    constexpr auto operator[](std::size_t index) const -> FP
+    constexpr auto operator[](std::size_t index) const noexcept -> FP
     {
         // non-modifying access coordinates with bounds checking on during debug mode only
         assert(index < NDIM);
         return m_coords[index];
     }
 
-    constexpr auto operator[](std::size_t index) -> FP&
+    constexpr auto operator[](std::size_t index) noexcept -> FP&
     {
         // modifying access coordinates with bounds checking on during debug mode only
         assert(index < NDIM);
@@ -118,7 +118,7 @@ public:
         return coord_str.str();
     }
 
-    constexpr auto operator+=(const Cartesian<FP, NDIM>& rhs) -> Cartesian<FP, NDIM>&
+    constexpr auto operator+=(const Cartesian<FP, NDIM>& rhs) noexcept -> Cartesian<FP, NDIM>&
     {
         for (std::size_t i_dim = 0; i_dim < NDIM; ++i_dim) {
             m_coords[i_dim] = m_coords[i_dim] + rhs[i_dim];
@@ -127,7 +127,7 @@ public:
         return *this;
     }
 
-    constexpr auto operator-=(const Cartesian<FP, NDIM>& rhs) -> Cartesian<FP, NDIM>&
+    constexpr auto operator-=(const Cartesian<FP, NDIM>& rhs) noexcept -> Cartesian<FP, NDIM>&
     {
         for (std::size_t i_dim = 0; i_dim < NDIM; ++i_dim) {
             m_coords[i_dim] = m_coords[i_dim] - rhs[i_dim];
@@ -136,19 +136,18 @@ public:
         return *this;
     }
 
-    constexpr auto operator/=(FP other) -> Cartesian<FP, NDIM>&
+    constexpr auto operator/=(FP other) noexcept -> Cartesian<FP, NDIM>&
     {
-#ifndef NDEBUG
-        // I can't think of a good one-size-fits-all way to prevent zero-division
-        // errors; what I've decided on, is to perform a run-time check when debug
-        // mode is activated, and to omit this check when NDEBUG is present.
+        // I can't think of a good one-size-fits-all way to prevent zero-division errors;
+        // however, I want division to be noexcept like all the other arithmetic operations
+        // involving cartesian coordinates.
+        //
+        // Thus I'm offloading the responsibility of checking whether `other` is zero to
+        // the caller.
         //
         // it would be a *bad* idea (or at least very limiting) to check for equality
         // between 'other' and 0.0; I opt not to do that here
-        if (std::fabs(other) < EPSILON_CARTESIAN_ZERO_DIVIDE<FP>) {
-            throw std::runtime_error("Division by zero exception.");
-        }
-#endif
+        assert(std::fabs(other) >= EPSILON_CARTESIAN_ZERO_DIVIDE<FP>);
 
         for (std::size_t i_dim = 0; i_dim < NDIM; ++i_dim) {
             m_coords[i_dim] = m_coords[i_dim] / other;
@@ -157,7 +156,7 @@ public:
         return *this;
     }
 
-    constexpr auto operator*=(FP other) -> Cartesian<FP, NDIM>&
+    constexpr auto operator*=(FP other) noexcept -> Cartesian<FP, NDIM>&
     {
         for (std::size_t i_dim = 0; i_dim < NDIM; ++i_dim) {
             m_coords[i_dim] = m_coords[i_dim] * other;
@@ -166,7 +165,7 @@ public:
         return *this;
     }
 
-    constexpr auto operator-() const -> Cartesian<FP, NDIM>
+    constexpr auto operator-() const noexcept -> Cartesian<FP, NDIM>
     {
         auto new_coordinates = std::array<FP, NDIM> {};
         for (std::size_t i_dim = 0; i_dim < NDIM; ++i_dim) {
@@ -176,14 +175,14 @@ public:
         return Cartesian<FP, NDIM> {std::move(new_coordinates)};
     }
 
-    constexpr auto operator+() const -> Cartesian<FP, NDIM>
+    constexpr auto operator+() const noexcept -> Cartesian<FP, NDIM>
     {
-        return Cartesian<FP, NDIM>(m_coords);
+        return Cartesian<FP, NDIM> {m_coords};
     }
 
-    constexpr static auto origin() -> Cartesian<FP, NDIM>
+    constexpr static auto origin() noexcept -> Cartesian<FP, NDIM>
     {
-        return Cartesian();
+        return Cartesian {};
     }
 };
 
@@ -192,35 +191,35 @@ public:
 // instance
 
 template <std::floating_point FP, std::size_t NDIM>
-constexpr auto operator+(Cartesian<FP, NDIM> lhs, const Cartesian<FP, NDIM>& rhs) -> Cartesian<FP, NDIM>
+constexpr auto operator+(Cartesian<FP, NDIM> lhs, const Cartesian<FP, NDIM>& rhs) noexcept -> Cartesian<FP, NDIM>
 {
     lhs += rhs;
     return lhs;
 }
 
 template <std::floating_point FP, std::size_t NDIM>
-constexpr auto operator-(Cartesian<FP, NDIM> lhs, const Cartesian<FP, NDIM>& rhs) -> Cartesian<FP, NDIM>
+constexpr auto operator-(Cartesian<FP, NDIM> lhs, const Cartesian<FP, NDIM>& rhs) noexcept -> Cartesian<FP, NDIM>
 {
     lhs -= rhs;
     return lhs;
 }
 
 template <std::floating_point FP, std::size_t NDIM>
-constexpr auto operator*(Cartesian<FP, NDIM> lhs, FP rhs) -> Cartesian<FP, NDIM>
+constexpr auto operator*(Cartesian<FP, NDIM> lhs, FP rhs) noexcept -> Cartesian<FP, NDIM>
 {
     lhs *= rhs;
     return lhs;
 }
 
 template <std::floating_point FP, std::size_t NDIM>
-constexpr auto operator*(FP lhs, Cartesian<FP, NDIM> rhs) -> Cartesian<FP, NDIM>
+constexpr auto operator*(FP lhs, Cartesian<FP, NDIM> rhs) noexcept -> Cartesian<FP, NDIM>
 {
     rhs *= lhs;
     return rhs;
 }
 
 template <std::floating_point FP, std::size_t NDIM>
-constexpr auto operator/(Cartesian<FP, NDIM> lhs, FP rhs) -> Cartesian<FP, NDIM>
+constexpr auto operator/(Cartesian<FP, NDIM> lhs, FP rhs) noexcept -> Cartesian<FP, NDIM>
 {
     lhs /= rhs;
     return lhs;
