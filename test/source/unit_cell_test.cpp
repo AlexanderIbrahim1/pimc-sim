@@ -166,7 +166,8 @@ TEST_CASE("unit_cell_box_sides", "[UnitCell]")
         REQUIRE(coord::approx_eq(expected_box, actual_box));
     }
 
-    SECTION("throw if unit cell is not orthogonal and elementary") {
+    SECTION("throw if unit cell is not orthogonal and elementary")
+    {
         using Point = coord::Cartesian<double, 2>;
 
         // clang-format off

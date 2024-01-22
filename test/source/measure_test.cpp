@@ -4,10 +4,10 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include "coordinates/box_sides.hpp"
 #include "coordinates/cartesian.hpp"
 #include "coordinates/constants.hpp"
 #include "coordinates/measure.hpp"
-#include "coordinates/periodicboxsides.hpp"
 
 TEST_CASE("distance_squared : three_dimensional", "[Cartesian3D]")
 {
@@ -93,7 +93,7 @@ TEST_CASE("distance : three_dimensional", "[Cartesian3D]")
 
 TEST_CASE("distance_squared_periodic : three_dimensional : unit box from origin", "[Cartesian3D]")
 {
-    const auto box = coord::PeriodicBoxSides<float, 3> {1.0f, 1.0f, 1.0f};
+    const auto box = coord::BoxSides<float, 3> {1.0f, 1.0f, 1.0f};
     const auto origin = coord::Cartesian<float, 3> {0.0f, 0.0f, 0.0f};
 
     SECTION("0.0 vs 0.6")
@@ -126,7 +126,7 @@ TEST_CASE("distance_squared_periodic : three_dimensional : unit box from origin"
 
 TEST_CASE("distance_squared_periodic : three_dimensional : unit box no origins", "[Cartesian3D]")
 {
-    const auto box = coord::PeriodicBoxSides<float, 3> {1.0f, 1.0f, 1.0f};
+    const auto box = coord::BoxSides<float, 3> {1.0f, 1.0f, 1.0f};
     const auto point0 = coord::Cartesian<float, 3> {0.3f, 0.0f, 0.0f};
     const auto point1 = coord::Cartesian<float, 3> {-0.4f, 0.0f, 0.0f};
     const auto actual_dist_sq = coord::distance_squared_periodic(point0, point1, box);
@@ -137,7 +137,7 @@ TEST_CASE("distance_squared_periodic : three_dimensional : unit box no origins",
 
 TEST_CASE("distance_squared_periodic : three_dimensional : non-unit-box from origin", "[Cartesian3D]")
 {
-    const auto box = coord::PeriodicBoxSides<float, 3> {1.0f, 2.0f, 3.0f};
+    const auto box = coord::BoxSides<float, 3> {1.0f, 2.0f, 3.0f};
     const auto origin = coord::Cartesian<float, 3> {0.0f, 0.0f, 0.0f};
     const auto point = coord::Cartesian<float, 3> {0.6f, 1.1f, 0.5f};
     const auto actual_dist_sq = coord::distance_squared_periodic(origin, point, box);
@@ -148,7 +148,7 @@ TEST_CASE("distance_squared_periodic : three_dimensional : non-unit-box from ori
 
 TEST_CASE("distance_periodic : three_dimensional : non-unit-box from origin", "[Cartesian3D]")
 {
-    const auto box = coord::PeriodicBoxSides<float, 3> {1.0f, 2.0f, 3.0f};
+    const auto box = coord::BoxSides<float, 3> {1.0f, 2.0f, 3.0f};
     const auto origin = coord::Cartesian<float, 3> {0.0f, 0.0f, 0.0f};
     const auto point = coord::Cartesian<float, 3> {0.6f, 1.1f, 0.5f};
     const auto actual_dist = coord::distance_periodic(origin, point, box);
@@ -260,7 +260,7 @@ TEST_CASE("approx_eq_periodic : three_dimensional", "[Cartesian3D]")
     };
 
     auto eps = std::sqrt(coord::EPSILON_APPROX_EQ_SEPARATION_SQUARED<double>) / 2.0;
-    const auto box = coord::PeriodicBoxSides<double, 3> {6.0, 7.0, 8.0};
+    const auto box = coord::BoxSides<double, 3> {6.0, 7.0, 8.0};
     const auto p = Cartesian3D {1.0, 2.0, 3.0};
 
     auto pairs = GENERATE_COPY(
@@ -286,7 +286,7 @@ TEST_CASE("not approx_eq_periodic : three_dimensional", "[Cartesian3D]")
     };
 
     auto eps = std::sqrt(coord::EPSILON_APPROX_EQ_SEPARATION_SQUARED<double>);
-    const auto box = coord::PeriodicBoxSides<double, 3> {6.0, 7.0, 8.0};
+    const auto box = coord::BoxSides<double, 3> {6.0, 7.0, 8.0};
     const auto p = Cartesian3D {1.0, 2.0, 3.0};
 
     auto pairs = GENERATE_COPY(

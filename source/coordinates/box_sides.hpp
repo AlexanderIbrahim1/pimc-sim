@@ -5,6 +5,7 @@
 #include <cassert>
 #include <concepts>
 #include <cstdint>
+#include <iomanip>
 #include <sstream>
 #include <stdexcept>
 
@@ -13,22 +14,22 @@
 namespace coord
 {
 template <std::floating_point FP, std::size_t NDIM>
-class PeriodicBoxSides
+class BoxSides
 {
 public:
     // NOTE: there is no publicly available default constructor, because there
     // is no sensible default for the side lengths of the box
-    PeriodicBoxSides() = delete;
+    BoxSides() = delete;
 
     template <typename... VarCoords>
-    explicit PeriodicBoxSides(VarCoords... coords)
+    explicit BoxSides(VarCoords... coords)
         : m_coords {(coords)...}
     {
         static_assert(sizeof...(coords) == NDIM);
 
         const auto is_nonpositive = [](FP x) { return x <= 0.0; };
         if (std::any_of(m_coords.cbegin(), m_coords.cend(), is_nonpositive)) {
-            throw std::runtime_error("All the box sides in a `PeriodicBoxSides` instance must be positive.");
+            throw std::runtime_error("All the box sides in a `BoxSides` instance must be positive.");
         }
     }
 
@@ -58,7 +59,7 @@ public:
     {
         const auto prec = CARTESIAN_OSTREAM_PRECISION;
         std::stringstream coord_str;
-        coord_str << "PeriodicBoxSides(";
+        coord_str << "BoxSides(";
         for (std::size_t i_dim = 0; i_dim < NDIM; ++i_dim) {
             const auto value = m_coords[i_dim];
 
@@ -87,8 +88,8 @@ private:
 // NOTE: write a unit test for this!
 template <std::floating_point FP, std::size_t NDIM>
 constexpr auto approx_eq(
-    const PeriodicBoxSides<FP, NDIM>& box0,
-    const PeriodicBoxSides<FP, NDIM>& box1,
+    const BoxSides<FP, NDIM>& box0,
+    const BoxSides<FP, NDIM>& box1,
     FP tolerance_sq = EPSILON_BOX_SEPARATION<FP>  //
 ) noexcept -> bool
 {

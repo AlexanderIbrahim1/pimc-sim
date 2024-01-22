@@ -5,9 +5,9 @@
 #include <concepts>
 #include <cstdint>
 
-#include "constants.hpp"
-#include "coordinates.hpp"
-#include "periodicboxsides.hpp"
+#include <coordinates/box_sides.hpp>
+#include <coordinates/cartesian.hpp>
+#include <coordinates/constants.hpp>
 
 // NOTE: any function involving the use of `sqrt()` cannot be `constexpr` until C++26
 // - the fact that it compiles on GCC is apparently a bug, and it won't work on other compilers
@@ -31,7 +31,7 @@ template <std::floating_point FP, std::size_t NDIM>
 constexpr auto distance_squared_periodic(
     const Cartesian<FP, NDIM>& point0,
     const Cartesian<FP, NDIM>& point1,
-    const PeriodicBoxSides<FP, NDIM>& box
+    const BoxSides<FP, NDIM>& box
 ) noexcept -> FP
 {
     FP dist_sq = 0.0;
@@ -57,7 +57,7 @@ template <std::floating_point FP, std::size_t NDIM>
 auto distance_periodic(
     const Cartesian<FP, NDIM>& point0,
     const Cartesian<FP, NDIM>& point1,
-    const PeriodicBoxSides<FP, NDIM>& box  //
+    const BoxSides<FP, NDIM>& box  //
 ) noexcept -> FP
 {
     return std::sqrt(distance_squared_periodic(point0, point1, box));
@@ -78,7 +78,7 @@ constexpr auto norm_squared(const Cartesian<FP, NDIM>& point) noexcept -> FP
 template <std::floating_point FP, std::size_t NDIM>
 constexpr auto norm_squared_periodic(
     const Cartesian<FP, NDIM>& point,
-    const PeriodicBoxSides<FP, NDIM>& box  //
+    const BoxSides<FP, NDIM>& box  //
 ) noexcept -> FP
 {
     FP norm_sq = 0.0;
@@ -101,7 +101,7 @@ auto norm(const Cartesian<FP, NDIM>& point) noexcept -> FP
 }
 
 template <std::floating_point FP, std::size_t NDIM>
-auto norm_periodic(const Cartesian<FP, NDIM>& point, const PeriodicBoxSides<FP, NDIM>& box) noexcept -> FP
+auto norm_periodic(const Cartesian<FP, NDIM>& point, const BoxSides<FP, NDIM>& box) noexcept -> FP
 {
     return std::sqrt(norm_squared_periodic(point, box));
 }
@@ -121,7 +121,7 @@ template <std::floating_point FP, std::size_t NDIM>
 constexpr auto approx_eq_periodic(
     const Cartesian<FP, NDIM>& point0,
     const Cartesian<FP, NDIM>& point1,
-    const PeriodicBoxSides<FP, NDIM>& box,
+    const BoxSides<FP, NDIM>& box,
     FP tolerance_sq = EPSILON_APPROX_EQ_SEPARATION_SQUARED<FP>  //
 ) noexcept -> bool
 {
