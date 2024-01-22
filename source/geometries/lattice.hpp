@@ -56,9 +56,20 @@ constexpr auto lattice_particle_positions(
     return particle_positions;
 }
 
-// template <std::floating_point FP, std::size_t NDIM>
-// constexpr auto lattice_box(const UnitCell<FP, NDIM>& unit_cell, const UnitCellTranslations<NDIM>& translations)
-//     -> coord::BoxSides<FP, NDIM>
-// {}
+template <std::floating_point FP, std::size_t NDIM>
+constexpr auto lattice_box(
+    const coord::BoxSides<FP, NDIM>& unit_cell_sides,
+    const UnitCellTranslations<NDIM>& translations  //
+) -> coord::BoxSides<FP, NDIM>
+{
+    const auto boxes_in_each_dimension = translations.translations();
+
+    auto lat_box = coord::Cartesian<FP, NDIM>::origin();
+    for (std::size_t i {0}; i < NDIM; ++i) {
+        lat_box[i] = static_cast<FP>(boxes_in_each_dimension[i]) * unit_cell_sides[i];
+    }
+
+    return coord::BoxSides<FP, NDIM> {lat_box};
+}
 
 }  // namespace geom
