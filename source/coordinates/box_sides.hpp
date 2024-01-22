@@ -25,14 +25,14 @@ public:
     BoxSides() = delete;
 
     template <typename... VarCoords>
-    explicit BoxSides(VarCoords... coords)
+    constexpr explicit BoxSides(VarCoords... coords)
         : m_coords {(coords)...}
     {
         static_assert(sizeof...(coords) == NDIM);
         coord_utils::check_all_entries_are_positive(m_coords);
     }
 
-    explicit BoxSides(const Cartesian<FP, NDIM>& point)
+    constexpr explicit BoxSides(const Cartesian<FP, NDIM>& point)
         : m_coords {point.coordinates()}
     {
         coord_utils::check_all_entries_are_positive(m_coords);

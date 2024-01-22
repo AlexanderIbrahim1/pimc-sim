@@ -24,17 +24,17 @@ private:
 
 public:
     template <typename... VarCoords>
-    explicit Cartesian(VarCoords... coords)
+    constexpr explicit Cartesian(VarCoords... coords)
         : m_coords {(coords)...}
     {
         static_assert(sizeof...(coords) == NDIM);
     }
 
-    explicit Cartesian(std::array<FP, NDIM> coords)
+    constexpr explicit Cartesian(std::array<FP, NDIM> coords)
         : m_coords {coords}
     {}
 
-    Cartesian()
+    constexpr Cartesian()
         : m_coords {{}}
     {}
 

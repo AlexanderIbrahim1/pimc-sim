@@ -17,7 +17,7 @@ class UnitCellTranslations
 {
 public:
     template <typename... VarCoords>
-    UnitCellTranslations(VarCoords... coords)
+    constexpr UnitCellTranslations(VarCoords... coords)
         : translations_ {(coords)...}
     {
         static_assert(sizeof...(coords) == NDIM);
