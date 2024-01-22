@@ -15,9 +15,6 @@ namespace coord
 template <std::floating_point FP, std::size_t NDIM>
 class PeriodicBoxSides
 {
-private:
-    std::array<FP, NDIM> m_coords;
-
 public:
     // NOTE: there is no publicly available default constructor, because there
     // is no sensible default for the side lengths of the box
@@ -35,19 +32,19 @@ public:
         }
     }
 
-    constexpr auto coordinates() const
+    constexpr auto coordinates() const noexcept -> const std::array<FP, NDIM>&
     {
         return m_coords;
     }
 
-    constexpr FP operator[](std::size_t index) const
+    constexpr auto operator[](std::size_t index) const noexcept -> FP
     {
         // modifying access coordinates with bounds checking on in debug mode only
         assert(index < NDIM);
         return m_coords[index];
     }
 
-    constexpr FP at(std::size_t index) const
+    constexpr auto at(std::size_t index) const -> FP
     {
         // non-modifying access coordinates with bounds checking always on
         if (index >= NDIM) {
@@ -82,12 +79,18 @@ public:
 
         return coord_str.str();
     }
+
+private:
+    std::array<FP, NDIM> m_coords;
 };
 
 // NOTE: write a unit test for this!
 template <std::floating_point FP, std::size_t NDIM>
-constexpr bool
-approx_eq(const PeriodicBoxSides<FP, NDIM>& box0, const PeriodicBoxSides<FP, NDIM>& box1, FP tolerance_sq = EPSILON_BOX_SEPARATION<FP>)
+constexpr auto approx_eq(
+    const PeriodicBoxSides<FP, NDIM>& box0,
+    const PeriodicBoxSides<FP, NDIM>& box1,
+    FP tolerance_sq = EPSILON_BOX_SEPARATION<FP>  //
+) noexcept -> bool
 {
     FP total_diff_sq {};
     for (std::size_t i_dim = 0; i_dim < NDIM; ++i_dim) {

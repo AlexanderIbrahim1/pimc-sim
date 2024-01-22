@@ -113,8 +113,8 @@ TEST_CASE("orthogonal and elementary", "[UnitCell]")
         using Point = coord::Cartesian<double, 3>;
         const auto basis_lattice_vectors = std::array {
             Point {0.0, 2.0, 0.0},
-            Point {1.0, 0.0, 0.0},
-            Point {0.0, 0.0, 3.0}
+             Point {1.0, 0.0, 0.0},
+             Point {0.0, 0.0, 3.0}
         };
         REQUIRE(geom::is_orthogonal_and_elementary(basis_lattice_vectors));
     }
@@ -134,8 +134,8 @@ TEST_CASE("orthogonal and elementary", "[UnitCell]")
         using Point = coord::Cartesian<double, 3>;
         const auto basis_lattice_vectors = std::array {
             Point {1.0, 2.0, 3.0},
-            Point {4.0, 5.0, 6.0},
-            Point {7.0, 8.0, 9.0}
+             Point {4.0, 5.0, 6.0},
+             Point {7.0, 8.0, 9.0}
         };
         REQUIRE(!geom::is_orthogonal_and_elementary(basis_lattice_vectors));
     }
