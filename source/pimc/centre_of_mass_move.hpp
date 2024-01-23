@@ -44,7 +44,7 @@ public:
         : particle_position_cache_(n_particles, Point{})
     {}
 
-    // index, all worldlines, PRNG, interactions
+    // index, all worldlines, PRNG, interactions, callable to create the new positions
 private:
     std::vector<Point> particle_position_cache_ {};
 };
