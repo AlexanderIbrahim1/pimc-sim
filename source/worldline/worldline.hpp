@@ -16,14 +16,14 @@ class Worldline
 public:
     using Point = coord::Cartesian<FP, NDIM>;
 
-    Worldline() = default;
+    constexpr Worldline() = default;
 
-    Worldline(std::initializer_list<Point> ilist)
+    constexpr Worldline(std::initializer_list<Point> ilist)
         : points_ {ilist}
     {}
 
     template <common_utils::IterableContainer Container>
-    Worldline(const Container& container)
+    constexpr Worldline(const Container& container)
         : points_ {std::begin(container), std::end(container)}
     {
         static_assert(std::same_as<typename Container::value_type, Point>);
