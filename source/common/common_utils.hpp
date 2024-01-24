@@ -13,4 +13,9 @@ concept IterableContainer = requires(Container c) {
     typename Container::value_type;
 };
 
+template <typename T>
+struct always_false {
+    static constexpr bool value = false;
+};
+
 }  // namespace common_utils

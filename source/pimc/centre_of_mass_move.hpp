@@ -37,6 +37,7 @@ template <std::floating_point FP, std::size_t NDIM>
 class CentreOfMassMovePerformer {
 public:
     using Point = coord::Cartesian<FP, NDIM>;
+    using Worldlines = std::vector<worldline::Worldline<FP, NDIM>>;
 
     CentreOfMassMovePerformer() = delete;
 
@@ -44,7 +45,13 @@ public:
         : particle_position_cache_(n_particles, Point{})
     {}
 
-    // index, all worldlines, PRNG, interactions, callable to create the new positions
+//     // index, all worldlines, PRNG, interactions, callable to create the new positions
+//     constexpr void operator()(
+//         std::size_t i_particle,
+//         const Worldlines& worldlines,
+//     ) noexcept {
+// 
+//     }
 private:
     std::vector<Point> particle_position_cache_ {};
 };
