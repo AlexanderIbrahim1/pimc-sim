@@ -29,9 +29,13 @@ public:
         static_assert(std::same_as<typename Container::value_type, Point>);
     }
 
-    constexpr auto points() const -> const std::vector<Point>&
+    constexpr auto points() const noexcept -> const std::vector<Point>&
     {
         return points_;
+    }
+
+    constexpr auto size() const noexcept -> std::size_t {
+        return points_.size();
     }
 
 private:

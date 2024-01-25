@@ -1,9 +1,16 @@
 #pragma once
 
 #include <concepts>
+#include <functional>
+#include <utility>
 #include <vector>
 
+#include <coordinates/box_sides.hpp>
 #include <coordinates/cartesian.hpp>
+#include <coordinates/measure.hpp>
+#include <interactions/two_body/two_body_pointwise.hpp>
+#include <rng/distributions.hpp>
+#include <rng/generator.hpp>
 #include <worldline/worldline.hpp>
 
 // PLAN:
@@ -33,27 +40,77 @@
 
 namespace pimc {
 
+// TODO: decide on some better names for each case
+template <std::floating_point FP, std::size_t NDIM, interact::PairDistancePotential Potential>
+class InteractionHandler {
+public:
+    explicit InteractionHandler(Potential pot, coord::BoxSides<FP, NDIM> box)
+        : pot_ {std::move(pot)}
+        , box_ {std::move(box)}
+    {}
+
+    constexpr auto operator()(std::size_t i_particle, const worldline::Worldline<FP, NDIM>& worldline) const noexcept -> FP {
+        auto pot_energy = FP {};
+
+        const auto& points = worldline.points();
+        for (std::size_t i {0}; i < worldline.size(); ++i) {
+            if (i == i_particle) {
+                continue;
+            }
+
+            const auto distance = coord::distance_periodic(points[i_particle], points[i], box_);
+            pot_energy += pot_(distance);
+        }
+    }
+
+private:
+    Potential pot_;
+    coord::BoxSides<FP, NDIM> box_;
+};
+
 template <std::floating_point FP, std::size_t NDIM>
 class CentreOfMassMovePerformer {
 public:
     using Point = coord::Cartesian<FP, NDIM>;
-    using Worldlines = std::vector<worldline::Worldline<FP, NDIM>>;
+    using Worldline = worldline::Worldline<FP, NDIM>;
+    using Worldlines = std::vector<Worldline>;
 
     CentreOfMassMovePerformer() = delete;
 
-    constexpr explicit CentreOfMassMovePerformer(std::size_t n_particles)
-        : particle_position_cache_(n_particles, Point{})
+    constexpr explicit CentreOfMassMovePerformer(std::size_t n_timeslices)
+        : position_cache_(n_timeslices, Point{})
     {}
 
-//     // index, all worldlines, PRNG, interactions, callable to create the new positions
-//     constexpr void operator()(
-//         std::size_t i_particle,
-//         const Worldlines& worldlines,
-//     ) noexcept {
-// 
-//     }
+    // TODO: wrap part of this in a try-catch block, to restore the original particle positions in case
+    //       an exception is thrown
+    constexpr void operator()(
+        std::size_t i_particle,
+        Worldlines* worldlines,
+        const rng::PRNGWrapper auto& prngw,
+        const InteractionHandler& interact_handler,
+        const std::function<void(Point)>& step_generator
+    ) noexcept
+    {
+        const auto step = step_generator();
+
+        auto pot_energy_before = FP{};
+        for (const auto wline : *worldlines) {
+            pot_energy_before += interact_handler(i_particle, wline);
+        }
+
+        // save the current positions, and set the new ones
+        for (std::size_t i_tslice {0}; i_tslice < worldlines->size(); ++i_tslice) {
+            position_cache_[i_tslice] = (*worldlines)[i_tslice][i_particle];
+            (*worldlines)[i_tslice][i_particle]
+        }
+
+        auto pot_energy_after = FP{};
+        for (const auto wline : *worldlines) {
+            pot_energy_after += interact_handler(i_particle, wline);
+        }
+    }
 private:
-    std::vector<Point> particle_position_cache_ {};
+    std::vector<Point> position_cache_ {};
 };
 
 }  // namespace pimc
