@@ -34,7 +34,8 @@ public:
         return points_;
     }
 
-    constexpr auto size() const noexcept -> std::size_t {
+    constexpr auto size() const noexcept -> std::size_t
+    {
         return points_.size();
     }
 

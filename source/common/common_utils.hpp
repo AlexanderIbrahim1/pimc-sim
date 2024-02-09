@@ -14,7 +14,8 @@ concept IterableContainer = requires(Container c) {
 };
 
 template <typename T>
-struct always_false {
+struct always_false
+{
     static constexpr bool value = false;
 };
 
