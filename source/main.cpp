@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <iostream>
 #include <random>
 #include <string>
@@ -7,6 +8,8 @@
 
 #include <argparser.hpp>
 #include <coordinates/coordinates.hpp>
+#include <coordinates/box_sides.hpp>
+#include <geometries/lattice_type.hpp>
 #include <interactions/two_body/two_body_pointwise.hpp>
 #include <rng/distributions.hpp>
 #include <rng/generator.hpp>
@@ -19,21 +22,10 @@ What might I read in later?
 - nearest neighbour info
 */
 
-template <interact::PairDistancePotential Potential>
-auto takes_pointwise_pair_distance_potential(Potential pot)
-{
-    std::cout << pot(2.0) << '\n';
-}
+constexpr auto NDIM = std::size_t {3};
 
 auto main() -> int
 {
-    //            first_block_index = cast_toml_to<std::size_t>(table, "first_block_index");
-    //            last_block_index = cast_toml_to<std::size_t>(table, "last_block_index");
-    //            n_equilibrium_blocks = cast_toml_to<std::size_t>(table, "n_equilibrium_blocks");
-    //            n_passes = cast_toml_to<std::size_t>(table, "n_passes");
-    //            n_timeslices = cast_toml_to<std::size_t>(table, "n_timeslices");
-    //            centre_of_mass_step_size = cast_toml_to<double>(table, "centre_of_mass_step_size");
-
     const auto toml_input = std::string_view {R"(
         first_block_index = 0
         last_block_index = 200
@@ -43,6 +35,7 @@ auto main() -> int
         centre_of_mass_step_size = 0.3
         bisection_level = 3
         bisection_ratio = 0.4
+        density = 0.026
     )"};
 
     auto toml_stream = std::stringstream {std::string {toml_input}};
@@ -50,35 +43,59 @@ auto main() -> int
 
     if (!parser.is_valid()) {
         std::cout << "PARSER DID NOT PARSE PROPERLY\n";
+        std::exit(EXIT_FAILURE);
     }
-    else {
-        std::cout << "PARSER WORKED!!!\n";
-        std::cout << "first_block_index = " << parser.first_block_index << '\n';
-        std::cout << "last_block_index = " << parser.last_block_index << '\n';
-        std::cout << "n_equilibrium_blocks = " << parser.n_equilibrium_blocks << '\n';
-        std::cout << "n_passes = " << parser.n_passes << '\n';
-        std::cout << "n_timeslices = " << parser.n_timeslices << '\n';
-        std::cout << "centre_of_mass_step_size = " << parser.centre_of_mass_step_size << '\n';
-        std::cout << "bisection_level = " << parser.bisection_level << '\n';
-        std::cout << "bisection_ratio = " << parser.bisection_ratio << '\n';
+    
+    /* create the lattice positions and the periodic box */
+    const auto lattice_type = geom::LatticeType::HCP;
+    const auto lattice_constant = geom::density_to_lattice_constant(parser.density, lattice_type);
+
+    const auto box = coord::BoxSides<double, NDIM>{1.0, 2.0, 3.0};
+
+    /* create the pair potential */
+
+    /* create the interaction handler */
+
+
+    /* create the environment object */
+
+    /* create the move performers */
+    /* create the objects needed to properly use the move performers */
+
+    /* create the PRNG; save the seed (or set it?) */
+    auto prngw = rng::RandomNumberGeneratorWrapper<std::mt19937>::from_random_uint64();
+
+    /* perform the simulation loop */
+    for (std::size_t i_block {parser.first_block_index}; i_block < parser.last_block_index; ++i_block) {
+
+        /* the number of passes is chosen such that the autocorrelation time between blocks is passed */
+        for (std::size_t i_pass {0}; i_pass < parser.n_passes; ++i_pass) {
+            for (std::size_t i_tslice {0}; i_tslice < parser.n_timeslices; ++i_tslice) {
+                if (i_tslice == 0) {
+                    /* perform COM move for each particle */
+                }
+
+                /* perform bead move on timeslice `i_tslice` of each particle */
+            }
+        }
+
+        if (i_block >= parser.n_equilibrium_blocks) {
+            /* run estimators */
+            /* save estimators */
+        }
     }
 
     const auto point = coord::Cartesian<double, 2> {1.0, 2.0};
     std::cout << point.as_string() << '\n';
 
-    const auto potential = interact::LennardJonesPotential<double> {1.0, 1.0};
-    takes_pointwise_pair_distance_potential(potential);
+    // auto norm_dist = rng::NormalDistribution<double> {};
+    // static_assert(rng::PRNGWrapper<rng::RandomNumberGeneratorWrapper<std::mt19937>>);
 
-    auto prngw = rng::RandomNumberGeneratorWrapper<std::mt19937>::from_random_uint64();
-    auto norm_dist = rng::NormalDistribution<double> {};
+    // std::cout << "SEED = " << prngw.seed() << '\n';
 
-    static_assert(rng::PRNGWrapper<rng::RandomNumberGeneratorWrapper<std::mt19937>>);
-
-    std::cout << "SEED = " << prngw.seed() << '\n';
-
-    for (std::size_t i {0}; i < 20; ++i) {
-        std::cout << norm_dist.normal_01(prngw) << '\n';
-    }
+    // for (std::size_t i {0}; i < 20; ++i) {
+    //     std::cout << norm_dist.normal_01(prngw) << '\n';
+    // }
 
     return 0;
 }

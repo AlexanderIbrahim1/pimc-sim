@@ -48,6 +48,7 @@ public:
             centre_of_mass_step_size = cast_toml_to<double>(table, "centre_of_mass_step_size");
             bisection_level = cast_toml_to<std::size_t>(table, "bisection_level");
             bisection_ratio = cast_toml_to<double>(table, "bisection_ratio");
+            density = cast_toml_to<double>(table, "density");
 
             parse_success_flag_ = true;
         }
@@ -72,6 +73,7 @@ public:
     double centre_of_mass_step_size {};
     std::size_t bisection_level {};
     double bisection_ratio {};
+    double density {};
 
 private:
     bool parse_success_flag_ {};
