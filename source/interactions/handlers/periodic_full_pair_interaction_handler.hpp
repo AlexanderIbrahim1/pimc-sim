@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cstddef>
 #include <concepts>
+#include <cstddef>
 #include <utility>
 
 #include <coordinates/box_sides.hpp>
@@ -9,7 +9,6 @@
 #include <coordinates/measure.hpp>
 #include <interactions/two_body/two_body_pointwise.hpp>
 #include <worldline/worldline.hpp>
-
 
 namespace interact
 {

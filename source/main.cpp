@@ -7,8 +7,8 @@
 #include <tomlplusplus/toml.hpp>
 
 #include <argparser.hpp>
-#include <coordinates/coordinates.hpp>
 #include <coordinates/box_sides.hpp>
+#include <coordinates/coordinates.hpp>
 #include <geometries/lattice_type.hpp>
 #include <interactions/two_body/two_body_pointwise.hpp>
 #include <rng/distributions.hpp>
@@ -45,17 +45,16 @@ auto main() -> int
         std::cout << "PARSER DID NOT PARSE PROPERLY\n";
         std::exit(EXIT_FAILURE);
     }
-    
+
     /* create the lattice positions and the periodic box */
     const auto lattice_type = geom::LatticeType::HCP;
     const auto lattice_constant = geom::density_to_lattice_constant(parser.density, lattice_type);
 
-    const auto box = coord::BoxSides<double, NDIM>{1.0, 2.0, 3.0};
+    const auto box = coord::BoxSides<double, NDIM> {1.0, 2.0, 3.0};
 
     /* create the pair potential */
 
     /* create the interaction handler */
-
 
     /* create the environment object */
 
@@ -67,7 +66,6 @@ auto main() -> int
 
     /* perform the simulation loop */
     for (std::size_t i_block {parser.first_block_index}; i_block < parser.last_block_index; ++i_block) {
-
         /* the number of passes is chosen such that the autocorrelation time between blocks is passed */
         for (std::size_t i_pass {0}; i_pass < parser.n_passes; ++i_pass) {
             for (std::size_t i_tslice {0}; i_tslice < parser.n_timeslices; ++i_tslice) {
