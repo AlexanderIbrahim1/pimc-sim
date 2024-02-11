@@ -11,6 +11,7 @@
 #include <coordinates/measure.hpp>
 #include <environment/environment.hpp>
 #include <interactions/two_body/two_body_pointwise.hpp>
+#include <interactions/handlers/periodic_full_pair_interaction_handler.hpp>
 #include <rng/distributions.hpp>
 #include <rng/generator.hpp>
 #include <worldline/worldline.hpp>
@@ -42,39 +43,6 @@
 namespace pimc
 {
 
-// TODO: decide on some better names for each case
-template <std::floating_point FP, std::size_t NDIM, interact::PairDistancePotential Potential>
-class InteractionHandler
-{
-public:
-    explicit InteractionHandler(Potential pot, coord::BoxSides<FP, NDIM> box)
-        : pot_ {std::move(pot)}
-        , box_ {std::move(box)}
-    {}
-
-    constexpr auto operator()(std::size_t i_particle, const worldline::Worldline<FP, NDIM>& worldline) const noexcept
-        -> FP
-    {
-        auto pot_energy = FP {};
-
-        const auto& points = worldline.points();
-        for (std::size_t i {0}; i < worldline.size(); ++i) {
-            if (i == i_particle) {
-                continue;
-            }
-
-            const auto distance = coord::distance_periodic(points[i_particle], points[i], box_);
-            pot_energy += pot_(distance);
-        }
-
-        return pot_energy;
-    }
-
-private:
-    Potential pot_;
-    coord::BoxSides<FP, NDIM> box_;
-};
-
 template <std::floating_point FP, std::size_t NDIM>
 class CentreOfMassMovePerformer
 {
@@ -95,7 +63,7 @@ public:
         std::size_t i_particle,
         Worldlines& worldlines,
         rng::PRNGWrapper auto& prngw,
-        const InteractionHandler& interact_handler,
+        const interact::InteractionHandler& interact_handler,
         const std::function<void(Point)>& step_generator,
         const envir::Environment<FP>& environment
     ) noexcept
