@@ -13,11 +13,18 @@
 namespace interact
 {
 
+template <typename T>
+concept InteractionHandler = requires(T t) {
+    {
+        t(0, {})
+    } -> std::floating_point;
+};
+
 template <std::floating_point FP, std::size_t NDIM, interact::PairDistancePotential Potential>
-class InteractionHandler
+class PeriodicFullPairInteractionHandler
 {
 public:
-    explicit InteractionHandler(Potential pot, coord::BoxSides<FP, NDIM> box)
+    explicit PeriodicFullPairInteractionHandler(Potential pot, coord::BoxSides<FP, NDIM> box)
         : pot_ {std::move(pot)}
         , box_ {std::move(box)}
     {}

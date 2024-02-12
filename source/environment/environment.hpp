@@ -29,4 +29,14 @@ private:
     FP thermodynamic_tau_;
 };
 
+template <std::floating_point FP>
+constexpr auto create_finite_temperature_environment(FP temperature, std::size_t n_timeslices) noexcept
+    -> Environment<FP>
+{
+    const auto thermo_beta = FP {1.0} / temperature;
+    const auto thermo_tau = thermo_beta / n_timeslices;
+
+    return Environment<FP> {thermo_beta, thermo_tau};
+}
+
 }  // namespace envir

@@ -63,7 +63,7 @@ public:
         std::size_t i_particle,
         Worldlines& worldlines,
         rng::PRNGWrapper auto& prngw,
-        const interact::InteractionHandler& interact_handler,
+        const interact::InteractionHandler auto& interact_handler,
         const std::function<void(Point)>& step_generator,
         const envir::Environment<FP>& environment
     ) noexcept

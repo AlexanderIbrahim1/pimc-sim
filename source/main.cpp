@@ -9,7 +9,12 @@
 #include <argparser.hpp>
 #include <coordinates/box_sides.hpp>
 #include <coordinates/coordinates.hpp>
+#include <environment/environment.hpp>
+#include <geometries/bravais.hpp>
+#include <geometries/lattice.hpp>
 #include <geometries/lattice_type.hpp>
+#include <geometries/unit_cell_translations.hpp>
+#include <interactions/handlers/periodic_full_pair_interaction_handler.hpp>
 #include <interactions/two_body/two_body_pointwise.hpp>
 #include <rng/distributions.hpp>
 #include <rng/generator.hpp>
@@ -36,6 +41,7 @@ auto main() -> int
         bisection_level = 3
         bisection_ratio = 0.4
         density = 0.026
+        temperature = 4.2
     )"};
 
     auto toml_stream = std::stringstream {std::string {toml_input}};
@@ -49,14 +55,25 @@ auto main() -> int
     /* create the lattice positions and the periodic box */
     const auto lattice_type = geom::LatticeType::HCP;
     const auto lattice_constant = geom::density_to_lattice_constant(parser.density, lattice_type);
+    const auto hcp_unit_cell = geom::conventional_hcp_unit_cell(lattice_constant);
+    const auto hcp_unit_cell_box = geom::unit_cell_box_sides(hcp_unit_cell);
+    const auto lattice_box_translations = geom::UnitCellTranslations<NDIM> {1, 1, 1};
+    const auto minimage_box = geom::lattice_box(hcp_unit_cell_box, lattice_box_translations);
 
-    const auto box = coord::BoxSides<double, NDIM> {1.0, 2.0, 3.0};
+    const auto lattice_site_positions = geom::lattice_particle_positions(hcp_unit_cell, lattice_box_translations);
 
-    /* create the pair potential */
+    /*
+        Parameters for the Lennard-Jones potential are taken from paragraph 3 of page 354
+        of `Eur. Phys. J. D 56, 353–358 (2010)`. Original units are in Kelvin and Angstroms,
+        converted to wavenumbers and angstroms.
+    */
+    const auto pot = interact::LennardJonesPotential {23.77, 2.96};
 
     /* create the interaction handler */
+    const auto interaction_handler = interact::PeriodicFullPairInteractionHandler {pot, minimage_box};
 
     /* create the environment object */
+    const auto environment = envir::create_finite_temperature_environment(parser.temperature, parser.n_timeslices);
 
     /* create the move performers */
     /* create the objects needed to properly use the move performers */
