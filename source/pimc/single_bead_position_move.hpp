@@ -19,18 +19,6 @@
 #include <rng/generator.hpp>
 #include <worldline/worldline.hpp>
 
-// DESIGN:
-// - the environment info (temperature, etc.), PRNG, and worldlines should be passed to the
-//   function call, and not stored in the mover as a state
-//   - the performance impact would be negligible, and this makes the function more flexible
-// - the number of particles should be stored as a state
-//   - because we don't want to regenerate the cache every single time
-//   - unless we provide the cache externally?
-//     - but that would be very annoying for the user
-
-// TODO:
-// - add a move acceptance ratio logger
-
 namespace pimc
 {
 
@@ -44,23 +32,15 @@ public:
 
     SingleBeadPositionMovePerformer() = delete;
 
-    constexpr explicit SingleBeadPositionMovePerformer(std::size_t n_timeslices, FP step_size)
-        : step_size_ {step_size}
-        , position_cache_(n_timeslices, Point {})  // NOTE: initializing a vector: don't use list init here
-    {
-        check_step_size_(step_size);
-    }
-
-    constexpr void update_step_size(FP new_step_size)
-    {
-        check_step_size_(new_step_size);
-        step_size_ = new_step_size;
-    }
+    constexpr explicit SingleBeadPositionMovePerformer(std::size_t n_timeslices)
+        : position_cache_(n_timeslices, Point {})  // NOTE: initializing a vector: don't use list init here
+    {}
 
     // TODO: wrap part of this in a try-catch block, to restore the original particle positions in case
     //       an exception is thrown
     constexpr void operator()(
         std::size_t i_particle,
+        std::size_t i_timeslice,
         Worldlines& worldlines,
         rng::PRNGWrapper auto& prngw,
         const interact::InteractionHandler auto& interact_handler,
@@ -103,25 +83,15 @@ public:
     }
 
 private:
-    FP step_size_ {};
     std::vector<Point> position_cache_ {};
     rng::UniformFloatingPointDistribution<FP> uniform_dist_ {};
+    rng::NormalDistribution<FP> normal_dist_ {};
 
-    void check_step_size_(FP step_size)
-    {
-        if (step_size < FP {0.0}) {
-            auto err_msg = std::stringstream {};
-            err_msg << "The step size entered to the CentreOfMassMovePerformer must be non-negative.\n";
-            err_msg << "Found: " << std::setprecision(6) << step_size << '\n';
-            throw std::runtime_error(err_msg.str());
-        }
-    }
-
-    constexpr auto generate_step_(rng::PRNGWrapper auto& prngw) noexcept -> Point
+    constexpr auto generate_step_(FP step_stddev, rng::PRNGWrapper auto& prngw) noexcept -> Point
     {
         auto step = Point {};
         for (std::size_t i {0}; i < NDIM; ++i) {
-            step[i] = uniform_dist_.uniform_ab(FP {-1.0}, FP {1.0}, prngw) * step_size_;
+            step[i] = normal_dist_.normal(FP {0.0}, step_stddev, prngw);
         }
 
         return step;

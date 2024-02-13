@@ -5,6 +5,20 @@
 namespace envir
 {
 
+/*
+NOTE: for now, we are working with simulations with a single particle species, so the environment
+can contains a single value of the thermodynamic lambda. For later uses, we need to expand the scope
+to allow for several different lambdas corresponding to several different particle species.
+
+TODO: move the constants into a separate header file.
+TODO: to avoid numerical instability, precompute the constants needed to calculate thermodynamic lambda
+*/
+template <std::floating_point FP>
+constexpr auto calculate_thermodynamic_lambda(FP mass_amu) noexcept -> FP
+{
+    const auto hbar = FP {1.054'571'817};
+}
+
 template <std::floating_point FP>
 class Environment
 {

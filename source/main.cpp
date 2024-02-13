@@ -16,8 +16,10 @@
 #include <geometries/unit_cell_translations.hpp>
 #include <interactions/handlers/periodic_full_pair_interaction_handler.hpp>
 #include <interactions/two_body/two_body_pointwise.hpp>
+#include <pimc/centre_of_mass_move.hpp>
 #include <rng/distributions.hpp>
 #include <rng/generator.hpp>
+#include <worldline/worldline.hpp>
 
 /*
 PLAN for main
@@ -25,6 +27,13 @@ PLAN for main
 What might I read in later?
 - information needed to create the potentials
 - nearest neighbour info
+*/
+
+/*
+TODO:
+- create function to make worldlines from the lattice site positions
+- create the functions used with the movers (step generators, etc.)
+- create the single-bead mover
 */
 
 constexpr auto NDIM = std::size_t {3};
@@ -62,6 +71,8 @@ auto main() -> int
 
     const auto lattice_site_positions = geom::lattice_particle_positions(hcp_unit_cell, lattice_box_translations);
 
+    /* create the worldlines from the lattice site positions */
+
     /*
         Parameters for the Lennard-Jones potential are taken from paragraph 3 of page 354
         of `Eur. Phys. J. D 56, 353–358 (2010)`. Original units are in Kelvin and Angstroms,
@@ -76,6 +87,7 @@ auto main() -> int
     const auto environment = envir::create_finite_temperature_environment(parser.temperature, parser.n_timeslices);
 
     /* create the move performers */
+    auto com_mover = pimc::SingleBeadPositionMovePerformer<double, NDIM> {parser.n_timeslices};
     /* create the objects needed to properly use the move performers */
 
     /* create the PRNG; save the seed (or set it?) */
