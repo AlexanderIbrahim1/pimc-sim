@@ -2,8 +2,8 @@
 
 #include <concepts>
 
-
-namespace conversions {
+namespace conversions
+{
 
 template <std::floating_point FP>
 static constexpr FP KILOGRAMS_PER_AMU;
@@ -23,5 +23,4 @@ constexpr double ANGSTROMS_PER_METRE<double> = 1.0e10;
 template <>
 constexpr float ANGSTROMS_PER_METRE<float> = 1.0e10f;
 
-
-}  // namespace conversion
+}  // namespace conversions

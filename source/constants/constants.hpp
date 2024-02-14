@@ -2,8 +2,8 @@
 
 #include <concepts>
 
-
-namespace constants {
+namespace constants
+{
 
 template <std::floating_point FP>
 static constexpr FP HBAR_IN_JOULES_SECONDS;
@@ -23,4 +23,4 @@ constexpr double BOLTZMANN_CONSTANT_IN_JOULES_PER_KELVIN<double> = 1.380'649e-23
 template <>
 constexpr float BOLTZMANN_CONSTANT_IN_JOULES_PER_KELVIN<float> = 1.380'649e-23f;
 
-}  // namespace constant
+}  // namespace constants

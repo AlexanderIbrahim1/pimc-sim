@@ -4,6 +4,7 @@
 
 #include <constants/constants.hpp>
 #include <constants/conversions.hpp>
+#include <environment/envir_utils.hpp>
 
 namespace envir
 {
@@ -12,22 +13,7 @@ namespace envir
 NOTE: for now, we are working with simulations with a single particle species, so the environment
 can contains a single value of the thermodynamic lambda. For later uses, we need to expand the scope
 to allow for several different lambdas corresponding to several different particle species.
-
-Calculates the thermodynamic lambda of a particle of a given mass (in amu).
-The result is in units of Angstroms^2 * Kelvin.
 */
-template <std::floating_point FP>
-constexpr auto calculate_thermodynamic_lambda(FP mass_amu) noexcept -> FP
-{
-    const auto hbar = constants::HBAR_IN_JOULES_SECONDS<FP>;
-    const auto boltz = constants::BOLTZMANN_CONSTANT_IN_JOULES_PER_KELVIN<FP>;
-    const auto kg_per_amu = conversions::KILOGRAMS_PER_AMU<FP>;
-    const auto ang_per_m = conversions::ANGSTROMS_PER_METRE<FP>;
-
-    const auto coefficient = hbar * hbar * ang_per_m * ang_per_m / kg_per_amu / boltz;
-
-    return 0.5 * coefficient / mass_amu;
-}
 
 template <std::floating_point FP>
 class Environment
@@ -41,16 +27,19 @@ public:
 
     constexpr auto thermodynamic_beta() const noexcept -> FP
     {
+        // units of Kelvin^{-1}
         return thermodynamic_beta_;
     }
 
     constexpr auto thermodynamic_tau() const noexcept -> FP
     {
+        // units of Kelvin^{-1}
         return thermodynamic_tau_;
     }
 
     constexpr auto thermodynamic_lambda() const noexcept -> FP
     {
+        // units of Angstroms^2 * Kelvin
         return thermodynamic_lambda_;
     }
 
@@ -61,13 +50,14 @@ private:
 };
 
 template <std::floating_point FP>
-constexpr auto create_finite_temperature_environment(FP temperature, std::size_t n_timeslices) noexcept
+constexpr auto create_finite_temperature_environment(FP temperature, std::size_t n_timeslices, FP mass_amu) noexcept
     -> Environment<FP>
 {
     const auto thermo_beta = FP {1.0} / temperature;
     const auto thermo_tau = thermo_beta / n_timeslices;
+    const auto thermo_lambda = envir_utils::LAMBDA_CONVERSION_FACTOR<FP> / mass_amu;
 
-    return Environment<FP> {thermo_beta, thermo_tau};
+    return Environment<FP> {thermo_beta, thermo_tau, thermo_lambda};
 }
 
 }  // namespace envir
