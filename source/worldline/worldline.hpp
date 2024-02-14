@@ -34,13 +34,15 @@ public:
         return points_;
     }
 
-    constexpr auto operator[](std::size_t index) const noexcept -> Point {
+    constexpr auto operator[](std::size_t index) const noexcept -> Point
+    {
         // non-modifying access with bounds checking on during debug mode only
         assert(index < points_.size());
         return points_[index];
     }
 
-    constexpr auto operator[](std::size_t index) noexcept -> Point& {
+    constexpr auto operator[](std::size_t index) noexcept -> Point&
+    {
         // modifying access with bounds checking on during debug mode only
         assert(index < points_.size());
         return points_[index];

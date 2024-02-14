@@ -2,7 +2,8 @@
 
 #include <concepts>
 
-namespace envir_utils {
+namespace envir_utils
+{
 
 /*
 This is the constant which, when divided by the mass of a particle (in units of AMU), gives

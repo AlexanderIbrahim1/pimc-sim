@@ -93,8 +93,11 @@ private:
         return step;
     }
 
-    constexpr auto proposed_bead_position_mean_(std::size_t i_particle, std::size_t i_timeslice, const Worldlines& worldlines)
-        const noexcept -> Point
+    constexpr auto proposed_bead_position_mean_(
+        std::size_t i_particle,
+        std::size_t i_timeslice,
+        const Worldlines& worldlines
+    ) const noexcept -> Point
     {
         const auto it_before = (i_timeslice + n_timeslices_ - 1) % n_timeslices_;
         const auto it_after = (i_timeslice + 1) % n_timeslices_;
