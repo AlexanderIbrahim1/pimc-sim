@@ -35,16 +35,16 @@ namespace pimc
 {
 
 template <std::floating_point FP, std::size_t NDIM>
-class SingleBeadPositionMovePerformer
+class CentreOfMassMovePerformer
 {
 public:
     using Point = coord::Cartesian<FP, NDIM>;
     using Worldline = worldline::Worldline<FP, NDIM>;
     using Worldlines = std::vector<Worldline>;
 
-    SingleBeadPositionMovePerformer() = delete;
+    CentreOfMassMovePerformer() = delete;
 
-    constexpr explicit SingleBeadPositionMovePerformer(std::size_t n_timeslices, FP step_size)
+    constexpr explicit CentreOfMassMovePerformer(std::size_t n_timeslices, FP step_size)
         : step_size_ {step_size}
         , position_cache_(n_timeslices, Point {})  // NOTE: initializing a vector: don't use list init here
     {

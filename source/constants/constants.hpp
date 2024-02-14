@@ -2,6 +2,8 @@
 
 #include <concepts>
 
+#include <constants/mass.hpp>
+
 namespace constants
 {
 

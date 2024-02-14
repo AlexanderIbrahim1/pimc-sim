@@ -7,6 +7,7 @@
 #include <tomlplusplus/toml.hpp>
 
 #include <argparser.hpp>
+#include <constants/constants.hpp>
 #include <coordinates/box_sides.hpp>
 #include <coordinates/coordinates.hpp>
 #include <environment/environment.hpp>
@@ -17,6 +18,7 @@
 #include <interactions/handlers/periodic_full_pair_interaction_handler.hpp>
 #include <interactions/two_body/two_body_pointwise.hpp>
 #include <pimc/centre_of_mass_move.hpp>
+#include <pimc/single_bead_position_move.hpp>
 #include <rng/distributions.hpp>
 #include <rng/generator.hpp>
 #include <worldline/worldline.hpp>
@@ -84,10 +86,14 @@ auto main() -> int
     const auto interaction_handler = interact::PeriodicFullPairInteractionHandler {pot, minimage_box};
 
     /* create the environment object */
-    const auto environment = envir::create_finite_temperature_environment(parser.temperature, parser.n_timeslices);
+    const auto h2_mass = constants::H2_MASS_IN_AMU<double>;
+    const auto environment =
+        envir::create_finite_temperature_environment(parser.temperature, parser.n_timeslices, h2_mass);
 
     /* create the move performers */
-    auto com_mover = pimc::SingleBeadPositionMovePerformer<double, NDIM> {parser.n_timeslices};
+    auto com_mover =
+        pimc::CentreOfMassMovePerformer<double, NDIM> {parser.n_timeslices, parser.centre_of_mass_step_size};
+    auto single_bead_mover = pimc::SingleBeadPositionMovePerformer<double, NDIM> {parser.n_timeslices};
     /* create the objects needed to properly use the move performers */
 
     /* create the PRNG; save the seed (or set it?) */
@@ -114,15 +120,6 @@ auto main() -> int
 
     const auto point = coord::Cartesian<double, 2> {1.0, 2.0};
     std::cout << point.as_string() << '\n';
-
-    // auto norm_dist = rng::NormalDistribution<double> {};
-    // static_assert(rng::PRNGWrapper<rng::RandomNumberGeneratorWrapper<std::mt19937>>);
-
-    // std::cout << "SEED = " << prngw.seed() << '\n';
-
-    // for (std::size_t i {0}; i < 20; ++i) {
-    //     std::cout << norm_dist.normal_01(prngw) << '\n';
-    // }
 
     return 0;
 }
