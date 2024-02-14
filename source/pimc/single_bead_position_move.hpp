@@ -33,11 +33,9 @@ public:
     SingleBeadPositionMovePerformer() = delete;
 
     constexpr explicit SingleBeadPositionMovePerformer(std::size_t n_timeslices)
-        : position_cache_(n_timeslices, Point {})  // NOTE: initializing a vector: don't use list init here
+        : n_timeslices_ {n_timeslices}
     {}
 
-    // TODO: wrap part of this in a try-catch block, to restore the original particle positions in case
-    //       an exception is thrown
     constexpr void operator()(
         std::size_t i_particle,
         std::size_t i_timeslice,
@@ -47,25 +45,19 @@ public:
         const envir::Environment<FP>& environment
     ) noexcept
     {
-        const auto step = generate_step_(prngw);
+        const auto proposed_bead_mean = proposed_bead_position_mean_(i_particle, i_timeslice, worldlines);
+        const auto step = generate_step_(environment, prngw);
+        const auto proposed_bead = proposed_bead_mean + step;
 
         // calculate energy for the current configuration
-        auto pot_energy_before = FP {};
-        for (const auto wline : worldlines) {
-            pot_energy_before += interact_handler(i_particle, wline);
-        }
+        const auto pot_energy_before = interact_handler(i_particle, worldlines[i_timeslice]);
 
-        // save the current positions, and set the new ones
-        for (std::size_t i_tslice {0}; i_tslice < worldlines->size(); ++i_tslice) {
-            position_cache_[i_tslice] = worldlines[i_tslice][i_particle];
-            worldlines[i_tslice][i_particle] += step;
-        }
+        // save the current position, and set the new one
+        const auto current_bead = worldlines[i_timeslice][i_particle];
+        worldlines[i_timeslice][i_particle] = proposed_bead;
 
-        // calculate energy for the new configuration
-        auto pot_energy_after = FP {};
-        for (const auto wline : worldlines) {
-            pot_energy_after += interact_handler(i_particle, wline);
-        }
+        // calculate energy for the proposed configuration
+        const auto pot_energy_after = interact_handler(i_particle, worldlines[i_timeslice]);
 
         const auto pot_energy_diff = pot_energy_after - pot_energy_before;
         if (pot_energy_diff >= FP {0.0}) {
@@ -74,27 +66,43 @@ public:
             const auto rand01 = uniform_dist_.uniform_01(prngw);
 
             if (boltz_factor < rand01) {
-                // restore the positions
-                for (std::size_t i_tslice {0}; i_tslice < worldlines->size(); ++i_tslice) {
-                    worldlines[i_tslice][i_particle] = position_cache_[i_tslice];
-                }
+                // the proposed move is rejected, restore the positions
+                worldlines[i_timeslice][i_particle] = current_bead;
             }
         }
     }
 
 private:
-    std::vector<Point> position_cache_ {};
+    std::size_t n_timeslices_ {};
+
     rng::UniformFloatingPointDistribution<FP> uniform_dist_ {};
     rng::NormalDistribution<FP> normal_dist_ {};
 
-    constexpr auto generate_step_(FP step_stddev, rng::PRNGWrapper auto& prngw) noexcept -> Point
+    constexpr auto generate_step_(const envir::Environment<FP>& environment, rng::PRNGWrapper auto& prngw) noexcept
+        -> Point
     {
+        const auto lambda = environment.thermodynamic_lambda();
+        const auto tau = environment.thermodynamic_tau();
+        const auto step_stddev = std::sqrt(lambda * tau);
+
         auto step = Point {};
         for (std::size_t i {0}; i < NDIM; ++i) {
             step[i] = normal_dist_.normal(FP {0.0}, step_stddev, prngw);
         }
 
         return step;
+    }
+
+    constexpr auto proposed_bead_position_mean_(std::size_t i_particle, std::size_t i_timeslice, const Worldlines& worldlines)
+        const noexcept -> Point
+    {
+        const auto it_before = (i_timeslice + n_timeslices_ - 1) % n_timeslices_;
+        const auto it_after = (i_timeslice + 1) % n_timeslices_;
+
+        const auto bead_before = worldlines[it_before][i_particle];
+        const auto bead_after = worldlines[it_after][i_particle];
+
+        return 0.5 * (bead_before + bead_after);
     }
 };
 

@@ -71,7 +71,7 @@ public:
 
         // calculate energy for the current configuration
         auto pot_energy_before = FP {};
-        for (const auto wline : worldlines) {
+        for (const auto& wline : worldlines) {
             pot_energy_before += interact_handler(i_particle, wline);
         }
 
@@ -83,7 +83,7 @@ public:
 
         // calculate energy for the new configuration
         auto pot_energy_after = FP {};
-        for (const auto wline : worldlines) {
+        for (const auto& wline : worldlines) {
             pot_energy_after += interact_handler(i_particle, wline);
         }
 
@@ -94,7 +94,7 @@ public:
             const auto rand01 = uniform_dist_.uniform_01(prngw);
 
             if (boltz_factor < rand01) {
-                // restore the positions
+                // the proposed move is rejected, restore the positions
                 for (std::size_t i_tslice {0}; i_tslice < worldlines->size(); ++i_tslice) {
                     worldlines[i_tslice][i_particle] = position_cache_[i_tslice];
                 }
