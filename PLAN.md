@@ -43,3 +43,12 @@ For example:
   - it holds all the different interaction potentials
   - it will accept the index of the bead of interest, and all the worldlines
   - it will calculate the interaction potential experienced by just that bead
+
+
+## Potential Wrappers
+Carrying a potential (that requires a pair distance) and different measure functions is annoying
+- i.e. might need no box, might need a box for periodicity, don't know which potentials are used for which, etc.
+
+To make this nicer, we could create classes that wrap together:
+- a potential (that depends on pair distances, or possibly other stuff)
+- the functions that take cartesian points, and calculate the stuff needed to call the potential
