@@ -57,4 +57,20 @@ private:
     std::vector<Point> points_ {};
 };
 
+template <std::floating_point FP, std::size_t NDIM>
+constexpr auto worldlines_from_positions(
+    const std::vector<coord::Cartesian<FP, NDIM>>& points,
+    std::size_t n_timeslices
+) noexcept -> std::vector<coord::Cartesian<FP, NDIM>>
+{
+    auto worldlines = std::vector<Worldline<FP, NDIM>> {};
+    worldlines.reserve(n_timeslices);
+
+    for (std::size_t i_tslice {0}; i_tslice < n_timeslices; ++i_tslice) {
+        worldlines.push_back(Worldline<FP, NDIM> {points});
+    }
+
+    return worldlines;
+}
+
 }  // namespace worldline

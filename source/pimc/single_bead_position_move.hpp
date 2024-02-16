@@ -14,7 +14,6 @@
 #include <coordinates/measure.hpp>
 #include <environment/environment.hpp>
 #include <interactions/handlers/periodic_full_pair_interaction_handler.hpp>
-#include <interactions/two_body/two_body_pointwise.hpp>
 #include <rng/distributions.hpp>
 #include <rng/generator.hpp>
 #include <worldline/worldline.hpp>

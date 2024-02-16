@@ -58,6 +58,10 @@ auto main() -> int
     auto toml_stream = std::stringstream {std::string {toml_input}};
     const auto parser = argparse::ArgParser {toml_stream};
 
+    const auto temperature = parser.temperature;
+    const auto n_timeslices = parser.n_timeslices;
+    const auto com_step_size = parser.centre_of_mass_step_size;
+
     if (!parser.is_valid()) {
         std::cout << "PARSER DID NOT PARSE PROPERLY\n";
         std::exit(EXIT_FAILURE);
@@ -72,8 +76,10 @@ auto main() -> int
     const auto minimage_box = geom::lattice_box(hcp_unit_cell_box, lattice_box_translations);
 
     const auto lattice_site_positions = geom::lattice_particle_positions(hcp_unit_cell, lattice_box_translations);
+    const auto n_particles = lattice_site_positions.size();
 
     /* create the worldlines from the lattice site positions */
+    auto worldlines = worldline::worldlines_from_positions(lattice_site_positions, n_timeslices);
 
     /*
         Parameters for the Lennard-Jones potential are taken from paragraph 3 of page 354
@@ -88,22 +94,20 @@ auto main() -> int
     /* create the environment object */
     const auto h2_mass = constants::H2_MASS_IN_AMU<double>;
     const auto environment =
-        envir::create_finite_temperature_environment(parser.temperature, parser.n_timeslices, h2_mass);
-
-    /* create the move performers */
-    auto com_mover =
-        pimc::CentreOfMassMovePerformer<double, NDIM> {parser.n_timeslices, parser.centre_of_mass_step_size};
-    auto single_bead_mover = pimc::SingleBeadPositionMovePerformer<double, NDIM> {parser.n_timeslices};
-    /* create the objects needed to properly use the move performers */
+        envir::create_finite_temperature_environment(temperature, h2_mass, n_timeslices, n_particles);
 
     /* create the PRNG; save the seed (or set it?) */
     auto prngw = rng::RandomNumberGeneratorWrapper<std::mt19937>::from_random_uint64();
+
+    /* create the move performers */
+    auto com_mover = pimc::CentreOfMassMovePerformer<double, NDIM> {n_timeslices, com_step_size};
+    auto single_bead_mover = pimc::SingleBeadPositionMovePerformer<double, NDIM> {n_timeslices};
 
     /* perform the simulation loop */
     for (std::size_t i_block {parser.first_block_index}; i_block < parser.last_block_index; ++i_block) {
         /* the number of passes is chosen such that the autocorrelation time between blocks is passed */
         for (std::size_t i_pass {0}; i_pass < parser.n_passes; ++i_pass) {
-            for (std::size_t i_tslice {0}; i_tslice < parser.n_timeslices; ++i_tslice) {
+            for (std::size_t i_tslice {0}; i_tslice < n_timeslices; ++i_tslice) {
                 if (i_tslice == 0) {
                     /* perform COM move for each particle */
                 }
