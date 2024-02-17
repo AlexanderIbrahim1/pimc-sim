@@ -8,6 +8,7 @@
 #include <coordinates/cartesian.hpp>
 #include <coordinates/measure.hpp>
 #include <interactions/two_body/two_body_pointwise.hpp>
+#include <interactions/two_body/two_body_pointwise_wrapper.hpp>
 #include <worldline/worldline.hpp>
 
 namespace interact
@@ -20,17 +21,18 @@ concept InteractionHandler = requires(T t) {
     } -> std::floating_point;
 };
 
-template <std::floating_point FP, std::size_t NDIM, interact::PairDistancePotential Potential>
-class PeriodicFullPairInteractionHandler
+template <typename Potential, std::floating_point FP, std::size_t NDIM>
+class FullPairInteractionHandler
 {
+    static_assert(interact::PairPointPotential<Potential, FP, NDIM>);
+    using Worldline = worldline::Worldline<FP, NDIM>;
+
 public:
-    explicit PeriodicFullPairInteractionHandler(Potential pot, coord::BoxSides<FP, NDIM> box)
+    explicit FullPairInteractionHandler(Potential pot)
         : pot_ {std::move(pot)}
-        , box_ {std::move(box)}
     {}
 
-    constexpr auto operator()(std::size_t i_particle, const worldline::Worldline<FP, NDIM>& worldline) const noexcept
-        -> FP
+    constexpr auto operator()(std::size_t i_particle, const Worldline& worldline) const noexcept -> FP
     {
         auto pot_energy = FP {};
 
@@ -40,8 +42,7 @@ public:
                 continue;
             }
 
-            const auto distance = coord::distance_periodic(points[i_particle], points[i], box_);
-            pot_energy += pot_(distance);
+            pot_energy += pot_(points[i_particle], points[i]);
         }
 
         return pot_energy;
@@ -49,7 +50,6 @@ public:
 
 private:
     Potential pot_;
-    coord::BoxSides<FP, NDIM> box_;
 };
 
 }  // namespace interact
