@@ -1,6 +1,7 @@
 #pragma once
 
 #include <concepts>
+#include <iostream>
 #include <vector>
 
 #include <coordinates/measure.hpp>
@@ -30,6 +31,9 @@ constexpr auto primitive_kinetic_energy(
     const auto thermal_kinetic_energy = 0.5 * static_cast<FP>(ndim * n_particles) / tau;
     const auto vibration_correction_energy = total_dist_squared / (FP {4.0} * tau * beta * lambda);
 
+    std::cout << "thermal_kinetic_energy = " << thermal_kinetic_energy << '\n';
+    std::cout << "vibration_correction_energy = " << vibration_correction_energy << '\n';
+
     return thermal_kinetic_energy - vibration_correction_energy;
 }
 
@@ -45,19 +49,17 @@ constexpr auto total_primitive_kinetic_energy(
 
     auto total_dist_squared = FP {};
 
-    for (const auto& wline : worldlines) {
-        const auto& points = wline.points();
+    const auto n_particles = environment.n_particles();
+    const auto n_timeslices = environment.n_timeslices();
 
-        if (points.size() == 0 || points.size() == 1) {
-            continue;
-        }
-
+    for (std::size_t i_part {0}; i_part < n_particles; ++i_part) {
         // take care of the boundary case, where the 0th timeslice touches the last one
-        total_dist_squared += coord::distance_squared(points[0], points.back());
+        total_dist_squared += coord::distance_squared(worldlines[0][i_part], worldlines[n_timeslices - 1][i_part]);
 
         // take care of the uninterrupted chain separately
-        for (std::size_t i_part {0}; i_part < points.size() - 1; ++i_part) {
-            total_dist_squared += coord::distance_squared(points[i_part], points[i_part + 1]);
+        for (std::size_t i_tslice {0}; i_tslice < n_timeslices - 1; ++i_tslice) {
+            total_dist_squared +=
+                coord::distance_squared(worldlines[i_tslice][i_part], worldlines[i_tslice + 1][i_part]);
         }
     }
 
