@@ -61,7 +61,7 @@ template <std::floating_point FP, std::size_t NDIM>
 constexpr auto worldlines_from_positions(
     const std::vector<coord::Cartesian<FP, NDIM>>& points,
     std::size_t n_timeslices
-) noexcept -> std::vector<coord::Cartesian<FP, NDIM>>
+) noexcept -> std::vector<Worldline<FP, NDIM>>
 {
     auto worldlines = std::vector<Worldline<FP, NDIM>> {};
     worldlines.reserve(n_timeslices);

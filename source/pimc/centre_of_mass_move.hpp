@@ -76,7 +76,7 @@ public:
         }
 
         // save the current positions, and set the new ones
-        for (std::size_t i_tslice {0}; i_tslice < worldlines->size(); ++i_tslice) {
+        for (std::size_t i_tslice {0}; i_tslice < worldlines.size(); ++i_tslice) {
             position_cache_[i_tslice] = worldlines[i_tslice][i_particle];
             worldlines[i_tslice][i_particle] += step;
         }
@@ -95,7 +95,7 @@ public:
 
             if (boltz_factor < rand01) {
                 // the proposed move is rejected, restore the positions
-                for (std::size_t i_tslice {0}; i_tslice < worldlines->size(); ++i_tslice) {
+                for (std::size_t i_tslice {0}; i_tslice < worldlines.size(); ++i_tslice) {
                     worldlines[i_tslice][i_particle] = position_cache_[i_tslice];
                 }
             }

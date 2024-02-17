@@ -17,6 +17,7 @@
 #include <geometries/unit_cell_translations.hpp>
 #include <interactions/handlers/periodic_full_pair_interaction_handler.hpp>
 #include <interactions/two_body/two_body_pointwise.hpp>
+#include <interactions/two_body/two_body_pointwise_wrapper.hpp>
 #include <pimc/centre_of_mass_move.hpp>
 #include <pimc/single_bead_position_move.hpp>
 #include <rng/distributions.hpp>
@@ -72,7 +73,7 @@ auto main() -> int
     const auto lattice_constant = geom::density_to_lattice_constant(parser.density, lattice_type);
     const auto hcp_unit_cell = geom::conventional_hcp_unit_cell(lattice_constant);
     const auto hcp_unit_cell_box = geom::unit_cell_box_sides(hcp_unit_cell);
-    const auto lattice_box_translations = geom::UnitCellTranslations<NDIM> {1, 1, 1};
+    const auto lattice_box_translations = geom::UnitCellTranslations<NDIM> {1ul, 1ul, 1ul};
     const auto minimage_box = geom::lattice_box(hcp_unit_cell_box, lattice_box_translations);
 
     const auto lattice_site_positions = geom::lattice_particle_positions(hcp_unit_cell, lattice_box_translations);
@@ -86,10 +87,11 @@ auto main() -> int
         of `Eur. Phys. J. D 56, 353–358 (2010)`. Original units are in Kelvin and Angstroms,
         converted to wavenumbers and angstroms.
     */
-    const auto pot = interact::LennardJonesPotential {23.77, 2.96};
+    const auto distance_pot = interact::LennardJonesPotential {23.77, 2.96};
+    const auto pot = interact::PeriodicPointwisePairPotential {distance_pot, minimage_box};
 
     /* create the interaction handler */
-    const auto interaction_handler = interact::PeriodicFullPairInteractionHandler {pot, minimage_box};
+    const auto interaction_handler = interact::FullPairInteractionHandler<decltype(pot), double, NDIM> {pot};
 
     /* create the environment object */
     const auto h2_mass = constants::H2_MASS_IN_AMU<double>;
@@ -99,6 +101,8 @@ auto main() -> int
     /* create the PRNG; save the seed (or set it?) */
     auto prngw = rng::RandomNumberGeneratorWrapper<std::mt19937>::from_random_uint64();
 
+    static_assert(rng::PRNGWrapper<rng::RandomNumberGeneratorWrapper<std::mt19937>>);
+
     /* create the move performers */
     auto com_mover = pimc::CentreOfMassMovePerformer<double, NDIM> {n_timeslices, com_step_size};
     auto single_bead_mover = pimc::SingleBeadPositionMovePerformer<double, NDIM> {n_timeslices};
@@ -107,12 +111,14 @@ auto main() -> int
     for (std::size_t i_block {parser.first_block_index}; i_block < parser.last_block_index; ++i_block) {
         /* the number of passes is chosen such that the autocorrelation time between blocks is passed */
         for (std::size_t i_pass {0}; i_pass < parser.n_passes; ++i_pass) {
-            for (std::size_t i_tslice {0}; i_tslice < n_timeslices; ++i_tslice) {
-                if (i_tslice == 0) {
-                    /* perform COM move for each particle */
-                }
+            /* perform COM move for each particle */
+            for (std::size_t i_part {0}; i_part < n_particles; ++i_part) {
+                com_mover(i_part, worldlines, prngw, interaction_handler, environment);
 
-                /* perform bead move on timeslice `i_tslice` of each particle */
+                for (std::size_t i_tslice {0}; i_tslice < n_timeslices; ++i_tslice) {
+                    /* perform bead move on timeslice `i_tslice` of each particle */
+                    single_bead_mover(i_part, i_tslice, worldlines, prngw, interaction_handler, environment);
+                }
             }
         }
 

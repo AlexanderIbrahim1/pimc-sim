@@ -65,8 +65,8 @@ private:
     FP thermodynamic_beta_;
     FP thermodynamic_tau_;
     FP thermodynamic_lambda_;
-    std::size_t n_timeslices_;
     std::size_t n_particles_;
+    std::size_t n_timeslices_;
 };
 
 template <std::floating_point FP>
@@ -78,7 +78,7 @@ constexpr auto create_finite_temperature_environment(
 ) noexcept -> Environment<FP>
 {
     const auto thermo_beta = FP {1.0} / temperature;
-    const auto thermo_tau = thermo_beta / n_timeslices;
+    const auto thermo_tau = thermo_beta / static_cast<FP>(n_timeslices);
     const auto thermo_lambda = envir_utils::LAMBDA_CONVERSION_FACTOR<FP> / mass_amu;
 
     return Environment<FP> {thermo_beta, thermo_tau, thermo_lambda, n_particles, n_timeslices};
