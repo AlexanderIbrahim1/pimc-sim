@@ -11,6 +11,9 @@
 #include <coordinates/box_sides.hpp>
 #include <coordinates/coordinates.hpp>
 #include <environment/environment.hpp>
+#include <estimators/pimc/centroid.hpp>
+#include <estimators/pimc/primitive_kinetic.hpp>
+#include <estimators/pimc/two_body_potential.hpp>
 #include <geometries/bravais.hpp>
 #include <geometries/lattice.hpp>
 #include <geometries/lattice_type.hpp>
@@ -73,7 +76,7 @@ auto main() -> int
     const auto lattice_constant = geom::density_to_lattice_constant(parser.density, lattice_type);
     const auto hcp_unit_cell = geom::conventional_hcp_unit_cell(lattice_constant);
     const auto hcp_unit_cell_box = geom::unit_cell_box_sides(hcp_unit_cell);
-    const auto lattice_box_translations = geom::UnitCellTranslations<NDIM> {1ul, 1ul, 1ul};
+    const auto lattice_box_translations = geom::UnitCellTranslations<NDIM> {2ul, 2ul, 2ul};
     const auto minimage_box = geom::lattice_box(hcp_unit_cell_box, lattice_box_translations);
 
     const auto lattice_site_positions = geom::lattice_particle_positions(hcp_unit_cell, lattice_box_translations);
@@ -98,10 +101,17 @@ auto main() -> int
     const auto environment =
         envir::create_finite_temperature_environment(temperature, h2_mass, n_timeslices, n_particles);
 
+    const auto lambda = environment.thermodynamic_lambda();
+    const auto tau = environment.thermodynamic_tau();
+    const auto beta = environment.thermodynamic_beta();
+
+    std::cout << "n_particles = " << n_particles << '\n';
+    std::cout << "lambda = " << lambda << '\n';
+    std::cout << "tau = " << tau << '\n';
+    std::cout << "beta = " << beta << '\n';
+
     /* create the PRNG; save the seed (or set it?) */
     auto prngw = rng::RandomNumberGeneratorWrapper<std::mt19937>::from_random_uint64();
-
-    static_assert(rng::PRNGWrapper<rng::RandomNumberGeneratorWrapper<std::mt19937>>);
 
     /* create the move performers */
     auto com_mover = pimc::CentreOfMassMovePerformer<double, NDIM> {n_timeslices, com_step_size};
@@ -109,6 +119,7 @@ auto main() -> int
 
     /* perform the simulation loop */
     for (std::size_t i_block {parser.first_block_index}; i_block < parser.last_block_index; ++i_block) {
+        std::cout << "i_block = " << i_block << '\n';
         /* the number of passes is chosen such that the autocorrelation time between blocks is passed */
         for (std::size_t i_pass {0}; i_pass < parser.n_passes; ++i_pass) {
             /* perform COM move for each particle */
@@ -124,12 +135,16 @@ auto main() -> int
 
         if (i_block >= parser.n_equilibrium_blocks) {
             /* run estimators */
+            const auto total_kinetic_energy = estim::total_primitive_kinetic_energy(worldlines, environment);
+            const auto total_potential_energy = estim::total_pair_potential_energy(worldlines, pot, environment);
+            const auto centroid_dist = estim::mean_centroid_squared_distance(worldlines, environment);
+
             /* save estimators */
+            std::cout << "KINETIC   : " << i_block << " : " << total_kinetic_energy << '\n';
+            std::cout << "POTENTIAL : " << i_block << " : " << total_potential_energy << '\n';
+            std::cout << "CENTROID  : " << i_block << " : " << centroid_dist << '\n';
         }
     }
-
-    const auto point = coord::Cartesian<double, 2> {1.0, 2.0};
-    std::cout << point.as_string() << '\n';
 
     return 0;
 }
