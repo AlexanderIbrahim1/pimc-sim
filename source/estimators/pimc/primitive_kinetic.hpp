@@ -31,9 +31,6 @@ constexpr auto primitive_kinetic_energy(
     const auto thermal_kinetic_energy = 0.5 * static_cast<FP>(ndim * n_particles) / tau;
     const auto vibration_correction_energy = total_dist_squared / (FP {4.0} * tau * beta * lambda);
 
-    std::cout << "thermal_kinetic_energy = " << thermal_kinetic_energy << '\n';
-    std::cout << "vibration_correction_energy = " << vibration_correction_energy << '\n';
-
     return thermal_kinetic_energy - vibration_correction_energy;
 }
 

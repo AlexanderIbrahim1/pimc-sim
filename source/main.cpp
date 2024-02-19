@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <filesystem>
 #include <iostream>
 #include <random>
 #include <string>
@@ -14,6 +15,7 @@
 #include <estimators/pimc/centroid.hpp>
 #include <estimators/pimc/primitive_kinetic.hpp>
 #include <estimators/pimc/two_body_potential.hpp>
+#include <estimators/writers/single_value_writer.hpp>
 #include <geometries/bravais.hpp>
 #include <geometries/lattice.hpp>
 #include <geometries/lattice_type.hpp>
@@ -46,6 +48,8 @@ constexpr auto NDIM = std::size_t {3};
 
 auto main() -> int
 {
+    namespace fs = std::filesystem;
+
     const auto toml_input = std::string_view {R"(
         first_block_index = 0
         last_block_index = 200
@@ -101,21 +105,27 @@ auto main() -> int
     const auto environment =
         envir::create_finite_temperature_environment(temperature, h2_mass, n_timeslices, n_particles);
 
-    const auto lambda = environment.thermodynamic_lambda();
-    const auto tau = environment.thermodynamic_tau();
-    const auto beta = environment.thermodynamic_beta();
-
-    std::cout << "n_particles = " << n_particles << '\n';
-    std::cout << "lambda = " << lambda << '\n';
-    std::cout << "tau = " << tau << '\n';
-    std::cout << "beta = " << beta << '\n';
-
     /* create the PRNG; save the seed (or set it?) */
     auto prngw = rng::RandomNumberGeneratorWrapper<std::mt19937>::from_random_uint64();
 
     /* create the move performers */
     auto com_mover = pimc::CentreOfMassMovePerformer<double, NDIM> {n_timeslices, com_step_size};
     auto single_bead_mover = pimc::SingleBeadPositionMovePerformer<double, NDIM> {n_timeslices};
+
+    /* create the file writers for the estimators */
+    const auto output_dirpath = fs::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/output"};
+
+    const auto kinetic_filepath = output_dirpath / "kinetic.dat";
+    const auto kinetic_header = std::filesystem::path {"# total kinetic energy in wavenumbers\n"};
+    auto kinetic_writer = estim::SingleValueBlockWriter<double> {kinetic_filepath, kinetic_header};
+
+    const auto potential_filepath = output_dirpath / "potential.dat";
+    const auto potential_header = std::filesystem::path {"# total potential energy in wavenumbers\n"};
+    auto potential_writer = estim::SingleValueBlockWriter<double> {potential_filepath, potential_header};
+
+    const auto centroid_filepath = output_dirpath / "centroid.dat";
+    const auto centroid_header = std::filesystem::path {"# mean distance from centroid to bead in angstroms\n"};
+    auto centroid_writer = estim::SingleValueBlockWriter<double> {centroid_filepath, centroid_header};
 
     /* perform the simulation loop */
     for (std::size_t i_block {parser.first_block_index}; i_block < parser.last_block_index; ++i_block) {
@@ -140,9 +150,9 @@ auto main() -> int
             const auto centroid_dist = estim::mean_centroid_squared_distance(worldlines, environment);
 
             /* save estimators */
-            std::cout << "KINETIC   : " << i_block << " : " << total_kinetic_energy << '\n';
-            std::cout << "POTENTIAL : " << i_block << " : " << total_potential_energy << '\n';
-            std::cout << "CENTROID  : " << i_block << " : " << centroid_dist << '\n';
+            kinetic_writer.write(i_block, total_kinetic_energy);
+            potential_writer.write(i_block, total_potential_energy);
+            centroid_writer.write(i_block, centroid_dist);
         }
     }
 
