@@ -76,7 +76,7 @@ TEST_CASE("errors upon improper construction")
     {
         const auto ydata = std::vector<double> {0.0, 1.0};
         const auto xmin = double {1.0};
-        const auto xmin = double {0.0};
+        const auto xmax = double {0.0};
 
         REQUIRE_THROWS_AS(interp::RegularLinearInterpolator(ydata, xmin, xmax), std::runtime_error);
     }
