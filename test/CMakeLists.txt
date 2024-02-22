@@ -55,6 +55,7 @@ add_test_target(unit_cell_test "source/unit_cell_test.cpp")
 add_test_target(unit_cell_translations_test "source/unit_cell_translations_test.cpp")
 add_test_target(lattce_test "source/lattice_test.cpp")
 add_test_target(linear_interp_test "source/linear_interp_test.cpp")
+add_test_target(fsh_potential_test "source/fsh_potential_test.cpp")
 
 
 # ---- End-of-file commands ----

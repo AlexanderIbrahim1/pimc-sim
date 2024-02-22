@@ -1,6 +1,11 @@
 #pragma once
 
 #include <concepts>
+#include <filesystem>
+#include <fstream>
+#include <sstream>
+#include <stdexcept>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -14,6 +19,26 @@ enum class LongRangeCheckStatus
     ON,
     OFF
 };
+
+template <std::floating_point FP>
+constexpr auto ctr_calculate_c6_multipole_coeff(const std::vector<FP>& energies, FP r2_min, FP r2_max) -> FP
+{
+    // NOTES:
+    // - not too many useful names for the temporary variables created in this function
+    // - the interpolator will have thrown an exception if size < 2, so vector accesses should be okay
+    const auto size = energies.size();
+    const auto r2_step_size = (r2_max - r2_min) / static_cast<FP>(size - 1);
+
+    const auto energy_step = energies[size - 1] - energies[size - 2];
+
+    const auto r2_last = r2_max;
+    const auto r2_sec_last = r2_max - r2_step_size;
+
+    const auto r2_term0 = r2_sec_last * r2_sec_last * r2_sec_last;
+    const auto r2_term1 = r2_last * r2_last * r2_last;
+
+    return energy_step / (FP {1.0} / r2_term0 - FP {1.0} / r2_term1);
+}
 
 template <std::floating_point FP, LongRangeCheckStatus Status>
 class FSHPairPotential
@@ -45,25 +70,80 @@ private:
     interp::RegularLinearInterpolator<FP> interpolator_;
     FP c6_multipole_coeff_;
     FP r2_max_;
-
-    constexpr auto ctr_calculate_c6_multipole_coeff(const std::vector<FP>& energies, FP r2_min, FP r2_max) -> FP
-    {
-        // NOTES:
-        // - not too many useful names for the temporary variables created in this function
-        // - the interpolator will have thrown an exception if size < 2, so vector accesses should be okay
-        const auto size = energies.size();
-        const auto r2_step_size = (r2_max - r2_min) / static_cast<FP>(size - 1);
-
-        const auto energy_step = energies[size - 1] - energies[size - 2];
-
-        const auto r2_last = r2_max;
-        const auto r2_sec_last = r2_max - r2_step_size;
-
-        const auto r2_term0 = r2_sec_last * r2_sec_last * r2_sec_last;
-        const auto r2_term1 = r2_last * r2_last * r2_last;
-
-        return energy_step / (FP {1.0} / r2_term0 - FP {1.0} / r2_term1);
-    }
 };
+
+static auto number_of_lines(const std::filesystem::path& filepath) -> std::size_t
+{
+    auto instream = std::ifstream {filepath, std::ios::in};
+
+    if (!instream.is_open()) {
+        auto err_msg = std::stringstream {};
+        err_msg << "Unable to open file '" << filepath.string() << "'.\n";
+        throw std::runtime_error(err_msg.str());
+    }
+
+    auto n_lines = std::size_t {0};
+    auto dummy = std::string {};
+    while (std::getline(instream, dummy)) {
+        ++n_lines;
+    }
+
+    return n_lines;
+}
+
+template <std::floating_point FP>
+auto read_one_distance_squared_and_energy(std::ifstream& instream) -> std::tuple<FP, FP>
+{
+    auto line = std::string {};
+    std::getline(instream, line);
+
+    auto valuestream = std::istringstream {line};
+
+    auto dist_squared = FP {};
+    auto energy = FP {};
+
+    valuestream >> dist_squared;
+    valuestream >> energy;
+
+    return {dist_squared, energy};
+}
+
+template <std::floating_point FP, LongRangeCheckStatus Status>
+auto create_fsh_pair_potential(const std::filesystem::path& fsh_filepath) -> FSHPairPotential<FP, Status>
+{
+    auto instream = std::ifstream {fsh_filepath, std::ios::in};
+
+    if (!instream.is_open()) {
+        auto err_msg = std::stringstream {};
+        err_msg << "Error: Unable to open file " << fsh_filepath.string() << ".\n";
+        throw std::runtime_error(err_msg.str());
+    }
+
+    const auto size = number_of_lines(fsh_filepath);
+
+    auto energies = std::vector<FP> {};
+    energies.reserve(size);
+
+    // interested in the first value of the pair distance squared
+    const auto [r2_min, energy0] = read_one_distance_squared_and_energy<FP>(instream);
+    energies[0] = energy0;
+
+    // now read in all energies except for the last
+    auto r2_discard = FP {};
+    auto line = std::string {};
+    for (std::size_t i {1}; i < size - 1; ++i) {
+        std::getline(instream, line);
+        auto valuestream = std::istringstream {line};
+
+        valuestream >> r2_discard;
+        valuestream >> energies[i];
+    }
+
+    // interested in the last value of the pair distance squared
+    const auto [r2_max, energy_last] = read_one_distance_squared_and_energy<FP>(instream);
+    energies[size - 1] = energy_last;
+
+    return FSHPairPotential<FP, Status> {std::move(energies), r2_min, r2_max};
+}
 
 }  // namespace interact
