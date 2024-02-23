@@ -45,8 +45,8 @@ class FSHPairPotential
 {
 public:
     explicit FSHPairPotential(std::vector<FP> energies, FP r2_min, FP r2_max)
-        : interpolator_ {energies, r2_min, r2_max}
-        , c6_multipole_coeff_ {ctr_calculate_c6_multipole_coeff(energies, r2_min, r2_max)}
+        : c6_multipole_coeff_ {ctr_calculate_c6_multipole_coeff(energies, r2_min, r2_max)}
+        , interpolator_ {std::move(energies), r2_min, r2_max}
         , r2_max_ {r2_max}
     {}
 
@@ -67,8 +67,8 @@ public:
     }
 
 private:
-    interp::RegularLinearInterpolator<FP> interpolator_;
     FP c6_multipole_coeff_;
+    interp::RegularLinearInterpolator<FP> interpolator_;
     FP r2_max_;
 };
 
@@ -126,22 +126,24 @@ auto create_fsh_pair_potential(const std::filesystem::path& fsh_filepath) -> FSH
 
     // interested in the first value of the pair distance squared
     const auto [r2_min, energy0] = read_one_distance_squared_and_energy<FP>(instream);
-    energies[0] = energy0;
+    energies.push_back(energy0);
 
     // now read in all energies except for the last
     auto r2_discard = FP {};
+    auto energy = FP {};
     auto line = std::string {};
     for (std::size_t i {1}; i < size - 1; ++i) {
         std::getline(instream, line);
         auto valuestream = std::istringstream {line};
 
         valuestream >> r2_discard;
-        valuestream >> energies[i];
+        valuestream >> energy;
+        energies.push_back(energy);
     }
 
     // interested in the last value of the pair distance squared
     const auto [r2_max, energy_last] = read_one_distance_squared_and_energy<FP>(instream);
-    energies[size - 1] = energy_last;
+    energies.push_back(energy_last);
 
     return FSHPairPotential<FP, Status> {std::move(energies), r2_min, r2_max};
 }
