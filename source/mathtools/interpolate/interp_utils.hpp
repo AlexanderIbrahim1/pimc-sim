@@ -39,7 +39,8 @@ constexpr auto ctr_create_slopes(const std::vector<FP>& ydata, FP dx) noexcept -
     slopes.reserve(size);
 
     for (std::size_t i {0}; i < size; ++i) {
-        slopes[i] = (ydata[i + 1] - ydata[i]) / dx;
+        const auto slope = (ydata[i + 1] - ydata[i]) / dx;
+        slopes.push_back(slope);
     }
 
     return slopes;

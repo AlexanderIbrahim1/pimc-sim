@@ -13,8 +13,7 @@ TEST_CASE("basic FSH interaction check")
 
     const auto rel_filepath = fs::path {"potentials"} / "fsh_potential_angstroms_wavenumbers.potext_sq";
     const auto abs_filepath = test_utils::resolve_project_path(rel_filepath);
-    constexpr auto lr_check_status = interact::LongRangeCheckStatus::OFF;
-    const auto fsh_potential = interact::create_fsh_pair_potential<double, lr_check_status>(abs_filepath);
+    const auto fsh_potential = interact::create_fsh_pair_potential<double>(abs_filepath);
 
     // values are taken directly from the file
     struct TestPair
