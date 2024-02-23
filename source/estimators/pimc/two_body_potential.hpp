@@ -5,16 +5,17 @@
 #include <vector>
 
 #include <environment/environment.hpp>
-#include <interactions/two_body/two_body_pointwise_wrapper.hpp>
+#include <interactions/two_body/potential_concepts.hpp>
 #include <worldline/worldline.hpp>
 
 namespace estim
 {
 
-template <std::floating_point FP, std::size_t NDIM>
+template <typename PointPotential, std::floating_point FP, std::size_t NDIM>
+requires interact::PairPointPotential<PointPotential, FP, NDIM>
 constexpr auto total_pair_potential_energy(
     const std::vector<worldline::Worldline<FP, NDIM>>& worldlines,
-    const interact::PairPointPotential<FP, NDIM> auto& potential,
+    const PointPotential& potential,
     const envir::Environment<FP>& environment
 ) noexcept -> FP
 {

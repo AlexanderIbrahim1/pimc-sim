@@ -4,6 +4,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include "interactions/two_body/potential_concepts.hpp"
 #include "interactions/two_body/two_body_pointwise.hpp"
 
 constexpr auto EPSILON_ENERGY = double {1.0e-8};
@@ -11,7 +12,7 @@ constexpr auto EPSILON_ENERGY = double {1.0e-8};
 TEST_CASE("lennard-jones potential : concept properties")
 {
     static_assert(
-        interact::PairDistancePotential<interact::LennardJonesPotential<float>>,
+        interact::PairPotential<interact::LennardJonesPotential<float>>,
         "ERROR: the LennardJonesPotential was found not to satisfy the "
         "PairDistancePotential concept!"
     );

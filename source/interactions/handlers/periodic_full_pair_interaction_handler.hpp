@@ -7,8 +7,7 @@
 #include <coordinates/box_sides.hpp>
 #include <coordinates/cartesian.hpp>
 #include <coordinates/measure.hpp>
-#include <interactions/two_body/two_body_pointwise.hpp>
-#include <interactions/two_body/two_body_pointwise_wrapper.hpp>
+#include <interactions/two_body/potential_concepts.hpp>
 #include <worldline/worldline.hpp>
 
 namespace interact
@@ -21,14 +20,14 @@ concept InteractionHandler = requires(T t) {
     } -> std::floating_point;
 };
 
-template <typename Potential, std::floating_point FP, std::size_t NDIM>
+template <typename PointPotential, std::floating_point FP, std::size_t NDIM>
+requires PairPointPotential<PointPotential, FP, NDIM>
 class FullPairInteractionHandler
 {
-    static_assert(interact::PairPointPotential<Potential, FP, NDIM>);
     using Worldline = worldline::Worldline<FP, NDIM>;
 
 public:
-    explicit FullPairInteractionHandler(Potential pot)
+    explicit FullPairInteractionHandler(PointPotential pot)
         : pot_ {std::move(pot)}
     {}
 
@@ -49,7 +48,7 @@ public:
     }
 
 private:
-    Potential pot_;
+    PointPotential pot_;
 };
 
 }  // namespace interact

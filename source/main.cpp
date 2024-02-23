@@ -22,6 +22,7 @@
 #include <geometries/unit_cell_translations.hpp>
 #include <interactions/handlers/periodic_full_pair_interaction_handler.hpp>
 #include <interactions/two_body/two_body_pointwise.hpp>
+#include <interactions/two_body/two_body_pointwise_tabulated.hpp>
 #include <interactions/two_body/two_body_pointwise_wrapper.hpp>
 #include <pimc/centre_of_mass_move.hpp>
 #include <pimc/single_bead_position_move.hpp>
@@ -93,9 +94,14 @@ auto main() -> int
         Parameters for the Lennard-Jones potential are taken from paragraph 3 of page 354
         of `Eur. Phys. J. D 56, 353–358 (2010)`. Original units are in Kelvin and Angstroms,
         converted to wavenumbers and angstroms.
+
+        const auto distance_pot = interact::LennardJonesPotential {23.77, 2.96};
+        const auto pot = interact::PeriodicPointwisePairPotential {distance_pot, minimage_box};
     */
-    const auto distance_pot = interact::LennardJonesPotential {23.77, 2.96};
-    const auto pot = interact::PeriodicPointwisePairPotential {distance_pot, minimage_box};
+    const auto fsh_dirpath = fs::path {"/home/a68ibrah/research/simulations/pimc-sim/potentials"};
+    const auto fsh_filename = "fsh_potential_angstroms_wavenumbers.potext_sq";
+    const auto distance_pot = interact::create_fsh_pair_potential<double>(fsh_dirpath / fsh_filename);
+    const auto pot = interact::PeriodicPairDistanceSquaredPotential {distance_pot, minimage_box};
 
     /* create the interaction handler */
     const auto interaction_handler = interact::FullPairInteractionHandler<decltype(pot), double, NDIM> {pot};

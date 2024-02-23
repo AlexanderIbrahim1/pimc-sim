@@ -41,10 +41,10 @@ constexpr auto ctr_calculate_c6_multipole_coeff(const std::vector<FP>& energies,
 }
 
 template <std::floating_point FP, LongRangeCheckStatus Status>
-class FSHPairPotential
+class FSHPairPotentialBase
 {
 public:
-    explicit FSHPairPotential(std::vector<FP> energies, FP r2_min, FP r2_max)
+    explicit FSHPairPotentialBase(std::vector<FP> energies, FP r2_min, FP r2_max)
         : c6_multipole_coeff_ {ctr_calculate_c6_multipole_coeff(energies, r2_min, r2_max)}
         , interpolator_ {std::move(energies), r2_min, r2_max}
         , r2_max_ {r2_max}
@@ -70,6 +70,12 @@ private:
     FP c6_multipole_coeff_;
     interp::RegularLinearInterpolator<FP> interpolator_;
     FP r2_max_;
+};
+
+template <std::floating_point FP>
+class FSHPairPotential : public FSHPairPotentialBase<FP, LongRangeCheckStatus::OFF>
+{
+    using FSHPairPotentialBase<FP, LongRangeCheckStatus::OFF>::FSHPairPotentialBase;
 };
 
 static auto number_of_lines(const std::filesystem::path& filepath) -> std::size_t
@@ -108,8 +114,8 @@ auto read_one_distance_squared_and_energy(std::ifstream& instream) -> std::tuple
     return {dist_squared, energy};
 }
 
-template <std::floating_point FP, LongRangeCheckStatus Status>
-auto create_fsh_pair_potential(const std::filesystem::path& fsh_filepath) -> FSHPairPotential<FP, Status>
+template <std::floating_point FP>
+auto create_fsh_pair_potential(const std::filesystem::path& fsh_filepath) -> FSHPairPotential<FP>
 {
     auto instream = std::ifstream {fsh_filepath, std::ios::in};
 
@@ -145,7 +151,7 @@ auto create_fsh_pair_potential(const std::filesystem::path& fsh_filepath) -> FSH
     const auto [r2_max, energy_last] = read_one_distance_squared_and_energy<FP>(instream);
     energies.push_back(energy_last);
 
-    return FSHPairPotential<FP, Status> {std::move(energies), r2_min, r2_max};
+    return FSHPairPotential<FP> {std::move(energies), r2_min, r2_max};
 }
 
 }  // namespace interact

@@ -8,13 +8,6 @@
 namespace interact
 {
 
-template <typename Potential>
-concept PairDistancePotential = requires(Potential pot) {
-    {
-        pot(0.0)
-    } -> std::floating_point;
-};
-
 template <std::floating_point FP>
 void ctr_check_well_depth_positive(FP well_depth)
 {
