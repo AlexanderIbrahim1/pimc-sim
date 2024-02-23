@@ -22,10 +22,12 @@ include(Catch)
 cmake_path(GET PROJECT_SOURCE_DIR PARENT_PATH PIMC_SIM_SOURCE_DIR)
 set(SOURCE_FILES_DIR "${PIMC_SIM_SOURCE_DIR}/source")
 
+# TODO: learn how to conditionally include things (not each test requires filesearch.cpp, for example)
 function(add_test_target TARGET_NAME SOURCE_FILE)
     add_executable(
         ${TARGET_NAME}
         ${SOURCE_FILE}
+        "test_utils/filesearch.cpp"
     )
 
     target_compile_features(
@@ -37,6 +39,7 @@ function(add_test_target TARGET_NAME SOURCE_FILE)
         ${TARGET_NAME}
         ${warning_guard}
         PRIVATE "${SOURCE_FILES_DIR}"
+        PRIVATE "test_utils"
     )
 
     target_link_libraries(
