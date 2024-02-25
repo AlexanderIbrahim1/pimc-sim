@@ -4,6 +4,7 @@
 #include <random>
 #include <string>
 #include <string_view>
+#include <tuple>
 
 #include <tomlplusplus/toml.hpp>
 
@@ -15,6 +16,7 @@
 #include <estimators/pimc/centroid.hpp>
 #include <estimators/pimc/primitive_kinetic.hpp>
 #include <estimators/pimc/two_body_potential.hpp>
+#include <estimators/writers/default_writers.hpp>
 #include <estimators/writers/single_value_writer.hpp>
 #include <geometries/bravais.hpp>
 #include <geometries/lattice.hpp>
@@ -47,6 +49,46 @@ TODO:
 
 constexpr auto NDIM = std::size_t {3};
 
+constexpr auto build_hcp_lattice_structure(auto density)
+{
+    /* create the lattice positions and the periodic box */
+    const auto lattice_type = geom::LatticeType::HCP;
+    const auto lattice_constant = geom::density_to_lattice_constant(density, lattice_type);
+    const auto hcp_unit_cell = geom::conventional_hcp_unit_cell(lattice_constant);
+    const auto hcp_unit_cell_box = geom::unit_cell_box_sides(hcp_unit_cell);
+    const auto lattice_box_translations = geom::UnitCellTranslations<NDIM> {2ul, 2ul, 2ul};
+    const auto minimage_box = geom::lattice_box(hcp_unit_cell_box, lattice_box_translations);
+
+    const auto lattice_site_positions = geom::lattice_particle_positions(hcp_unit_cell, lattice_box_translations);
+    const auto n_particles = lattice_site_positions.size();
+
+    return std::tuple(n_particles, minimage_box, lattice_site_positions);
+}
+
+constexpr auto lennard_jones_parah2_potential(auto minimage_box)
+{
+    /*
+        Parameters for the Lennard-Jones potential are taken from paragraph 3 of page 354
+        of `Eur. Phys. J. D 56, 353–358 (2010)`. Original units are in Kelvin and Angstroms,
+        converted to wavenumbers and angstroms.
+    */
+
+    const auto distance_pot = interact::LennardJonesPotential {23.77, 2.96};
+    const auto pot = interact::PeriodicPairDistancePotential {distance_pot, minimage_box};
+
+    return pot;
+}
+
+constexpr auto fsh_potential(auto minimage_box)
+{
+    const auto fsh_dirpath = std::filesystem::path {"/home/a68ibrah/research/simulations/pimc-sim/potentials"};
+    const auto fsh_filename = "fsh_potential_angstroms_wavenumbers.potext_sq";
+    const auto distance_pot = interact::create_fsh_pair_potential<double>(fsh_dirpath / fsh_filename);
+    const auto pot = interact::PeriodicPairDistanceSquaredPotential {distance_pot, minimage_box};
+
+    return pot;
+}
+
 auto main() -> int
 {
     namespace fs = std::filesystem;
@@ -76,32 +118,10 @@ auto main() -> int
         std::exit(EXIT_FAILURE);
     }
 
-    /* create the lattice positions and the periodic box */
-    const auto lattice_type = geom::LatticeType::HCP;
-    const auto lattice_constant = geom::density_to_lattice_constant(parser.density, lattice_type);
-    const auto hcp_unit_cell = geom::conventional_hcp_unit_cell(lattice_constant);
-    const auto hcp_unit_cell_box = geom::unit_cell_box_sides(hcp_unit_cell);
-    const auto lattice_box_translations = geom::UnitCellTranslations<NDIM> {2ul, 2ul, 2ul};
-    const auto minimage_box = geom::lattice_box(hcp_unit_cell_box, lattice_box_translations);
+    const auto [n_particles, minimage_box, lattice_site_positions] = build_hcp_lattice_structure(parser.density);
+    auto worldlines = worldline::worldlines_from_positions<double, NDIM>(lattice_site_positions, n_timeslices);
 
-    const auto lattice_site_positions = geom::lattice_particle_positions(hcp_unit_cell, lattice_box_translations);
-    const auto n_particles = lattice_site_positions.size();
-
-    /* create the worldlines from the lattice site positions */
-    auto worldlines = worldline::worldlines_from_positions(lattice_site_positions, n_timeslices);
-
-    /*
-        Parameters for the Lennard-Jones potential are taken from paragraph 3 of page 354
-        of `Eur. Phys. J. D 56, 353–358 (2010)`. Original units are in Kelvin and Angstroms,
-        converted to wavenumbers and angstroms.
-
-        const auto distance_pot = interact::LennardJonesPotential {23.77, 2.96};
-        const auto pot = interact::PeriodicPointwisePairPotential {distance_pot, minimage_box};
-    */
-    const auto fsh_dirpath = fs::path {"/home/a68ibrah/research/simulations/pimc-sim/potentials"};
-    const auto fsh_filename = "fsh_potential_angstroms_wavenumbers.potext_sq";
-    const auto distance_pot = interact::create_fsh_pair_potential<double>(fsh_dirpath / fsh_filename);
-    const auto pot = interact::PeriodicPairDistanceSquaredPotential {distance_pot, minimage_box};
+    const auto pot = fsh_potential(minimage_box);
 
     /* create the interaction handler */
     const auto interaction_handler = interact::FullPairInteractionHandler<decltype(pot), double, NDIM> {pot};
@@ -120,18 +140,9 @@ auto main() -> int
 
     /* create the file writers for the estimators */
     const auto output_dirpath = fs::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/output"};
-
-    const auto kinetic_filepath = output_dirpath / "kinetic.dat";
-    const auto kinetic_header = std::filesystem::path {"# total kinetic energy in wavenumbers\n"};
-    auto kinetic_writer = estim::SingleValueBlockWriter<double> {kinetic_filepath, kinetic_header};
-
-    const auto potential_filepath = output_dirpath / "potential.dat";
-    const auto potential_header = std::filesystem::path {"# total potential energy in wavenumbers\n"};
-    auto potential_writer = estim::SingleValueBlockWriter<double> {potential_filepath, potential_header};
-
-    const auto centroid_filepath = output_dirpath / "centroid.dat";
-    const auto centroid_header = std::filesystem::path {"# mean distance from centroid to bead in angstroms\n"};
-    auto centroid_writer = estim::SingleValueBlockWriter<double> {centroid_filepath, centroid_header};
+    auto kinetic_writer = estim::default_kinetic_writer<double>(output_dirpath);
+    auto pair_potential_writer = estim::default_pair_potential_writer<double>(output_dirpath);
+    auto centroid_writer = estim::default_centroid_writer<double>(output_dirpath);
 
     /* perform the simulation loop */
     for (std::size_t i_block {parser.first_block_index}; i_block < parser.last_block_index; ++i_block) {
@@ -157,7 +168,7 @@ auto main() -> int
 
             /* save estimators */
             kinetic_writer.write(i_block, total_kinetic_energy);
-            potential_writer.write(i_block, total_potential_energy);
+            pair_potential_writer.write(i_block, total_potential_energy);
             centroid_writer.write(i_block, centroid_dist);
         }
     }

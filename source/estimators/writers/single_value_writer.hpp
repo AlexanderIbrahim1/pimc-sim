@@ -16,7 +16,7 @@ template <estim_utils::Numeric Number>
 class SingleValueBlockWriter
 {
 public:
-    SingleValueBlockWriter(std::filesystem::path filepath, std::string header_contents = std::string {})
+    constexpr SingleValueBlockWriter(std::filesystem::path filepath, std::string header_contents = std::string {})
         : filepath_ {std::move(filepath)}
         , block_index_padding_ {estim_utils::DEFAULT_BLOCK_INDEX_PADDING}
         , floating_point_precision_ {estim_utils::DEFAULT_SINGLE_VALUE_PRECISION}
