@@ -68,7 +68,7 @@ public:
 
 private:
     FP c6_multipole_coeff_;
-    interp::RegularLinearInterpolator<FP> interpolator_;
+    mathtools::RegularLinearInterpolator<FP> interpolator_;
     FP r2_max_;
 };
 

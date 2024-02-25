@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <vector>
 
-namespace interp_utils
+namespace mathtools_utils
 {
 
 template <std::floating_point FP>

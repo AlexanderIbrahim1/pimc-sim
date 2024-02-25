@@ -12,7 +12,7 @@ TEST_CASE("trivial linear interpolation")
     const auto xmin = double {0.0};
     const auto xmax = double {1.0};
 
-    const auto interpolator = interp::RegularLinearInterpolator {ydata, xmin, xmax};
+    const auto interpolator = mathtools::RegularLinearInterpolator {ydata, xmin, xmax};
 
     struct TestPair
     {
@@ -45,7 +45,7 @@ TEST_CASE("less trivial linear interpolation")
     const auto xmin = double {0.0};
     const auto xmax = double {1.0};
 
-    const auto interpolator = interp::RegularLinearInterpolator {ydata, xmin, xmax};
+    const auto interpolator = mathtools::RegularLinearInterpolator {ydata, xmin, xmax};
 
     struct TestPair
     {
@@ -69,7 +69,7 @@ TEST_CASE("errors upon improper construction")
         const auto ydata = std::vector<double> {};
 
         // NOTE: REQUIRE_THROWS_AS() doesn't allow brace initialization with constructors (parsing issues)
-        REQUIRE_THROWS_AS(interp::RegularLinearInterpolator(ydata, 0.0, 1.0), std::runtime_error);
+        REQUIRE_THROWS_AS(mathtools::RegularLinearInterpolator(ydata, 0.0, 1.0), std::runtime_error);
     }
 
     SECTION("throw upon incorrectly-ordered ends")
@@ -78,6 +78,6 @@ TEST_CASE("errors upon improper construction")
         const auto xmin = double {1.0};
         const auto xmax = double {0.0};
 
-        REQUIRE_THROWS_AS(interp::RegularLinearInterpolator(ydata, xmin, xmax), std::runtime_error);
+        REQUIRE_THROWS_AS(mathtools::RegularLinearInterpolator(ydata, xmin, xmax), std::runtime_error);
     }
 }

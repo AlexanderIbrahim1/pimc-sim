@@ -8,7 +8,7 @@
 
 #include <mathtools/interpolate/interp_utils.hpp>
 
-namespace interp
+namespace mathtools
 {
 
 template <std::floating_point FP>
@@ -20,12 +20,12 @@ public:
         , xmin_ {xmin}
         , xmax_ {xmax}
     {
-        interp_utils::ctr_check_data_size_at_least_two(ydata_.size());
-        interp_utils::ctr_check_min_max_order(xmin, xmax);
+        mathtools_utils::ctr_check_data_size_at_least_two(ydata_.size());
+        mathtools_utils::ctr_check_min_max_order(xmin, xmax);
 
         dx_ = (xmax_ - xmin_) / static_cast<FP>(ydata_.size() - 1);
 
-        slopes_ = interp_utils::ctr_create_slopes(ydata_, dx_);
+        slopes_ = mathtools_utils::ctr_create_slopes(ydata_, dx_);
     }
 
     constexpr auto operator()(FP x) const noexcept -> FP
