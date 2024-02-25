@@ -11,16 +11,6 @@
 namespace mathtools
 {
 
-/*
-PLAN
-- create an adjacency list type for the particles
-
-- a function to update it based on the worldlines
-
-- an interaction handler that gets updated references to such an adjacency list
-  - can't pass it as an argument to operator(), because I need all handlers to satisfy an existing concept
-*/
-
 class SquareAdjacencyMatrix
 {
 public:

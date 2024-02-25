@@ -6,13 +6,6 @@
 namespace common_utils
 {
 
-template <typename Container>
-concept IterableContainer = requires(Container c) {
-    std::begin(c);
-    std::end(c);
-    typename Container::value_type;
-};
-
 template <typename T>
 concept Numeric = std::floating_point<T> || std::integral<T>;
 

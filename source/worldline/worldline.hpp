@@ -2,9 +2,9 @@
 
 #include <concepts>
 #include <initializer_list>
+#include <span>
 #include <vector>
 
-#include <common/common_utils.hpp>
 #include <coordinates/coordinates.hpp>
 
 namespace worldline
@@ -22,12 +22,9 @@ public:
         : points_ {ilist}
     {}
 
-    template <common_utils::IterableContainer Container>
-    constexpr Worldline(const Container& container)
+    constexpr Worldline(const std::span<const Point> container)
         : points_ {std::begin(container), std::end(container)}
-    {
-        static_assert(std::same_as<typename Container::value_type, Point>);
-    }
+    {}
 
     constexpr auto points() const noexcept -> const std::vector<Point>&
     {
