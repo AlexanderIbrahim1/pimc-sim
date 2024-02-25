@@ -4,6 +4,7 @@
 #include <cmath>
 #include <concepts>
 #include <cstdint>
+#include <span>
 
 #include <coordinates/box_sides.hpp>
 #include <coordinates/cartesian.hpp>
@@ -129,15 +130,19 @@ constexpr auto approx_eq_periodic(
     return separation_dist_sq < tolerance_sq;
 }
 
-template <typename SizedContainer1, typename SizedContainer2>
-auto approx_eq_containers(const SizedContainer1& cont1, const SizedContainer2& cont2) noexcept -> bool
+template <std::floating_point FP, std::size_t NDIM>
+auto approx_eq_containers(
+    const std::span<const Cartesian<FP, NDIM>> span1,
+    const std::span<const Cartesian<FP, NDIM>> span2,
+    FP tolerance_sq = EPSILON_APPROX_EQ_SEPARATION_SQUARED<FP>  //
+) noexcept -> bool
 {
-    if (cont1.size() != cont2.size()) {
+    if (span1.size() != span2.size()) {
         return false;
     }
 
-    for (auto it1 = std::begin(cont1), it2 = std::begin(cont2); it1 < std::end(cont1); ++it1, ++it2) {
-        if (!approx_eq(*it1, *it2)) {
+    for (auto it1 = std::begin(span1), it2 = std::begin(span2); it1 < std::end(span1); ++it1, ++it2) {
+        if (!approx_eq(*it1, *it2, tolerance_sq)) {
             return false;
         }
     }

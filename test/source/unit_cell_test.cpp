@@ -25,8 +25,8 @@ TEST_CASE("unit cell construction", "[UnitCell]")
 
     const auto unit_cell = geom::UnitCell<double, 3> {lattice_vectors, unit_cell_sites};
 
-    REQUIRE(coord::approx_eq_containers(unit_cell.basis_lattice_vectors(), lattice_vectors));
-    REQUIRE(coord::approx_eq_containers(unit_cell.basis_unit_cell_sites(), unit_cell_sites));
+    REQUIRE(coord::approx_eq_containers<double, 3>(unit_cell.basis_lattice_vectors(), lattice_vectors));
+    REQUIRE(coord::approx_eq_containers<double, 3>(unit_cell.basis_unit_cell_sites(), unit_cell_sites));
     REQUIRE(unit_cell.n_basis_unit_cell_sites() == unit_cell_sites.size());
 }
 
