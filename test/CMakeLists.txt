@@ -59,6 +59,8 @@ add_test_target(unit_cell_translations_test "source/unit_cell_translations_test.
 add_test_target(lattce_test "source/lattice_test.cpp")
 add_test_target(linear_interp_test "source/linear_interp_test.cpp")
 add_test_target(fsh_potential_test "source/fsh_potential_test.cpp")
+add_test_target(grid2d_test "source/grid2d_test.cpp")
+add_test_target(square_adjacency_matrix_test "source/square_adjacency_matrix_test.cpp")
 
 
 # ---- End-of-file commands ----

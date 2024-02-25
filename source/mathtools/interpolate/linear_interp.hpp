@@ -6,7 +6,7 @@
 #include <utility>
 #include <vector>
 
-#include <mathtools/interpolate/interp_utils.hpp>
+#include <mathtools/mathtools_utils.hpp>
 
 namespace mathtools
 {
@@ -61,4 +61,4 @@ private:
     std::vector<FP> slopes_;
 };
 
-}  // namespace interp
+}  // namespace mathtools
