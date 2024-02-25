@@ -22,7 +22,7 @@
 #include <geometries/lattice.hpp>
 #include <geometries/lattice_type.hpp>
 #include <geometries/unit_cell_translations.hpp>
-#include <interactions/handlers/periodic_full_pair_interaction_handler.hpp>
+#include <interactions/handlers/full_pair_interaction_handler.hpp>
 #include <interactions/two_body/two_body_pointwise.hpp>
 #include <interactions/two_body/two_body_pointwise_tabulated.hpp>
 #include <interactions/two_body/two_body_pointwise_wrapper.hpp>
