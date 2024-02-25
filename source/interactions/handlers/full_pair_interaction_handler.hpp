@@ -13,13 +13,6 @@
 namespace interact
 {
 
-template <typename T>
-concept InteractionHandler = requires(T t) {
-    {
-        t(0, {})
-    } -> std::floating_point;
-};
-
 template <typename PointPotential, std::floating_point FP, std::size_t NDIM>
 requires PairPointPotential<PointPotential, FP, NDIM>
 class FullPairInteractionHandler
