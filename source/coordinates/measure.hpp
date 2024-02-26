@@ -4,7 +4,9 @@
 #include <cmath>
 #include <concepts>
 #include <cstdint>
+#include <numeric>
 #include <span>
+#include <stdexcept>
 
 #include <coordinates/box_sides.hpp>
 #include <coordinates/cartesian.hpp>
@@ -148,6 +150,20 @@ auto approx_eq_containers(
     }
 
     return true;
+}
+
+template <std::floating_point FP, std::size_t NDIM>
+constexpr auto calculate_centroid(const std::span<const coord::Cartesian<FP, NDIM>> points)
+    -> coord::Cartesian<FP, NDIM>
+{
+    using Point = coord::Cartesian<FP, NDIM>;
+
+    if (points.size() == 0) {
+        throw std::runtime_error("Cannot calculate centroid of empty sequence of points.");
+    }
+
+    const auto total_point = std::accumulate(std::begin(points), std::end(points), Point::origin());
+    return total_point / static_cast<FP>(points.size());
 }
 
 }  // namespace coord

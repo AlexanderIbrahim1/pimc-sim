@@ -16,17 +16,6 @@ namespace estim
 {
 
 template <std::floating_point FP, std::size_t NDIM>
-constexpr auto get_centroid(const std::vector<coord::Cartesian<FP, NDIM>>& points) noexcept
-    -> coord::Cartesian<FP, NDIM>
-{
-    // assumes that the vector of points cannot be zero
-    using Point = coord::Cartesian<FP, NDIM>;
-
-    const auto total_point = std::accumulate(points.begin(), points.end(), Point::origin());
-    return total_point / static_cast<FP>(points.size());
-}
-
-template <std::floating_point FP, std::size_t NDIM>
 constexpr auto mean_centroid_squared_distance(
     const std::vector<worldline::Worldline<FP, NDIM>>& worldlines,
     const envir::Environment<FP>& environment
@@ -45,7 +34,7 @@ constexpr auto mean_centroid_squared_distance(
             continue;
         }
 
-        const auto centroid = get_centroid(points);
+        const auto centroid = coord::calculate_centroid<FP, NDIM>(points);
         for (auto point : points) {
             total_dist_squared += coord::distance_squared(point, centroid);
         }
