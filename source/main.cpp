@@ -24,6 +24,7 @@
 #include <geometries/unit_cell_translations.hpp>
 #include <interactions/handlers/full_pair_interaction_handler.hpp>
 #include <interactions/handlers/interaction_handler_concepts.hpp>
+#include <interactions/handlers/nearest_neighbour_pair_interaction_handler.hpp>
 #include <interactions/two_body/two_body_pointwise.hpp>
 #include <interactions/two_body/two_body_pointwise_tabulated.hpp>
 #include <interactions/two_body/two_body_pointwise_wrapper.hpp>
@@ -57,7 +58,7 @@ constexpr auto build_hcp_lattice_structure(auto density)
     const auto lattice_constant = geom::density_to_lattice_constant(density, lattice_type);
     const auto hcp_unit_cell = geom::conventional_hcp_unit_cell(lattice_constant);
     const auto hcp_unit_cell_box = geom::unit_cell_box_sides(hcp_unit_cell);
-    const auto lattice_box_translations = geom::UnitCellTranslations<NDIM> {2ul, 2ul, 2ul};
+    const auto lattice_box_translations = geom::UnitCellTranslations<NDIM> {5ul, 3ul, 3ul};
     const auto minimage_box = geom::lattice_box(hcp_unit_cell_box, lattice_box_translations);
 
     const auto lattice_site_positions = geom::lattice_particle_positions(hcp_unit_cell, lattice_box_translations);
@@ -122,15 +123,23 @@ auto main() -> int
     const auto [n_particles, minimage_box, lattice_site_positions] = build_hcp_lattice_structure(parser.density);
     auto worldlines = worldline::worldlines_from_positions<double, NDIM>(lattice_site_positions, n_timeslices);
 
-    const auto pot = fsh_potential(minimage_box);
+    std::cout << "MINIMAGE BOX: " << minimage_box.as_string() << '\n';
 
-    /* create the interaction handler */
-    const auto interaction_handler = interact::FullPairInteractionHandler<decltype(pot), double, NDIM> {pot};
+    const auto pot = fsh_potential(minimage_box);
 
     /* create the environment object */
     const auto h2_mass = constants::H2_MASS_IN_AMU<double>;
     const auto environment =
         envir::create_finite_temperature_environment(temperature, h2_mass, n_timeslices, n_particles);
+
+    /* create the interaction handler */
+    // const auto interaction_handler = interact::FullPairInteractionHandler<decltype(pot), double, NDIM> {pot};
+    const auto cutoff_distance = double {7.0};
+    auto interaction_handler =
+        interact::NearestNeighbourPairInteractionHandler<decltype(pot), double, 3> {pot, n_particles};
+    interact::update_centroid_adjacency_matrix<double, 3>(
+        worldlines, minimage_box, environment, interaction_handler.adjacency_matrix(), cutoff_distance
+    );
 
     /* create the PRNG; save the seed (or set it?) */
     auto prngw = rng::RandomNumberGeneratorWrapper<std::mt19937>::from_random_uint64();
@@ -140,7 +149,7 @@ auto main() -> int
     auto single_bead_mover = pimc::SingleBeadPositionMovePerformer<double, NDIM> {n_timeslices};
 
     /* create the file writers for the estimators */
-    const auto output_dirpath = fs::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/output"};
+    const auto output_dirpath = fs::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/output2"};
     auto kinetic_writer = estim::default_kinetic_writer<double>(output_dirpath);
     auto pair_potential_writer = estim::default_pair_potential_writer<double>(output_dirpath);
     auto rms_centroid_writer = estim::default_rms_centroid_distance_writer<double>(output_dirpath);
@@ -161,6 +170,10 @@ auto main() -> int
                 }
             }
         }
+
+        interact::update_centroid_adjacency_matrix<double, 3>(
+            worldlines, minimage_box, environment, interaction_handler.adjacency_matrix(), cutoff_distance
+        );
 
         if (i_block >= parser.n_equilibrium_blocks) {
             /* run estimators */
