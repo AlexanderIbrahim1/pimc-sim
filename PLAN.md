@@ -52,3 +52,19 @@ Carrying a potential (that requires a pair distance) and different measure funct
 To make this nicer, we could create classes that wrap together:
 - a potential (that depends on pair distances, or possibly other stuff)
 - the functions that take cartesian points, and calculate the stuff needed to call the potential
+
+
+### 2024-25-02
+- split interaction handler concept into its own file
+
+- create a new handler that owns the adjacency matrix
+  - it should have a function to update the adjacency matrix
+    - takes worldlines
+    - in the future, it might have to be extended to handle different cases
+      for different particle types, so I don't want it "too embedded" in the handler
+    - maybe the function takes another function that takes the particle indices and
+      returns the cutoff distance for those indices?
+      - I don't need this yet
+    - problem: how do I choose the pair distance calculating function?
+      - I don't want it to need to know about the periodic box (it might not exist)
+  - it should only account for interactions involving those in its adjacency matrix

@@ -39,21 +39,26 @@ public:
 
     void add_neighbour(std::size_t i_source, std::size_t i_target)
     {
-        // NOTE: updating the adjacency matrix is probably not part of the hot loop;
-        // the checks don't hurt much here
-        mathtools_utils::check_in_bounds(i_source, n_particles_);
-        mathtools_utils::check_in_bounds(i_target, n_particles_);
-
-        if (sizes_[i_source] >= n_particles_) {
-            auto err_msg = std::stringstream {};
-            err_msg << "Too many neighbours added to particle " << i_source << '\n';
-            err_msg << "This particle's adjacency list is full.\n";
-            throw std::runtime_error(err_msg.str());
-        }
+        // Add `i_target` to the adjacency list of `i_source`
+        check_add_neighbour_(i_source, i_target);
 
         const auto current_size = sizes_[i_source];
         index_grid_.set(i_source, current_size, i_target);
         ++sizes_[i_source];
+    }
+
+    void add_neighbour_both(std::size_t i_source, std::size_t i_target)
+    {
+        // Add `i_target` and `i_source` to each other's adjacency lists
+        check_add_neighbour_(i_source, i_target);
+
+        const auto source_size = sizes_[i_source];
+        index_grid_.set(i_source, source_size, i_target);
+        ++sizes_[i_source];
+
+        const auto target_size = sizes_[i_target];
+        index_grid_.set(i_target, target_size, i_source);
+        ++sizes_[i_target];
     }
 
     constexpr auto neighbours(std::size_t i_source) const noexcept -> std::span<const std::size_t>
@@ -71,6 +76,21 @@ private:
     std::size_t n_particles_;
     Grid2D<std::size_t> index_grid_;
     std::vector<std::size_t> sizes_;
+
+    void check_add_neighbour_(std::size_t i_source, std::size_t i_target)
+    {
+        // NOTE: updating the adjacency matrix is probably not part of the hot loop;
+        // the checks don't hurt much here
+        mathtools_utils::check_in_bounds(i_source, n_particles_);
+        mathtools_utils::check_in_bounds(i_target, n_particles_);
+
+        if (sizes_[i_source] >= n_particles_) {
+            auto err_msg = std::stringstream {};
+            err_msg << "Too many neighbours added to particle " << i_source << '\n';
+            err_msg << "This particle's adjacency list is full.\n";
+            throw std::runtime_error(err_msg.str());
+        }
+    }
 };
 
 }  // namespace mathtools
