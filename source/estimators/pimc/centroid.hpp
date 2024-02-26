@@ -15,34 +15,80 @@
 namespace estim
 {
 
-template <std::floating_point FP, std::size_t NDIM>
-constexpr auto mean_centroid_squared_distance(
+template <std::floating_point FP, std::size_t NDIM, bool IsSquaredDistance>
+constexpr auto mean_centroid_base_(
     const std::vector<worldline::Worldline<FP, NDIM>>& worldlines,
     const envir::Environment<FP>& environment
 ) -> FP
 {
+    using Point = coord::Cartesian<FP, NDIM>;
+
     if (worldlines.empty()) {
         return FP {0.0};
     }
 
-    auto total_dist_squared = FP {};
+    const auto n_particles = environment.n_particles();
+    const auto n_timeslices = environment.n_timeslices();
 
-    for (const auto& wline : worldlines) {
-        const auto& points = wline.points();
-
-        if (points.size() == 0 || points.size() == 1) {
-            continue;
+    const auto create_centroid = [&worldlines, &n_timeslices](std::size_t i_part) -> Point
+    {
+        auto centroid = Point::origin();
+        for (std::size_t i_tslice {0}; i_tslice < n_timeslices; ++i_tslice) {
+            centroid += worldlines[i_tslice][i_part];
         }
+        centroid /= static_cast<FP>(n_timeslices);
 
-        const auto centroid = coord::calculate_centroid<FP, NDIM>(points);
-        for (auto point : points) {
-            total_dist_squared += coord::distance_squared(point, centroid);
+        return centroid;
+    };
+
+    auto total = FP {0.0};
+
+    // NOTE: this sum is not done over contiguous elements, but this isn't part of the hot loop,
+    //       so I'm not too concerned about the performance issues here
+    for (std::size_t i_part {0}; i_part < n_particles; ++i_part) {
+        auto centroid = create_centroid(i_part);
+
+        for (std::size_t i_tslice {0}; i_tslice < n_timeslices; ++i_tslice) {
+            const auto point = worldlines[i_tslice][i_part];
+            if constexpr (IsSquaredDistance) {
+                total += coord::distance_squared(point, centroid);
+            }
+            else {
+                total += coord::distance(point, centroid);
+            }
         }
     }
 
-    const auto n_beads = environment.n_particles() * environment.n_timeslices();
+    if constexpr (IsSquaredDistance) {
+        // in the case of calculating the squared distances; the "mean" in RMS is taken over the timeslices,
+        // so we put the number of timeslices inside the square root
+        return std::sqrt(total / static_cast<FP>(n_timeslices)) / static_cast<FP>(n_particles);
+    }
+    else {
+        // in the case of calcualting the absolute distances; we don't follow the RMS equation, and so the
+        // number of timeslices is just in the denominator (no square root to take anyways)
+        return total / static_cast<FP>(n_timeslices * n_particles);
+    }
+}
 
-    return std::sqrt(total_dist_squared) / static_cast<FP>(n_beads);
+template <std::floating_point FP, std::size_t NDIM>
+constexpr auto rms_centroid_distance(
+    const std::vector<worldline::Worldline<FP, NDIM>>& worldlines,
+    const envir::Environment<FP>& environment
+) -> FP
+{
+    constexpr auto is_squared_distance = true;
+    return mean_centroid_base_<FP, NDIM, is_squared_distance>(worldlines, environment);
+}
+
+template <std::floating_point FP, std::size_t NDIM>
+constexpr auto absolute_centroid_distance(
+    const std::vector<worldline::Worldline<FP, NDIM>>& worldlines,
+    const envir::Environment<FP>& environment
+) -> FP
+{
+    constexpr auto is_squared_distance = false;
+    return mean_centroid_base_<FP, NDIM, is_squared_distance>(worldlines, environment);
 }
 
 }  // namespace estim

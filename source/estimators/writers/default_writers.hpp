@@ -29,10 +29,23 @@ constexpr auto default_pair_potential_writer(const std::filesystem::path& output
 }
 
 template <std::floating_point FP>
-constexpr auto default_centroid_writer(const std::filesystem::path& output_dirpath) -> SingleValueBlockWriter<FP>
+constexpr auto default_rms_centroid_distance_writer(const std::filesystem::path& output_dirpath)
+    -> SingleValueBlockWriter<FP>
 {
-    const auto filepath = output_dirpath / estim_utils::DEFAULT_CENTROID_OUTPUT_FILENAME;
-    const auto header = std::string {"# mean distance from centroid to bead in angstroms\n"};
+    const auto filepath = output_dirpath / estim_utils::DEFAULT_RMS_CENTROID_DISTANCE_OUTPUT_FILENAME;
+    const auto header =
+        std::string {"# rms distance from bead to centroid, averaged over all particles, in angstroms\n"};
+
+    return SingleValueBlockWriter<FP> {filepath, header};
+}
+
+template <std::floating_point FP>
+constexpr auto default_absolute_centroid_distance_writer(const std::filesystem::path& output_dirpath)
+    -> SingleValueBlockWriter<FP>
+{
+    const auto filepath = output_dirpath / estim_utils::DEFAULT_ABSOLUTE_CENTROID_DISTANCE_OUTPUT_FILENAME;
+    const auto header =
+        std::string {"# absolute distance from bead to centroid, averaged over all particles, in angstroms\n"};
 
     return SingleValueBlockWriter<FP> {filepath, header};
 }

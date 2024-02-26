@@ -143,7 +143,8 @@ auto main() -> int
     const auto output_dirpath = fs::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/output"};
     auto kinetic_writer = estim::default_kinetic_writer<double>(output_dirpath);
     auto pair_potential_writer = estim::default_pair_potential_writer<double>(output_dirpath);
-    auto centroid_writer = estim::default_centroid_writer<double>(output_dirpath);
+    auto rms_centroid_writer = estim::default_rms_centroid_distance_writer<double>(output_dirpath);
+    auto abs_centroid_writer = estim::default_absolute_centroid_distance_writer<double>(output_dirpath);
 
     /* perform the simulation loop */
     for (std::size_t i_block {parser.first_block_index}; i_block < parser.last_block_index; ++i_block) {
@@ -165,12 +166,14 @@ auto main() -> int
             /* run estimators */
             const auto total_kinetic_energy = estim::total_primitive_kinetic_energy(worldlines, environment);
             const auto total_potential_energy = estim::total_pair_potential_energy(worldlines, pot, environment);
-            const auto centroid_dist = estim::mean_centroid_squared_distance(worldlines, environment);
+            const auto rms_centroid_dist = estim::rms_centroid_distance(worldlines, environment);
+            const auto abs_centroid_dist = estim::absolute_centroid_distance(worldlines, environment);
 
             /* save estimators */
             kinetic_writer.write(i_block, total_kinetic_energy);
             pair_potential_writer.write(i_block, total_potential_energy);
-            centroid_writer.write(i_block, centroid_dist);
+            rms_centroid_writer.write(i_block, rms_centroid_dist);
+            abs_centroid_writer.write(i_block, abs_centroid_dist);
         }
     }
 
