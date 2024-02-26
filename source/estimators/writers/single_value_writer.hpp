@@ -7,12 +7,13 @@
 #include <ios>
 #include <sstream>
 
+#include <common/common_utils.hpp>
 #include <estimators/estim_utils.hpp>
 
 namespace estim
 {
 
-template <estim_utils::Numeric Number>
+template <common_utils::Numeric Number>
 class SingleValueBlockWriter
 {
 public:

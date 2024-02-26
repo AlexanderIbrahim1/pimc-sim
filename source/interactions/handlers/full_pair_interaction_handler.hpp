@@ -4,9 +4,6 @@
 #include <cstddef>
 #include <utility>
 
-#include <coordinates/box_sides.hpp>
-#include <coordinates/cartesian.hpp>
-#include <coordinates/measure.hpp>
 #include <interactions/two_body/potential_concepts.hpp>
 #include <worldline/worldline.hpp>
 
