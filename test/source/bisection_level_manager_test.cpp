@@ -10,7 +10,7 @@ TEST_CASE("bisection level manager")
 
         auto it = std::begin(blmanager.triplets(0));
 
-        REQUIRE(*it == pimc::BisectionTriplets {0, 1, 2});
+        REQUIRE(*it == pimc::BisectionIndices {1, 0, 1, 2});
     }
 
     SECTION("max level 2")
@@ -20,9 +20,9 @@ TEST_CASE("bisection level manager")
         auto it0 = std::begin(blmanager.triplets(0));
         auto it1 = std::begin(blmanager.triplets(1));
 
-        REQUIRE(*it0++ == pimc::BisectionTriplets {0, 2, 4});
-        REQUIRE(*it1++ == pimc::BisectionTriplets {0, 1, 2});
-        REQUIRE(*it1++ == pimc::BisectionTriplets {2, 3, 4});
+        REQUIRE(*it0++ == pimc::BisectionIndices {2, 0, 2, 4});
+        REQUIRE(*it1++ == pimc::BisectionIndices {1, 0, 1, 2});
+        REQUIRE(*it1++ == pimc::BisectionIndices {3, 2, 3, 4});
     }
 
     SECTION("max level 3")
@@ -33,13 +33,13 @@ TEST_CASE("bisection level manager")
         auto it1 = std::begin(blmanager.triplets(1));
         auto it2 = std::begin(blmanager.triplets(2));
 
-        REQUIRE(*it0++ == pimc::BisectionTriplets {0, 4, 8});
-        REQUIRE(*it1++ == pimc::BisectionTriplets {0, 2, 4});
-        REQUIRE(*it1++ == pimc::BisectionTriplets {4, 6, 8});
-        REQUIRE(*it2++ == pimc::BisectionTriplets {0, 1, 2});
-        REQUIRE(*it2++ == pimc::BisectionTriplets {2, 3, 4});
-        REQUIRE(*it2++ == pimc::BisectionTriplets {4, 5, 6});
-        REQUIRE(*it2++ == pimc::BisectionTriplets {6, 7, 8});
+        REQUIRE(*it0++ == pimc::BisectionIndices {4, 0, 4, 8});
+        REQUIRE(*it1++ == pimc::BisectionIndices {2, 0, 2, 4});
+        REQUIRE(*it1++ == pimc::BisectionIndices {6, 4, 6, 8});
+        REQUIRE(*it2++ == pimc::BisectionIndices {1, 0, 1, 2});
+        REQUIRE(*it2++ == pimc::BisectionIndices {3, 2, 3, 4});
+        REQUIRE(*it2++ == pimc::BisectionIndices {5, 4, 5, 6});
+        REQUIRE(*it2++ == pimc::BisectionIndices {7, 6, 7, 8});
     }
 
     SECTION("max level 2, with offset and modulo")
@@ -49,8 +49,8 @@ TEST_CASE("bisection level manager")
         auto it0 = std::begin(blmanager.triplets(0));
         auto it1 = std::begin(blmanager.triplets(1));
 
-        REQUIRE(*it0++ == pimc::BisectionTriplets {5, 7, 1});
-        REQUIRE(*it1++ == pimc::BisectionTriplets {5, 6, 7});
-        REQUIRE(*it1++ == pimc::BisectionTriplets {7, 0, 1});
+        REQUIRE(*it0++ == pimc::BisectionIndices {2, 5, 7, 1});
+        REQUIRE(*it1++ == pimc::BisectionIndices {1, 5, 6, 7});
+        REQUIRE(*it1++ == pimc::BisectionIndices {3, 7, 0, 1});
     }
 }

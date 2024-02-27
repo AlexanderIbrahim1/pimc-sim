@@ -8,15 +8,16 @@
 namespace pimc
 {
 
-struct BisectionTriplets
+struct BisectionIndices
 {
+    std::size_t original_mid {};
     std::size_t left {};
     std::size_t mid {};
     std::size_t right {};
 
-    constexpr auto operator==(const BisectionTriplets& other) const noexcept -> bool
+    constexpr auto operator==(const BisectionIndices& other) const noexcept -> bool
     {
-        return (left == other.left && mid == other.mid && right == other.right);
+        return (original_mid == other.original_mid && left == other.left && mid == other.mid && right == other.right);
     }
 };
 
@@ -48,8 +49,9 @@ public:
         const auto max_number_of_triplets = pow_int(2, max_level_) - 1;
         indices_.reserve(max_number_of_triplets);
 
-        const auto max_right_endpoint = pow_int(2, max_level_);
-        indices_.emplace_back(BisectionTriplets {0, max_right_endpoint / 2, max_right_endpoint});
+        const auto max_right = pow_int(2, max_level_);
+        const auto max_mid = max_right / 2;
+        indices_.emplace_back(BisectionIndices {max_mid, 0, max_mid, max_right});
 
         for (std::size_t i {0}; i < max_number_of_triplets; ++i) {
             const auto current = indices_[i];
@@ -58,11 +60,11 @@ public:
                 continue;
             }
 
-            const auto left_triplet_midpoint = (current.mid + current.left) / 2;
-            const auto right_triplet_midpoint = (current.mid + current.right) / 2;
+            const auto new_left_mid = (current.mid + current.left) / 2;
+            const auto new_right_mid = (current.mid + current.right) / 2;
 
-            indices_.emplace_back(BisectionTriplets {current.left, left_triplet_midpoint, current.mid});
-            indices_.emplace_back(BisectionTriplets {current.mid, right_triplet_midpoint, current.right});
+            indices_.emplace_back(BisectionIndices {new_left_mid, current.left, new_left_mid, current.mid});
+            indices_.emplace_back(BisectionIndices {new_right_mid, current.mid, new_right_mid, current.right});
         }
 
         // 2nd pass is for applying the offsets
@@ -74,7 +76,7 @@ public:
         }
     }
 
-    constexpr auto triplets(std::size_t level) const noexcept -> std::span<const BisectionTriplets>
+    constexpr auto triplets(std::size_t level) const noexcept -> std::span<const BisectionIndices>
     {
         const auto left_offset = static_cast<std::ptrdiff_t>(pow_int(2, level) - 1);
         const auto right_offset = static_cast<std::ptrdiff_t>(pow_int(2, level + 1) - 1);
@@ -87,7 +89,7 @@ public:
 
 private:
     std::size_t max_level_;
-    std::vector<BisectionTriplets> indices_;
+    std::vector<BisectionIndices> indices_;
 
     constexpr void ctr_check_offset_less_than_modulo_(std::size_t offset, std::size_t modulo) const
     {
