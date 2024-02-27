@@ -28,6 +28,7 @@
 #include <interactions/two_body/two_body_pointwise.hpp>
 #include <interactions/two_body/two_body_pointwise_tabulated.hpp>
 #include <interactions/two_body/two_body_pointwise_wrapper.hpp>
+#include <pimc/bisection_multibead_position_move_performer.hpp>
 #include <pimc/centre_of_mass_move.hpp>
 #include <pimc/single_bead_position_move.hpp>
 #include <rng/distributions.hpp>
@@ -99,11 +100,11 @@ auto main() -> int
         first_block_index = 0
         last_block_index = 200
         n_equilibrium_blocks = 20
-        n_passes = 10
+        n_passes = 5
         n_timeslices = 32
         centre_of_mass_step_size = 0.3
         bisection_level = 3
-        bisection_ratio = 0.4
+        bisection_ratio = 0.5
         density = 0.026
         temperature = 4.2
     )"};
@@ -147,6 +148,8 @@ auto main() -> int
     /* create the move performers */
     auto com_mover = pimc::CentreOfMassMovePerformer<double, NDIM> {n_timeslices, com_step_size};
     auto single_bead_mover = pimc::SingleBeadPositionMovePerformer<double, NDIM> {n_timeslices};
+    auto multi_bead_mover =
+        pimc::BisectionMultibeadPositionMovePerformer<double, NDIM> {parser.bisection_ratio, parser.bisection_level};
 
     /* create the file writers for the estimators */
     const auto output_dirpath = fs::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/output2"};
@@ -164,9 +167,14 @@ auto main() -> int
             for (std::size_t i_part {0}; i_part < n_particles; ++i_part) {
                 com_mover(i_part, worldlines, prngw, interaction_handler, environment);
 
+                // for (std::size_t i_tslice {0}; i_tslice < n_timeslices; ++i_tslice) {
+                //     /* perform bead move on timeslice `i_tslice` of each particle */
+                //     single_bead_mover(i_part, i_tslice, worldlines, prngw, interaction_handler, environment);
+                // }
+
                 for (std::size_t i_tslice {0}; i_tslice < n_timeslices; ++i_tslice) {
                     /* perform bead move on timeslice `i_tslice` of each particle */
-                    single_bead_mover(i_part, i_tslice, worldlines, prngw, interaction_handler, environment);
+                    multi_bead_mover(i_part, i_tslice, worldlines, prngw, interaction_handler, environment);
                 }
             }
         }

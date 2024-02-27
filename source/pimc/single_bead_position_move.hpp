@@ -13,7 +13,6 @@
 #include <coordinates/cartesian.hpp>
 #include <coordinates/measure.hpp>
 #include <environment/environment.hpp>
-#include <interactions/handlers/full_pair_interaction_handler.hpp>
 #include <interactions/handlers/interaction_handler_concepts.hpp>
 #include <rng/distributions.hpp>
 #include <rng/generator.hpp>
@@ -32,6 +31,7 @@ public:
 
     SingleBeadPositionMovePerformer() = delete;
 
+    // TODO: remove n_timeslices; not needed, can get the info from environment which gets passed anyways
     constexpr explicit SingleBeadPositionMovePerformer(std::size_t n_timeslices)
         : n_timeslices_ {n_timeslices}
     {}
@@ -74,7 +74,6 @@ public:
 
 private:
     std::size_t n_timeslices_ {};
-
     rng::UniformFloatingPointDistribution<FP> uniform_dist_ {};
     rng::NormalDistribution<FP> normal_dist_ {};
 

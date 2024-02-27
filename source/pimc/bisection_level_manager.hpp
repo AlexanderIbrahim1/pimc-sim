@@ -10,14 +10,13 @@ namespace pimc
 
 struct BisectionIndices
 {
-    std::size_t original_mid {};
     std::size_t left {};
     std::size_t mid {};
     std::size_t right {};
 
     constexpr auto operator==(const BisectionIndices& other) const noexcept -> bool
     {
-        return (original_mid == other.original_mid && left == other.left && mid == other.mid && right == other.right);
+        return (left == other.left && mid == other.mid && right == other.right);
     }
 };
 
@@ -51,7 +50,7 @@ public:
 
         const auto max_right = pow_int(2, max_level_);
         const auto max_mid = max_right / 2;
-        indices_.emplace_back(BisectionIndices {max_mid, 0, max_mid, max_right});
+        indices_.emplace_back(BisectionIndices {0, max_mid, max_right});
 
         for (std::size_t i {0}; i < max_number_of_triplets; ++i) {
             const auto current = indices_[i];
@@ -63,8 +62,8 @@ public:
             const auto new_left_mid = (current.mid + current.left) / 2;
             const auto new_right_mid = (current.mid + current.right) / 2;
 
-            indices_.emplace_back(BisectionIndices {new_left_mid, current.left, new_left_mid, current.mid});
-            indices_.emplace_back(BisectionIndices {new_right_mid, current.mid, new_right_mid, current.right});
+            indices_.emplace_back(BisectionIndices {current.left, new_left_mid, current.mid});
+            indices_.emplace_back(BisectionIndices {current.mid, new_right_mid, current.right});
         }
 
         // 2nd pass is for applying the offsets
