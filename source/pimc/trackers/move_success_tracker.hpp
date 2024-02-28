@@ -19,12 +19,12 @@ public:
         n_total_reject_ += n_reject;
     }
 
-    constexpr auto get_accept() const noexcept
+    constexpr auto get_accept() const noexcept -> std::uint64_t
     {
         return n_total_accept_;
     }
 
-    constexpr auto get_reject() const noexcept
+    constexpr auto get_reject() const noexcept -> std::uint64_t
     {
         return n_total_reject_;
     }
@@ -32,6 +32,11 @@ public:
     constexpr auto get_accept_and_reject() const noexcept -> std::tuple<std::uint64_t, std::uint64_t>
     {
         return {n_total_accept_, n_total_reject_};
+    }
+
+    constexpr auto get_total_attempts() const noexcept -> std::uint64_t
+    {
+        return n_total_accept_ + n_total_reject_;
     }
 
     constexpr void reset() noexcept
