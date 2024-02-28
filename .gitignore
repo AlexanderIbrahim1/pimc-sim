@@ -11,3 +11,4 @@ CMakeUserPresets.json
 compile_commands.json
 
 !playground/CMakeUserPresets.json
+playground/ignore/
