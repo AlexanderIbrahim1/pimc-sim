@@ -17,7 +17,6 @@
 #include <estimators/pimc/primitive_kinetic.hpp>
 #include <estimators/pimc/two_body_potential.hpp>
 #include <estimators/writers/default_writers.hpp>
-#include <estimators/writers/single_value_writer.hpp>
 #include <geometries/bravais.hpp>
 #include <geometries/lattice.hpp>
 #include <geometries/lattice_type.hpp>
@@ -34,21 +33,6 @@
 #include <rng/distributions.hpp>
 #include <rng/generator.hpp>
 #include <worldline/worldline.hpp>
-
-/*
-PLAN for main
-
-What might I read in later?
-- information needed to create the potentials
-- nearest neighbour info
-*/
-
-/*
-TODO:
-- create function to make worldlines from the lattice site positions
-- create the functions used with the movers (step generators, etc.)
-- create the single-bead mover
-*/
 
 constexpr auto NDIM = std::size_t {3};
 
