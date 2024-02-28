@@ -43,7 +43,7 @@ constexpr auto build_hcp_lattice_structure(auto density)
     const auto lattice_constant = geom::density_to_lattice_constant(density, lattice_type);
     const auto hcp_unit_cell = geom::conventional_hcp_unit_cell(lattice_constant);
     const auto hcp_unit_cell_box = geom::unit_cell_box_sides(hcp_unit_cell);
-    const auto lattice_box_translations = geom::UnitCellTranslations<NDIM> {5ul, 3ul, 3ul};
+    const auto lattice_box_translations = geom::UnitCellTranslations<NDIM> {2ul, 2ul, 2ul};
     const auto minimage_box = geom::lattice_box(hcp_unit_cell_box, lattice_box_translations);
 
     const auto lattice_site_positions = geom::lattice_particle_positions(hcp_unit_cell, lattice_box_translations);
@@ -136,7 +136,7 @@ auto main() -> int
         pimc::BisectionMultibeadPositionMovePerformer<double, NDIM> {parser.bisection_ratio, parser.bisection_level};
 
     /* create the file writers for the estimators */
-    const auto output_dirpath = fs::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/output2"};
+    const auto output_dirpath = fs::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/ignore"};
     auto kinetic_writer = estim::default_kinetic_writer<double>(output_dirpath);
     auto pair_potential_writer = estim::default_pair_potential_writer<double>(output_dirpath);
     auto rms_centroid_writer = estim::default_rms_centroid_distance_writer<double>(output_dirpath);

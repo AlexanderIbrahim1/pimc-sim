@@ -14,6 +14,7 @@
 #include <coordinates/measure.hpp>
 #include <environment/environment.hpp>
 #include <interactions/handlers/interaction_handler_concepts.hpp>
+#include <pimc/trackers/move_success_tracker.hpp>
 #include <rng/distributions.hpp>
 #include <rng/generator.hpp>
 #include <worldline/worldline.hpp>
@@ -42,7 +43,8 @@ public:
         Worldlines& worldlines,
         rng::PRNGWrapper auto& prngw,
         const interact::InteractionHandler auto& interact_handler,
-        const envir::Environment<FP>& environment
+        const envir::Environment<FP>& environment,
+        MoveSuccessTracker* move_tracker = nullptr
     ) noexcept
     {
         const auto proposed_bead_mean = proposed_bead_position_mean_(i_particle, i_timeslice, worldlines);
@@ -68,6 +70,14 @@ public:
             if (boltz_factor < rand01) {
                 // the proposed move is rejected, restore the positions
                 worldlines[i_timeslice][i_particle] = current_bead;
+
+                if (move_tracker) {
+                    move_tracker->add_reject();
+                }
+            } else {
+                if (move_tracker) {
+                    move_tracker->add_accept();
+                }
             }
         }
     }

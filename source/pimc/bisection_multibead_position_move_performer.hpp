@@ -11,6 +11,7 @@
 #include <environment/environment.hpp>
 #include <interactions/handlers/interaction_handler_concepts.hpp>
 #include <pimc/bisection_level_manager.hpp>
+#include <pimc/trackers/move_success_tracker.hpp>
 #include <rng/distributions.hpp>
 #include <rng/generator.hpp>
 #include <worldline/worldline.hpp>
@@ -41,7 +42,8 @@ public:
         std::vector<Worldline>& worldlines,
         rng::PRNGWrapper auto& prngw,
         const interact::InteractionHandler auto& interact_handler,
-        const envir::Environment<FP>& environment
+        const envir::Environment<FP>& environment,
+        MoveSuccessTracker* move_tracker = nullptr
     )
     {
         const auto level = choose_bisection_level_(prngw);
@@ -94,6 +96,14 @@ public:
             for (std::size_t i {1}; i < original_position_cache.size() - 1; ++i) {
                 const auto i_tslice = (i + i_timeslice) % environment.n_timeslices();
                 worldlines[i_tslice][i_particle] = original_position_cache[i];
+            }
+
+            if (move_tracker) {
+                move_tracker->add_reject();
+            }
+        } else {
+            if (move_tracker) {
+                move_tracker->add_accept();
             }
         }
     }

@@ -33,6 +33,7 @@ public:
         output_value_<Number1>(out_stream, value1, value1_floating_point_precision, value1_integer_padding);
         out_stream << spacing_;
         output_value_<Number2>(out_stream, value2, value2_floating_point_precision, value2_integer_padding);
+        out_stream << '\n';
     }
 
     int block_index_padding {common_utils::writer_utils::DEFAULT_WRITER_BLOCK_INDEX_PADDING};

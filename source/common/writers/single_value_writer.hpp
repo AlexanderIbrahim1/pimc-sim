@@ -35,10 +35,10 @@ public:
 
         // apply different types of formatting, depending on whether the output is a floating-point type or an integer
         if constexpr (std::is_floating_point_v<Number>) {
-            out_stream << std::scientific << std::setprecision(floating_point_precision) << value;
+            out_stream << std::scientific << std::setprecision(floating_point_precision) << value << '\n';
         }
         else {
-            out_stream << std::setw(integer_padding) << std::setfill(' ') << std::right << value;
+            out_stream << std::setw(integer_padding) << std::setfill(' ') << std::right << value << '\n';
         }
     }
 

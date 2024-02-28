@@ -16,21 +16,11 @@
 #include <interactions/handlers/full_pair_interaction_handler.hpp>
 #include <interactions/handlers/interaction_handler_concepts.hpp>
 #include <interactions/two_body/two_body_pointwise.hpp>
+#include <pimc/trackers/move_success_tracker.hpp>
 #include <rng/distributions.hpp>
 #include <rng/generator.hpp>
 #include <worldline/worldline.hpp>
 
-// DESIGN:
-// - the environment info (temperature, etc.), PRNG, and worldlines should be passed to the
-//   function call, and not stored in the mover as a state
-//   - the performance impact would be negligible, and this makes the function more flexible
-// - the number of particles should be stored as a state
-//   - because we don't want to regenerate the cache every single time
-//   - unless we provide the cache externally?
-//     - but that would be very annoying for the user
-
-// TODO:
-// - add a move acceptance ratio logger
 
 namespace pimc
 {
@@ -65,7 +55,8 @@ public:
         Worldlines& worldlines,
         rng::PRNGWrapper auto& prngw,
         const interact::InteractionHandler auto& interact_handler,
-        const envir::Environment<FP>& environment
+        const envir::Environment<FP>& environment,
+        MoveSuccessTracker* move_tracker = nullptr
     ) noexcept
     {
         const auto step = generate_step_(prngw);
@@ -98,6 +89,14 @@ public:
                 // the proposed move is rejected, restore the positions
                 for (std::size_t i_tslice {0}; i_tslice < worldlines.size(); ++i_tslice) {
                     worldlines[i_tslice][i_particle] = position_cache_[i_tslice];
+                }
+
+                if (move_tracker) {
+                    move_tracker->add_reject();
+                }
+            } else {
+                if (move_tracker) {
+                    move_tracker->add_accept();
                 }
             }
         }
