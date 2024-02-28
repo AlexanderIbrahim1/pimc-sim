@@ -1,7 +1,9 @@
 #pragma once
 
+#include <algorithm>
 #include <concepts>
 #include <iomanip>
+#include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <string_view>
@@ -86,26 +88,28 @@ template <std::floating_point FP>
 struct MoveLimits
 {
 public:
-    MoveLimits(FP lower, FP upper)
+    MoveLimits(std::optional<FP> lower, std::optional<FP> upper)
         : lower_ {lower}
         , upper_ {upper}
     {
-        ctr_check_value_order(lower_, upper_);
+        if (lower_.has_value() && upper_.has_value()) {
+            ctr_check_value_order(lower_.value(), upper_.value());
+        }
     }
 
-    constexpr auto lower() const noexcept -> FP
+    constexpr auto lower() const noexcept -> std::optional<FP>
     {
         return lower_;
     }
 
-    constexpr auto upper() const noexcept -> FP
+    constexpr auto upper() const noexcept -> std::optional<FP>
     {
         return upper_;
     }
 
 private:
-    FP lower_;
-    FP upper_;
+    std::optional<FP> lower_;
+    std::optional<FP> upper_;
 
     void ctr_check_value_order(double lower, double upper) const
     {
@@ -125,13 +129,13 @@ class SingleValueMoveAdjuster
 public:
     explicit SingleValueMoveAdjuster(
         AcceptPercentageRange accept_percent_range,
-        MoveLimits move_limits,
         FP abs_adjustment,
+        std::optional<MoveLimits<FP>> move_limits = std::nullopt,
         NoMovesPolicy policy = NoMovesPolicy::DO_NOTHING
     )
         : accept_percent_range_ {accept_percent_range}
-        , move_limits_ {move_limits}
         , abs_adjustment_ {abs_adjustment}
+        , move_limits_ {move_limits}
         , policy_ {policy}
     {
         ctr_check_abs_adjustment_positive(abs_adjustment_);
@@ -149,7 +153,13 @@ public:
             }
         }
 
-        const auto accept_ratio = static_cast<double>(move_tracker.get_accept() / move_tracker.get_total_attempts());
+        const auto accept_ratio = [&move_tracker]()
+        {
+            const auto n_accept = static_cast<double>(move_tracker.get_accept());
+            const auto n_total = static_cast<double>(move_tracker.get_total_attempts());
+
+            return n_accept / n_total;
+        }();
 
         auto new_step = FP {};
         if (accept_ratio < accept_percent_range_.lower_accept_percentage()) {
@@ -181,14 +191,37 @@ public:
             new_step = current;
         }
 
-        return new_step;
+        const auto clamped_step = apply_limits_(new_step);
+
+        return clamped_step;
     }
 
 private:
     AcceptPercentageRange accept_percent_range_;
-    MoveLimits move_limits_;
     FP abs_adjustment_;
+    std::optional<MoveLimits<FP>> move_limits_;
     NoMovesPolicy policy_;
+
+    constexpr auto apply_limits_(FP new_step) const noexcept -> FP
+    {
+        auto clamped_step = FP {new_step};
+
+        if (!move_limits_.has_value()) {
+            return clamped_step;
+        }
+
+        const auto lower = move_limits_->lower();
+        if (lower.has_value()) {
+            clamped_step = std::max(clamped_step, *lower);
+        }
+
+        const auto upper = move_limits_->upper();
+        if (upper.has_value()) {
+            clamped_step = std::min(clamped_step, *upper);
+        }
+
+        return clamped_step;
+    }
 
     void ctr_check_abs_adjustment_positive(FP value) const
     {
