@@ -14,8 +14,8 @@ TEST_CASE("basic single value adjustment", "[SingleValueAdjuster]")
     SECTION("negative direction")
     {
         const auto direction = pimc::DirectionIfAcceptTooLow::NEGATIVE;
-        const auto range = pimc::AcceptPercentageRange {0.3, 0.8, direction};
-        const auto move_adjuster = pimc::SingleValueMoveAdjuster<double> {range, abs_adjustment};
+        const auto range = pimc::AcceptPercentageRange {0.3, 0.8};
+        const auto move_adjuster = pimc::SingleValueMoveAdjuster<double> {range, abs_adjustment, direction};
 
         SECTION("acceptance rate too low")
         {
@@ -60,8 +60,8 @@ TEST_CASE("basic single value adjustment", "[SingleValueAdjuster]")
     SECTION("positive direction")
     {
         const auto direction = pimc::DirectionIfAcceptTooLow::POSITIVE;
-        const auto range = pimc::AcceptPercentageRange {0.3, 0.8, direction};
-        const auto move_adjuster = pimc::SingleValueMoveAdjuster<double> {range, abs_adjustment};
+        const auto range = pimc::AcceptPercentageRange {0.3, 0.8};
+        const auto move_adjuster = pimc::SingleValueMoveAdjuster<double> {range, abs_adjustment, direction};
 
         SECTION("acceptance rate too low")
         {
@@ -106,28 +106,27 @@ TEST_CASE("basic single value adjustment", "[SingleValueAdjuster]")
 
 TEST_CASE("accept percentage range")
 {
-    const auto direction = pimc::DirectionIfAcceptTooLow::NEGATIVE;  // doesn't affect tests
     SECTION("exception if below 0.0 and/or above 1.0")
     {
-        REQUIRE_THROWS_AS(pimc::AcceptPercentageRange(-0.1, 0.5, direction), std::runtime_error);
-        REQUIRE_THROWS_AS(pimc::AcceptPercentageRange(0.1, -0.5, direction), std::runtime_error);
-        REQUIRE_THROWS_AS(pimc::AcceptPercentageRange(-0.1, -0.5, direction), std::runtime_error);
-        REQUIRE_THROWS_AS(pimc::AcceptPercentageRange(1.5, 0.5, direction), std::runtime_error);
-        REQUIRE_THROWS_AS(pimc::AcceptPercentageRange(0.5, 1.5, direction), std::runtime_error);
-        REQUIRE_THROWS_AS(pimc::AcceptPercentageRange(1.5, 1.5, direction), std::runtime_error);
-        REQUIRE_THROWS_AS(pimc::AcceptPercentageRange(1.2, -0.5, direction), std::runtime_error);
+        REQUIRE_THROWS_AS(pimc::AcceptPercentageRange(-0.1, 0.5), std::runtime_error);
+        REQUIRE_THROWS_AS(pimc::AcceptPercentageRange(0.1, -0.5), std::runtime_error);
+        REQUIRE_THROWS_AS(pimc::AcceptPercentageRange(-0.1, -0.5), std::runtime_error);
+        REQUIRE_THROWS_AS(pimc::AcceptPercentageRange(1.5, 0.5), std::runtime_error);
+        REQUIRE_THROWS_AS(pimc::AcceptPercentageRange(0.5, 1.5), std::runtime_error);
+        REQUIRE_THROWS_AS(pimc::AcceptPercentageRange(1.5, 1.5), std::runtime_error);
+        REQUIRE_THROWS_AS(pimc::AcceptPercentageRange(1.2, -0.5), std::runtime_error);
     }
 
     SECTION("except if incorrect order")
     {
-        REQUIRE_THROWS_AS(pimc::AcceptPercentageRange(0.7, 0.5, direction), std::runtime_error);
+        REQUIRE_THROWS_AS(pimc::AcceptPercentageRange(0.7, 0.5), std::runtime_error);
     }
 }
 
 TEST_CASE("adjustment with limits")
 {
     const auto direction = pimc::DirectionIfAcceptTooLow::NEGATIVE;
-    const auto range = pimc::AcceptPercentageRange {0.3, 0.8, direction};
+    const auto range = pimc::AcceptPercentageRange {0.3, 0.8};
     const auto abs_adjustment = double {0.1};
 
     auto move_tracker_too_high = pimc::MoveSuccessTracker {};
@@ -148,7 +147,8 @@ TEST_CASE("adjustment with limits")
 
     SECTION("both limits")
     {
-        const auto move_adjuster = pimc::SingleValueMoveAdjuster<double> {range, abs_adjustment, both_limits};
+        const auto move_adjuster =
+            pimc::SingleValueMoveAdjuster<double> {range, abs_adjustment, direction, both_limits};
         SECTION("bounded from below")
         {
             const auto current = double {1.05};
@@ -176,7 +176,8 @@ TEST_CASE("adjustment with limits")
 
     SECTION("lower limits")
     {
-        const auto move_adjuster = pimc::SingleValueMoveAdjuster<double> {range, abs_adjustment, lower_limits};
+        const auto move_adjuster =
+            pimc::SingleValueMoveAdjuster<double> {range, abs_adjustment, direction, lower_limits};
         SECTION("bounded from below")
         {
             const auto current = double {1.05};
@@ -204,7 +205,8 @@ TEST_CASE("adjustment with limits")
 
     SECTION("upper limits")
     {
-        const auto move_adjuster = pimc::SingleValueMoveAdjuster<double> {range, abs_adjustment, upper_limits};
+        const auto move_adjuster =
+            pimc::SingleValueMoveAdjuster<double> {range, abs_adjustment, direction, upper_limits};
         SECTION("not bounded from below")
         {
             const auto current = double {1.05};

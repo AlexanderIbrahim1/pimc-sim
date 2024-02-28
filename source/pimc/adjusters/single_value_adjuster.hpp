@@ -28,14 +28,9 @@ enum class DirectionIfAcceptTooLow
 struct AcceptPercentageRange
 {
 public:
-    AcceptPercentageRange(
-        double lower_accept_percentage,
-        double upper_accept_percentage,
-        DirectionIfAcceptTooLow direction
-    )
+    AcceptPercentageRange(double lower_accept_percentage, double upper_accept_percentage)
         : lower_accept_percentage_ {lower_accept_percentage}
         , upper_accept_percentage_ {upper_accept_percentage}
-        , direction_ {direction}
     {
         ctr_check_accept_percentage_range(lower_accept_percentage_, "lower_accept_percentage");
         ctr_check_accept_percentage_range(upper_accept_percentage_, "upper_accept_percentage");
@@ -52,15 +47,9 @@ public:
         return upper_accept_percentage_;
     }
 
-    constexpr auto direction() const noexcept -> DirectionIfAcceptTooLow
-    {
-        return direction_;
-    }
-
 private:
     double lower_accept_percentage_;
     double upper_accept_percentage_;
-    DirectionIfAcceptTooLow direction_;
 
     void ctr_check_accept_percentage_range(double percentage, std::string_view name) const
     {
@@ -130,11 +119,13 @@ public:
     explicit SingleValueMoveAdjuster(
         AcceptPercentageRange accept_percent_range,
         FP abs_adjustment,
+        DirectionIfAcceptTooLow direction,
         std::optional<MoveLimits<FP>> move_limits = std::nullopt,
         NoMovesPolicy policy = NoMovesPolicy::DO_NOTHING
     )
         : accept_percent_range_ {accept_percent_range}
         , abs_adjustment_ {abs_adjustment}
+        , direction_ {direction}
         , move_limits_ {move_limits}
         , policy_ {policy}
     {
@@ -163,9 +154,7 @@ public:
 
         auto new_step = FP {};
         if (accept_ratio < accept_percent_range_.lower_accept_percentage()) {
-            const auto direction = accept_percent_range_.direction();
-
-            if (direction == DirectionIfAcceptTooLow::POSITIVE) {
+            if (direction_ == DirectionIfAcceptTooLow::POSITIVE) {
                 new_step = current + abs_adjustment_;
             }
             else {
@@ -173,14 +162,12 @@ public:
             }
         }
         else if (accept_ratio > accept_percent_range_.upper_accept_percentage()) {
-            const auto direction = accept_percent_range_.direction();
-
             // logic: if we increase the step when the acceptance percentage is too low, we
             // should decrease the step when the acceptance percentage is too high
             //
             // there might be cases where this isn't what we want, but for the moves I've seen
             // so far, this is a fairly straightforward decision to make
-            if (direction == DirectionIfAcceptTooLow::POSITIVE) {
+            if (direction_ == DirectionIfAcceptTooLow::POSITIVE) {
                 new_step = current - abs_adjustment_;
             }
             else {
@@ -199,6 +186,7 @@ public:
 private:
     AcceptPercentageRange accept_percent_range_;
     FP abs_adjustment_;
+    DirectionIfAcceptTooLow direction_;
     std::optional<MoveLimits<FP>> move_limits_;
     NoMovesPolicy policy_;
 
