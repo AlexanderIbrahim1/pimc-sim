@@ -3,7 +3,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include "pimc/adjusters/single_value_adjuster.hpp"
+#include "pimc/adjusters/adjusters.hpp"
 #include "pimc/trackers/move_success_tracker.hpp"
 
 TEST_CASE("basic single value adjustment", "[SingleValueAdjuster]")
