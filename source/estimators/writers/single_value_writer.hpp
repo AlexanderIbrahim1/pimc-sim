@@ -8,7 +8,6 @@
 #include <sstream>
 
 #include <common/common_utils.hpp>
-#include <estimators/estim_utils.hpp>
 
 namespace estim
 {
@@ -19,8 +18,8 @@ class SingleValueBlockWriter
 public:
     constexpr SingleValueBlockWriter(std::filesystem::path filepath, std::string header_contents = std::string {})
         : filepath_ {std::move(filepath)}
-        , block_index_padding_ {estim_utils::DEFAULT_BLOCK_INDEX_PADDING}
-        , floating_point_precision_ {estim_utils::DEFAULT_SINGLE_VALUE_PRECISION}
+        , block_index_padding_ {common_utils::DEFAULT_WRITER_BLOCK_INDEX_PADDING}
+        , floating_point_precision_ {common_utils::DEFAULT_WRITER_SINGLE_VALUE_PRECISION}
     {
         auto out_stream = open_filestream_checked_(std::ios::out);
         out_stream << header_contents;
