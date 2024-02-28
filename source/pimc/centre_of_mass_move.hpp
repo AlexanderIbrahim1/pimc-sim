@@ -21,7 +21,6 @@
 #include <rng/generator.hpp>
 #include <worldline/worldline.hpp>
 
-
 namespace pimc
 {
 
@@ -94,7 +93,8 @@ public:
                 if (move_tracker) {
                     move_tracker->add_reject();
                 }
-            } else {
+            }
+            else {
                 if (move_tracker) {
                     move_tracker->add_accept();
                 }

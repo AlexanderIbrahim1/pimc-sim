@@ -30,6 +30,8 @@
 #include <pimc/bisection_multibead_position_move_performer.hpp>
 #include <pimc/centre_of_mass_move.hpp>
 #include <pimc/single_bead_position_move.hpp>
+#include <pimc/trackers/move_success_tracker.hpp>
+#include <pimc/writers/default_writers.hpp>
 #include <rng/distributions.hpp>
 #include <rng/generator.hpp>
 #include <worldline/worldline.hpp>
@@ -135,8 +137,18 @@ auto main() -> int
     auto multi_bead_mover =
         pimc::BisectionMultibeadPositionMovePerformer<double, NDIM> {parser.bisection_ratio, parser.bisection_level};
 
-    /* create the file writers for the estimators */
     const auto output_dirpath = fs::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/ignore"};
+
+    /* create the move acceptance rate trackers for the move performers */
+    auto com_tracker = pimc::MoveSuccessTracker {};
+    auto single_bead_tracker = pimc::MoveSuccessTracker {};
+    auto multi_bead_tracker = pimc::MoveSuccessTracker {};
+
+    auto com_move_writer = pimc::default_centre_of_mass_position_move_success_writer(output_dirpath);
+    auto single_bead_move_writer = pimc::default_single_bead_position_move_success_writer(output_dirpath);
+    auto multi_bead_move_writer = pimc::default_bisection_multibead_position_move_success_writer(output_dirpath);
+
+    /* create the file writers for the estimators */
     auto kinetic_writer = estim::default_kinetic_writer<double>(output_dirpath);
     auto pair_potential_writer = estim::default_pair_potential_writer<double>(output_dirpath);
     auto rms_centroid_writer = estim::default_rms_centroid_distance_writer<double>(output_dirpath);
@@ -149,16 +161,20 @@ auto main() -> int
         for (std::size_t i_pass {0}; i_pass < parser.n_passes; ++i_pass) {
             /* perform COM move for each particle */
             for (std::size_t i_part {0}; i_part < n_particles; ++i_part) {
-                com_mover(i_part, worldlines, prngw, interaction_handler, environment);
-
-                // for (std::size_t i_tslice {0}; i_tslice < n_timeslices; ++i_tslice) {
-                //     /* perform bead move on timeslice `i_tslice` of each particle */
-                //     single_bead_mover(i_part, i_tslice, worldlines, prngw, interaction_handler, environment);
-                // }
+                com_mover(i_part, worldlines, prngw, interaction_handler, environment, &com_tracker);
 
                 for (std::size_t i_tslice {0}; i_tslice < n_timeslices; ++i_tslice) {
                     /* perform bead move on timeslice `i_tslice` of each particle */
-                    multi_bead_mover(i_part, i_tslice, worldlines, prngw, interaction_handler, environment);
+                    single_bead_mover(
+                        i_part, i_tslice, worldlines, prngw, interaction_handler, environment, &single_bead_tracker
+                    );
+                }
+
+                for (std::size_t i_tslice {0}; i_tslice < n_timeslices; ++i_tslice) {
+                    /* perform bead move on timeslice `i_tslice` of each particle */
+                    multi_bead_mover(
+                        i_part, i_tslice, worldlines, prngw, interaction_handler, environment, &multi_bead_tracker
+                    );
                 }
             }
         }
@@ -179,7 +195,21 @@ auto main() -> int
             pair_potential_writer.write(i_block, total_potential_energy);
             rms_centroid_writer.write(i_block, rms_centroid_dist);
             abs_centroid_writer.write(i_block, abs_centroid_dist);
+
+            /* save move acceptance rates */
+            const auto [com_accept, com_reject] = com_tracker.get_accept_and_reject();
+            com_move_writer.write(i_block, com_accept, com_reject);
+
+            const auto [sb_accept, sb_reject] = single_bead_tracker.get_accept_and_reject();
+            single_bead_move_writer.write(i_block, sb_accept, sb_reject);
+
+            const auto [mb_accept, mb_reject] = multi_bead_tracker.get_accept_and_reject();
+            multi_bead_move_writer.write(i_block, mb_accept, mb_reject);
         }
+
+        com_tracker.reset();
+        single_bead_tracker.reset();
+        multi_bead_tracker.reset();
     }
 
     return 0;

@@ -74,7 +74,8 @@ public:
                 if (move_tracker) {
                     move_tracker->add_reject();
                 }
-            } else {
+            }
+            else {
                 if (move_tracker) {
                     move_tracker->add_accept();
                 }

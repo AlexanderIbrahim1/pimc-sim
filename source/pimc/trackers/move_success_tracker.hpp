@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <tuple>
 
 namespace pimc
 {
@@ -13,19 +14,24 @@ public:
         n_total_accept_ += n_accept;
     }
 
-    constexpr auto get_accept() const noexcept
-    {
-        return n_total_accept_;
-    }
-
     constexpr void add_reject(std::uint64_t n_reject = 1) noexcept
     {
         n_total_reject_ += n_reject;
     }
 
+    constexpr auto get_accept() const noexcept
+    {
+        return n_total_accept_;
+    }
+
     constexpr auto get_reject() const noexcept
     {
         return n_total_reject_;
+    }
+
+    constexpr auto get_accept_and_reject() const noexcept -> std::tuple<std::uint64_t, std::uint64_t>
+    {
+        return {n_total_accept_, n_total_reject_};
     }
 
     constexpr void reset() noexcept

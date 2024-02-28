@@ -13,6 +13,9 @@
 namespace common
 {
 
+namespace writers
+{
+
 template <common_utils::Numeric Number1, common_utils::Numeric Number2>
 class DoubleValueBlockWriter
 {
@@ -69,5 +72,7 @@ private:
         }
     }
 };
+
+}  // namespace writers
 
 }  // namespace common

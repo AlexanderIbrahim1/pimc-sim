@@ -25,8 +25,7 @@ namespace estim
 {
 
 template <std::floating_point FP>
-constexpr auto default_kinetic_writer(const std::filesystem::path& output_dirpath)
-    -> common::writers::SingleValueBlockWriter<FP>
+auto default_kinetic_writer(const std::filesystem::path& output_dirpath) -> common::writers::SingleValueBlockWriter<FP>
 {
     const auto filepath = output_dirpath / estim::writer_utils::DEFAULT_KINETIC_OUTPUT_FILENAME;
     const auto header = std::string {"# total kinetic energy in wavenumbers\n"};
@@ -35,7 +34,7 @@ constexpr auto default_kinetic_writer(const std::filesystem::path& output_dirpat
 }
 
 template <std::floating_point FP>
-constexpr auto default_pair_potential_writer(const std::filesystem::path& output_dirpath)
+auto default_pair_potential_writer(const std::filesystem::path& output_dirpath)
     -> common::writers::SingleValueBlockWriter<FP>
 {
     const auto filepath = output_dirpath / estim::writer_utils::DEFAULT_PAIR_POTENTIAL_OUTPUT_FILENAME;
@@ -45,7 +44,7 @@ constexpr auto default_pair_potential_writer(const std::filesystem::path& output
 }
 
 template <std::floating_point FP>
-constexpr auto default_rms_centroid_distance_writer(const std::filesystem::path& output_dirpath)
+auto default_rms_centroid_distance_writer(const std::filesystem::path& output_dirpath)
     -> common::writers::SingleValueBlockWriter<FP>
 {
     const auto filepath = output_dirpath / estim::writer_utils::DEFAULT_RMS_CENTROID_DISTANCE_OUTPUT_FILENAME;
@@ -56,7 +55,7 @@ constexpr auto default_rms_centroid_distance_writer(const std::filesystem::path&
 }
 
 template <std::floating_point FP>
-constexpr auto default_absolute_centroid_distance_writer(const std::filesystem::path& output_dirpath)
+auto default_absolute_centroid_distance_writer(const std::filesystem::path& output_dirpath)
     -> common::writers::SingleValueBlockWriter<FP>
 {
     const auto filepath = output_dirpath / estim::writer_utils::DEFAULT_ABSOLUTE_CENTROID_DISTANCE_OUTPUT_FILENAME;
