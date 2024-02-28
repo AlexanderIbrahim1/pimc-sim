@@ -72,7 +72,7 @@ TEST_CASE("update adjacency matrix")
     const auto cutoff_distance = double {0.25};
     const auto n_timeslices = std::size_t {8};
     const auto n_particles = std::size_t {5};
-    const auto environment = envir::create_finite_temperature_environment<double>(4.2, 2.0, n_timeslices, n_particles);
+    const auto environment = envir::create_environment<double>(4.2, 2.0, n_timeslices, n_particles);
 
     auto adjmat = mathtools::SquareAdjacencyMatrix {n_particles};
 

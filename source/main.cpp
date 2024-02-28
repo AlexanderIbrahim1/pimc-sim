@@ -101,6 +101,8 @@ auto main() -> int
     const auto temperature = parser.temperature;
     const auto n_timeslices = parser.n_timeslices;
     const auto com_step_size = parser.centre_of_mass_step_size;
+    const auto bisect_ratio = parser.bisection_ratio;
+    const auto bisect_level = parser.bisection_level;
 
     if (!parser.is_valid()) {
         std::cout << "PARSER DID NOT PARSE PROPERLY\n";
@@ -116,14 +118,13 @@ auto main() -> int
 
     /* create the environment object */
     const auto h2_mass = constants::H2_MASS_IN_AMU<double>;
-    const auto environment =
-        envir::create_finite_temperature_environment(temperature, h2_mass, n_timeslices, n_particles);
+    const auto environment = envir::create_environment(temperature, h2_mass, n_timeslices, n_particles);
 
     /* create the interaction handler */
     // const auto interaction_handler = interact::FullPairInteractionHandler<decltype(pot), double, NDIM> {pot};
+    using InteractionHandler = interact::NearestNeighbourPairInteractionHandler<decltype(pot), double, 3>;
     const auto cutoff_distance = double {7.0};
-    auto interaction_handler =
-        interact::NearestNeighbourPairInteractionHandler<decltype(pot), double, 3> {pot, n_particles};
+    auto interaction_handler = InteractionHandler {pot, n_particles};
     interact::update_centroid_adjacency_matrix<double, 3>(
         worldlines, minimage_box, environment, interaction_handler.adjacency_matrix(), cutoff_distance
     );
@@ -134,8 +135,7 @@ auto main() -> int
     /* create the move performers */
     auto com_mover = pimc::CentreOfMassMovePerformer<double, NDIM> {n_timeslices, com_step_size};
     auto single_bead_mover = pimc::SingleBeadPositionMovePerformer<double, NDIM> {n_timeslices};
-    auto multi_bead_mover =
-        pimc::BisectionMultibeadPositionMovePerformer<double, NDIM> {parser.bisection_ratio, parser.bisection_level};
+    auto multi_bead_mover = pimc::BisectionMultibeadPositionMovePerformer<double, NDIM> {bisect_ratio, bisect_level};
 
     const auto output_dirpath = fs::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/ignore"};
 

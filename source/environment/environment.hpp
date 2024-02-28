@@ -70,7 +70,7 @@ private:
 };
 
 template <std::floating_point FP>
-constexpr auto create_finite_temperature_environment(
+constexpr auto create_environment(
     FP temperature,
     FP mass_amu,
     std::size_t n_timeslices,
