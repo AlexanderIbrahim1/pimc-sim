@@ -1,7 +1,9 @@
 #pragma once
 
 #include <concepts>
+#include <iomanip>
 #include <numeric>
+#include <sstream>
 #include <stdexcept>
 #include <vector>
 
@@ -20,6 +22,25 @@
 namespace pimc
 {
 
+namespace pimc_utils
+{
+
+// sometimes the values might be just below 0.0 or just above 1.0 due to floating-point errors;
+// this error isn't crucial for the functionality of the move adjustment, as long as they aren't
+// extremely away from the bounds; these tolerances cover that
+template <std::floating_point FP>
+constexpr auto UPPER_LEVEL_FRAC_MINIMUM_TOLERANCE = static_cast<FP>(-1.0e-3);
+
+template <std::floating_point FP>
+constexpr auto UPPER_LEVEL_FRAC_MAXIMUM_TOLERANCE = static_cast<FP>(1.0 + 1.0e-3);
+
+}  // namespace pimc_utils
+
+}  // namespace pimc
+
+namespace pimc
+{
+
 template <std::floating_point FP, std::size_t NDIM>
 class BisectionMultibeadPositionMovePerformer
 {
@@ -29,11 +50,23 @@ public:
 
     BisectionMultibeadPositionMovePerformer() = delete;
 
-    constexpr explicit BisectionMultibeadPositionMovePerformer(BisectionLevelMoveInfo<FP> move_info)
+    explicit BisectionMultibeadPositionMovePerformer(BisectionLevelMoveInfo<FP> move_info)
         : move_info_ {move_info}
     {
         check_upper_level_frac_(move_info_.upper_level_frac);
         check_lower_level_(move_info_.lower_level);
+    }
+
+    void update_bisection_level_move_info(BisectionLevelMoveInfo<FP> move_info)
+    {
+        check_upper_level_frac_(move_info_.upper_level_frac);
+        check_lower_level_(move_info_.lower_level);
+        move_info_ = move_info;
+    }
+
+    constexpr auto bisection_level_move_info() const noexcept -> BisectionLevelMoveInfo<FP>
+    {
+        return move_info_;
     }
 
     constexpr void operator()(
@@ -135,21 +168,23 @@ private:
         return cache;
     }
 
-    constexpr void check_upper_level_frac_(FP upper_level_frac) const
+    void check_upper_level_frac_(FP upper_level_frac) const
     {
-        if (upper_level_frac < FP {0.0} || upper_level_frac >= FP {1.0}) {
-            throw std::runtime_error(
-                "The upper level fraction for the bisection multibead position move "
-                "must be between 0.0 and 1.0\n"
-            );
+        const auto minimum = pimc_utils::UPPER_LEVEL_FRAC_MINIMUM_TOLERANCE<FP>;
+        const auto maximum = pimc_utils::UPPER_LEVEL_FRAC_MAXIMUM_TOLERANCE<FP>;
+        if (upper_level_frac < minimum || upper_level_frac >= maximum) {
+            auto err_msg = std::stringstream {};
+            err_msg << "The upper level fraction for the bisection multibead position move\n";
+            err_msg << "must be between 0.0 and 1.0\n";
+            err_msg << "Found: " << std::fixed << std::setprecision(8) << upper_level_frac << '\n';
+            throw std::runtime_error {err_msg.str()};
         }
     }
 
-    constexpr void check_lower_level_(std::size_t lower_level) const
+    void check_lower_level_(std::size_t lower_level) const
     {
         if (lower_level < 1) {
-            throw std::runtime_error("The lower level for the bisection multibead position move must be 1 or greater.\n"
-            );
+            throw std::runtime_error {"The lower level for the bisection multibead position move must at least 1.\n"};
         }
     }
 
@@ -157,10 +192,10 @@ private:
     {
         const auto rand01 = uniform_dist_.uniform_01(prngw);
         if (rand01 < move_info_.upper_level_frac) {
-            return move_info_.lower_level;
+            return move_info_.lower_level + 1;
         }
         else {
-            return move_info_.lower_level + 1;
+            return move_info_.lower_level;
         }
     }
 

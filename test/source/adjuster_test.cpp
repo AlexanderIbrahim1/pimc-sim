@@ -158,7 +158,6 @@ TEST_CASE("adjustment with limits")
 
     const auto move_tracker_too_high = get_move_tracker_too_high_30_80();
     const auto move_tracker_too_low = get_move_tracker_too_low_30_80();
-    const auto move_tracker_just_right = get_move_tracker_just_right_30_80();
 
     const auto both_limits = pimc::MoveLimits<double> {1.0, 5.0};
     const auto lower_limits = pimc::MoveLimits<double> {1.0, std::nullopt};
@@ -254,12 +253,6 @@ TEST_CASE("adjustment with limits")
 
 TEST_CASE("bisection level adjustment", "[BisectionLevelMoveAdjuster]")
 {
-    /*
-    IDEAS:
-    - make sure that (with shifting levels):
-      - increasing the upper fraction ratio above 1.0 increases the lower level, and wraps the upper fraction around
-      - decreasing the upper fraction ratio below 0.0 increases the lower level, and wraps the upper fraction around
-    */
     const auto abs_adjustment = double {0.1};
     const auto range = pimc::AcceptPercentageRange {0.3, 0.8};
     const auto move_adjuster = pimc::BisectionLevelMoveAdjuster<double> {range, abs_adjustment};

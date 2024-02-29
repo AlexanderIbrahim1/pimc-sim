@@ -27,6 +27,7 @@
 #include <interactions/two_body/two_body_pointwise.hpp>
 #include <interactions/two_body/two_body_pointwise_tabulated.hpp>
 #include <interactions/two_body/two_body_pointwise_wrapper.hpp>
+#include <pimc/adjusters/adjusters.hpp>
 #include <pimc/bisection_multibead_position_move_performer.hpp>
 #include <pimc/centre_of_mass_move.hpp>
 #include <pimc/single_bead_position_move.hpp>
@@ -78,6 +79,24 @@ constexpr auto fsh_potential(auto minimage_box)
     return pot;
 }
 
+auto create_com_move_adjuster(double lower_range_limit, double upper_range_limit) noexcept
+    -> pimc::SingleValueMoveAdjuster<double>
+{
+    const auto com_accept_range = pimc::AcceptPercentageRange<double> {lower_range_limit, upper_range_limit};
+    const auto com_adjust_step = double {0.01};
+    const auto com_direction = pimc::DirectionIfAcceptTooLow::NEGATIVE;
+    const auto com_limits = pimc::MoveLimits<double> {0.0, std::nullopt};
+    return pimc::SingleValueMoveAdjuster<double> {com_accept_range, com_adjust_step, com_direction, com_limits};
+}
+
+auto create_bisect_move_adjuster(double lower_range_limit, double upper_range_limit) noexcept
+    -> pimc::BisectionLevelMoveAdjuster<double>
+{
+    const auto com_accept_range = pimc::AcceptPercentageRange<double> {lower_range_limit, upper_range_limit};
+    const auto com_adjust_step = double {0.1};
+    return pimc::BisectionLevelMoveAdjuster<double> {com_accept_range, com_adjust_step};
+}
+
 auto main() -> int
 {
     namespace fs = std::filesystem;
@@ -85,9 +104,9 @@ auto main() -> int
     const auto toml_input = std::string_view {R"(
         first_block_index = 0
         last_block_index = 200
-        n_equilibrium_blocks = 20
+        n_equilibrium_blocks = 10
         n_passes = 5
-        n_timeslices = 32
+        n_timeslices = 64
         centre_of_mass_step_size = 0.3
         bisection_level = 3
         bisection_ratio = 0.5
@@ -137,6 +156,10 @@ auto main() -> int
     auto multi_bead_mover = pimc::BisectionMultibeadPositionMovePerformer<double, NDIM> {bisect_move_info};
 
     const auto output_dirpath = fs::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/ignore"};
+
+    /* create the move adjusters */
+    const auto com_move_adjuster = create_com_move_adjuster(0.4, 0.5);
+    const auto bisect_move_adjuster = create_bisect_move_adjuster(0.4, 0.5);
 
     /* create the move acceptance rate trackers for the move performers */
     auto com_tracker = pimc::MoveSuccessTracker {};
@@ -205,6 +228,14 @@ auto main() -> int
             const auto [mb_accept, mb_reject] = multi_bead_tracker.get_accept_and_reject();
             multi_bead_move_writer.write(i_block, mb_accept, mb_reject);
         }
+
+        const auto curr_com_step_size = com_mover.step_size();
+        const auto new_com_step_size = com_move_adjuster.adjust_step(curr_com_step_size, com_tracker);
+        com_mover.update_step_size(new_com_step_size);
+
+        const auto curr_bisect_move_info = multi_bead_mover.bisection_level_move_info();
+        const auto new_bisect_move_info = bisect_move_adjuster.adjust_step(curr_bisect_move_info, multi_bead_tracker);
+        multi_bead_mover.update_bisection_level_move_info(new_bisect_move_info);
 
         com_tracker.reset();
         single_bead_tracker.reset();

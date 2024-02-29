@@ -47,6 +47,11 @@ public:
         step_size_ = new_step_size;
     }
 
+    constexpr auto step_size() const noexcept -> FP
+    {
+        return step_size_;
+    }
+
     // TODO: wrap part of this in a try-catch block, to restore the original particle positions in case
     //       an exception is thrown
     constexpr void operator()(
