@@ -161,6 +161,10 @@ auto main() -> int
     const auto com_move_adjuster = create_com_move_adjuster(0.4, 0.5);
     const auto bisect_move_adjuster = create_bisect_move_adjuster(0.4, 0.5);
 
+    auto com_step_size_writer = pimc::default_centre_of_mass_position_move_step_size_writer<double>(output_dirpath);
+    auto multi_bead_move_info_writer =
+        pimc::default_bisection_multibead_position_move_info_writer<double>(output_dirpath);
+
     /* create the move acceptance rate trackers for the move performers */
     auto com_tracker = pimc::MoveSuccessTracker {};
     auto single_bead_tracker = pimc::MoveSuccessTracker {};
@@ -233,9 +237,15 @@ auto main() -> int
         const auto new_com_step_size = com_move_adjuster.adjust_step(curr_com_step_size, com_tracker);
         com_mover.update_step_size(new_com_step_size);
 
+        com_step_size_writer.write(i_block, new_com_step_size);
+
         const auto curr_bisect_move_info = multi_bead_mover.bisection_level_move_info();
         const auto new_bisect_move_info = bisect_move_adjuster.adjust_step(curr_bisect_move_info, multi_bead_tracker);
         multi_bead_mover.update_bisection_level_move_info(new_bisect_move_info);
+
+        multi_bead_move_info_writer.write(
+            i_block, new_bisect_move_info.upper_level_frac, new_bisect_move_info.lower_level
+        );
 
         com_tracker.reset();
         single_bead_tracker.reset();
