@@ -30,7 +30,7 @@ public:
         , move_limits_ {move_limits}
         , policy_ {policy}
     {
-        ctr_check_abs_adjustment_positive(abs_adjustment_);
+        ctr_check_abs_adjustment_positive_(abs_adjustment_);
     }
 
     constexpr auto adjust_step(FP current, const MoveSuccessTracker& move_tracker) const -> FP
@@ -106,7 +106,7 @@ private:
         return clamped_step;
     }
 
-    void ctr_check_abs_adjustment_positive(FP value) const
+    void ctr_check_abs_adjustment_positive_(FP value) const
     {
         if (value <= FP {0.0}) {
             auto err_msg = std::stringstream {};

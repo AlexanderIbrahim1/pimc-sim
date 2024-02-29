@@ -11,6 +11,7 @@
 #include <environment/environment.hpp>
 #include <interactions/handlers/interaction_handler_concepts.hpp>
 #include <pimc/bisection_level_manager.hpp>
+#include <pimc/bisection_level_move_info.hpp>
 #include <pimc/trackers/move_success_tracker.hpp>
 #include <rng/distributions.hpp>
 #include <rng/generator.hpp>
@@ -28,12 +29,11 @@ public:
 
     BisectionMultibeadPositionMovePerformer() = delete;
 
-    constexpr explicit BisectionMultibeadPositionMovePerformer(FP lower_level_frac, std::size_t lower_level)
-        : lower_level_frac_ {lower_level_frac}
-        , lower_level_ {lower_level}
+    constexpr explicit BisectionMultibeadPositionMovePerformer(BisectionLevelMoveInfo<FP> move_info)
+        : move_info_ {move_info}
     {
-        check_lower_level_frac_(lower_level_frac_);
-        check_lower_level_(lower_level_);
+        check_upper_level_frac_(move_info_.upper_level_frac);
+        check_lower_level_(move_info_.lower_level);
     }
 
     constexpr void operator()(
@@ -110,8 +110,7 @@ public:
     }
 
 private:
-    FP lower_level_frac_;
-    std::size_t lower_level_;
+    BisectionLevelMoveInfo<FP> move_info_;
     rng::UniformFloatingPointDistribution<FP> uniform_dist_ {};
     rng::NormalDistribution<FP> normal_dist_ {};
 
@@ -136,11 +135,11 @@ private:
         return cache;
     }
 
-    constexpr void check_lower_level_frac_(FP lower_level_frac) const
+    constexpr void check_upper_level_frac_(FP upper_level_frac) const
     {
-        if (lower_level_frac < FP {0.0} || lower_level_frac >= FP {1.0}) {
+        if (upper_level_frac < FP {0.0} || upper_level_frac >= FP {1.0}) {
             throw std::runtime_error(
-                "The lower level fraction for the bisection multibead position move "
+                "The upper level fraction for the bisection multibead position move "
                 "must be between 0.0 and 1.0\n"
             );
         }
@@ -157,11 +156,11 @@ private:
     constexpr auto choose_bisection_level_(rng::PRNGWrapper auto& prngw) noexcept -> std::size_t
     {
         const auto rand01 = uniform_dist_.uniform_01(prngw);
-        if (rand01 < lower_level_frac_) {
-            return lower_level_;
+        if (rand01 < move_info_.upper_level_frac) {
+            return move_info_.lower_level;
         }
         else {
-            return lower_level_ + 1;
+            return move_info_.lower_level + 1;
         }
     }
 

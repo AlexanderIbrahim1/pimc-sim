@@ -4,6 +4,7 @@
 #include <cstddef>
 
 #include <pimc/adjusters/adjust_common.hpp>
+#include <pimc/bisection_level_move_info.hpp>
 #include <pimc/trackers/move_success_tracker.hpp>
 
 /*
@@ -19,13 +20,6 @@ PLAN
 
 namespace pimc
 {
-
-template <std::floating_point FP>
-struct BisectionLevelMoveInfo
-{
-    FP upper_level_frac;
-    std::size_t lower_level;
-};
 
 template <std::floating_point FP>
 class BisectionLevelMoveAdjuster

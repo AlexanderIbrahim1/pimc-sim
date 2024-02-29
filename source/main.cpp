@@ -101,8 +101,7 @@ auto main() -> int
     const auto temperature = parser.temperature;
     const auto n_timeslices = parser.n_timeslices;
     const auto com_step_size = parser.centre_of_mass_step_size;
-    const auto bisect_ratio = parser.bisection_ratio;
-    const auto bisect_level = parser.bisection_level;
+    const auto bisect_move_info = pimc::BisectionLevelMoveInfo {parser.bisection_ratio, parser.bisection_level};
 
     if (!parser.is_valid()) {
         std::cout << "PARSER DID NOT PARSE PROPERLY\n";
@@ -135,7 +134,7 @@ auto main() -> int
     /* create the move performers */
     auto com_mover = pimc::CentreOfMassMovePerformer<double, NDIM> {n_timeslices, com_step_size};
     auto single_bead_mover = pimc::SingleBeadPositionMovePerformer<double, NDIM> {n_timeslices};
-    auto multi_bead_mover = pimc::BisectionMultibeadPositionMovePerformer<double, NDIM> {bisect_ratio, bisect_level};
+    auto multi_bead_mover = pimc::BisectionMultibeadPositionMovePerformer<double, NDIM> {bisect_move_info};
 
     const auto output_dirpath = fs::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/ignore"};
 
