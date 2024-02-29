@@ -35,7 +35,9 @@ public:
 
     constexpr auto adjust_step(FP current, const MoveSuccessTracker& move_tracker) const -> FP
     {
-        if (move_tracker.get_total_attempts() == 0) {
+        const auto accept_ratio = acceptance_ratio<FP>(move_tracker);
+
+        if (!accept_ratio.has_value()) {
             if (policy_ == NoMovesPolicy::DO_NOTHING) {
                 return current;
             }
@@ -45,16 +47,8 @@ public:
             }
         }
 
-        const auto accept_ratio = [&move_tracker]()
-        {
-            const auto n_accept = static_cast<double>(move_tracker.get_accept());
-            const auto n_total = static_cast<double>(move_tracker.get_total_attempts());
-
-            return n_accept / n_total;
-        }();
-
         auto new_step = FP {};
-        if (accept_ratio < accept_percent_range_.lower_accept_percentage()) {
+        if (*accept_ratio < accept_percent_range_.lower_accept_percentage()) {
             if (direction_ == DirectionIfAcceptTooLow::POSITIVE) {
                 new_step = current + abs_adjustment_;
             }
@@ -62,7 +56,7 @@ public:
                 new_step = current - abs_adjustment_;
             }
         }
-        else if (accept_ratio > accept_percent_range_.upper_accept_percentage()) {
+        else if (*accept_ratio > accept_percent_range_.upper_accept_percentage()) {
             // logic: if we increase the step when the acceptance percentage is too low, we
             // should decrease the step when the acceptance percentage is too high
             //

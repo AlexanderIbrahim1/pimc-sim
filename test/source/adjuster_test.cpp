@@ -6,6 +6,33 @@
 #include "pimc/adjusters/adjusters.hpp"
 #include "pimc/trackers/move_success_tracker.hpp"
 
+constexpr auto get_move_tracker_too_high_30_80() noexcept -> pimc::MoveSuccessTracker
+{
+    auto move_tracker = pimc::MoveSuccessTracker {};
+    move_tracker.add_accept(90);
+    move_tracker.add_reject(10);
+
+    return move_tracker;
+}
+
+constexpr auto get_move_tracker_just_right_30_80() noexcept -> pimc::MoveSuccessTracker
+{
+    auto move_tracker = pimc::MoveSuccessTracker {};
+    move_tracker.add_accept(50);
+    move_tracker.add_reject(50);
+
+    return move_tracker;
+}
+
+constexpr auto get_move_tracker_too_low_30_80() noexcept -> pimc::MoveSuccessTracker
+{
+    auto move_tracker = pimc::MoveSuccessTracker {};
+    move_tracker.add_accept(10);
+    move_tracker.add_reject(90);
+
+    return move_tracker;
+}
+
 TEST_CASE("basic single value adjustment", "[SingleValueAdjuster]")
 {
     const auto abs_adjustment = double {0.1};
@@ -129,17 +156,9 @@ TEST_CASE("adjustment with limits")
     const auto range = pimc::AcceptPercentageRange {0.3, 0.8};
     const auto abs_adjustment = double {0.1};
 
-    auto move_tracker_too_high = pimc::MoveSuccessTracker {};
-    move_tracker_too_high.add_accept(90);
-    move_tracker_too_high.add_reject(10);
-
-    auto move_tracker_too_low = pimc::MoveSuccessTracker {};
-    move_tracker_too_low.add_accept(10);
-    move_tracker_too_low.add_reject(90);
-
-    auto move_tracker_just_right = pimc::MoveSuccessTracker {};
-    move_tracker_just_right.add_accept(50);
-    move_tracker_just_right.add_reject(50);
+    const auto move_tracker_too_high = get_move_tracker_too_high_30_80();
+    const auto move_tracker_too_low = get_move_tracker_too_low_30_80();
+    const auto move_tracker_just_right = get_move_tracker_just_right_30_80();
 
     const auto both_limits = pimc::MoveLimits<double> {1.0, 5.0};
     const auto lower_limits = pimc::MoveLimits<double> {1.0, std::nullopt};
@@ -230,5 +249,76 @@ TEST_CASE("adjustment with limits")
             const auto actual = move_adjuster.adjust_step(current, move_tracker_too_high);
             REQUIRE_THAT(expected, Catch::Matchers::WithinRel(actual));
         }
+    }
+}
+
+TEST_CASE("bisection level adjustment", "[BisectionLevelMoveAdjuster]")
+{
+    /*
+    IDEAS:
+    - make sure that (with shifting levels):
+      - increasing the upper fraction ratio above 1.0 increases the lower level, and wraps the upper fraction around
+      - decreasing the upper fraction ratio below 0.0 increases the lower level, and wraps the upper fraction around
+    */
+    const auto abs_adjustment = double {0.1};
+    const auto range = pimc::AcceptPercentageRange {0.3, 0.8};
+    const auto move_adjuster = pimc::BisectionLevelMoveAdjuster<double> {range, abs_adjustment};
+
+    const auto move_tracker_too_high = get_move_tracker_too_high_30_80();
+    const auto move_tracker_too_low = get_move_tracker_too_low_30_80();
+    const auto move_tracker_just_right = get_move_tracker_just_right_30_80();
+
+    SECTION("bounded from below")
+    {
+        const auto current = pimc::BisectionLevelMoveInfo<double> {0.05, 1};
+        const auto expected = pimc::BisectionLevelMoveInfo<double> {0.0, 1};
+        const auto actual = move_adjuster.adjust_step(current, move_tracker_too_low);
+        REQUIRE(expected.lower_level == actual.lower_level);
+        REQUIRE_THAT(expected.upper_level_frac, Catch::Matchers::WithinRel(actual.upper_level_frac));
+    }
+
+    SECTION("decreases properly")
+    {
+        const auto current = pimc::BisectionLevelMoveInfo<double> {0.5, 2};
+        const auto expected = pimc::BisectionLevelMoveInfo<double> {0.4, 2};
+        const auto actual = move_adjuster.adjust_step(current, move_tracker_too_low);
+        REQUIRE(expected.lower_level == actual.lower_level);
+        REQUIRE_THAT(expected.upper_level_frac, Catch::Matchers::WithinRel(actual.upper_level_frac));
+    }
+
+    SECTION("increases properly")
+    {
+        const auto current = pimc::BisectionLevelMoveInfo<double> {0.5, 2};
+        const auto expected = pimc::BisectionLevelMoveInfo<double> {0.6, 2};
+        const auto actual = move_adjuster.adjust_step(current, move_tracker_too_high);
+        REQUIRE(expected.lower_level == actual.lower_level);
+        REQUIRE_THAT(expected.upper_level_frac, Catch::Matchers::WithinRel(actual.upper_level_frac));
+    }
+
+    SECTION("unchanged properly")
+    {
+        const auto current = pimc::BisectionLevelMoveInfo<double> {0.5, 2};
+        const auto expected = pimc::BisectionLevelMoveInfo<double> {0.5, 2};
+        const auto actual = move_adjuster.adjust_step(current, move_tracker_just_right);
+        REQUIRE(expected.lower_level == actual.lower_level);
+        REQUIRE_THAT(expected.upper_level_frac, Catch::Matchers::WithinRel(actual.upper_level_frac));
+    }
+
+    SECTION("wraps to higher level properly")
+    {
+        const auto current = pimc::BisectionLevelMoveInfo<double> {0.95, 2};
+        const auto expected = pimc::BisectionLevelMoveInfo<double> {0.05, 3};
+        const auto actual = move_adjuster.adjust_step(current, move_tracker_too_high);
+        REQUIRE(expected.lower_level == actual.lower_level);
+        REQUIRE_THAT(expected.upper_level_frac, Catch::Matchers::WithinRel(actual.upper_level_frac));
+    }
+
+    SECTION("wraps to lower level properly")
+    {
+        const auto current = pimc::BisectionLevelMoveInfo<double> {0.05, 2};
+        const auto expected = pimc::BisectionLevelMoveInfo<double> {0.95, 1};
+        const auto actual = move_adjuster.adjust_step(current, move_tracker_too_low);
+        REQUIRE(expected.lower_level == actual.lower_level);
+        REQUIRE_THAT(expected.upper_level_frac, Catch::Matchers::WithinRel(actual.upper_level_frac));
     }
 }

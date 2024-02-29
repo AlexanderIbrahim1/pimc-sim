@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include <tuple>
 
 namespace pimc
@@ -49,5 +50,18 @@ private:
     std::uint64_t n_total_accept_ {};
     std::uint64_t n_total_reject_ {};
 };
+
+template <std::floating_point FP>
+constexpr auto acceptance_ratio(const MoveSuccessTracker& move_tracker) noexcept -> std::optional<FP>
+{
+    if (move_tracker.get_total_attempts() == 0) {
+        return std::nullopt;
+    }
+
+    const auto n_accept = static_cast<FP>(move_tracker.get_accept());
+    const auto n_total = static_cast<FP>(move_tracker.get_total_attempts());
+
+    return n_accept / n_total;
+}
 
 }  // namespace pimc
