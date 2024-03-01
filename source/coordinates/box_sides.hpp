@@ -115,4 +115,23 @@ constexpr auto approx_eq(
     return (total_diff_sq < tolerance_sq);
 }
 
+template <std::floating_point FP, std::size_t NDIM>
+constexpr auto box_cutoff_distance(const BoxSides<FP, NDIM>& box) noexcept -> FP
+{
+    const auto& coords = box.coordinates();
+    const auto minimum = std::min_element(std::begin(coords), std::end(coords));
+
+    // there has to be at least one dimension; otherwise, the simulation couldn't even occur!
+    const auto cutoff_distance = (*minimum) / FP {2.0};
+
+    return cutoff_distance;
+}
+
+template <std::floating_point FP, std::size_t NDIM>
+constexpr auto box_cutoff_distance_squared(const BoxSides<FP, NDIM>& box) noexcept -> FP
+{
+    const auto dist = box_cutoff_distance<FP, NDIM>(box);
+    return dist * dist;
+}
+
 }  // namespace coord
