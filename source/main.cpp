@@ -36,6 +36,7 @@
 #include <rng/distributions.hpp>
 #include <rng/generator.hpp>
 #include <worldline/worldline.hpp>
+#include <worldline/writers/worldline_writer.hpp>
 
 constexpr auto NDIM = std::size_t {3};
 
@@ -180,6 +181,9 @@ auto main() -> int
     auto rms_centroid_writer = estim::default_rms_centroid_distance_writer<double>(output_dirpath);
     auto abs_centroid_writer = estim::default_absolute_centroid_distance_writer<double>(output_dirpath);
 
+    /* create the worldline writer*/
+    auto worldline_writer = worldline::PeriodicBoxWorldlineWriter<double, NDIM> {output_dirpath};
+
     /* perform the simulation loop */
     for (std::size_t i_block {parser.first_block_index}; i_block < parser.last_block_index; ++i_block) {
         std::cout << "i_block = " << i_block << '\n';
@@ -231,6 +235,9 @@ auto main() -> int
 
             const auto [mb_accept, mb_reject] = multi_bead_tracker.get_accept_and_reject();
             multi_bead_move_writer.write(i_block, mb_accept, mb_reject);
+
+            /* save the worldlines*/
+            worldline_writer.write(i_block, worldlines, environment, minimage_box);
         }
 
         const auto curr_com_step_size = com_mover.step_size();
