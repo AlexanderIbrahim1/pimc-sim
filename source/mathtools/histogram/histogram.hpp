@@ -30,6 +30,14 @@ public:
         , policy_ {policy}
     {}
 
+    Histogram(FP min, FP max, std::vector<std::uint64_t> bins, OutOfRangePolicy policy = OutOfRangePolicy::DO_NOTHING)
+        : bins_ {std::move(bins)}
+        , min_ {min}
+        , max_ {max}
+        , step_size_ {calculate_step_size_(min, max, bins_.size())}
+        , policy_ {policy}
+    {}
+
     constexpr void reset() noexcept
     {
         std::fill(std::begin(bins_), std::end(bins_), std::uint64_t {0});
@@ -40,7 +48,23 @@ public:
         return bins_;
     }
 
-    constexpr auto add(FP value) -> bool
+    /* NOTE: I need all these getters because saving the histogram state requires this information */
+    constexpr auto min() const noexcept -> FP
+    {
+        return min_;
+    }
+
+    constexpr auto max() const noexcept -> FP
+    {
+        return max_;
+    }
+
+    constexpr auto policy() const noexcept -> OutOfRangePolicy
+    {
+        return policy_;
+    }
+
+    constexpr auto add(FP value, std::uint64_t count = 1) -> bool
     {
         if (policy_ == OutOfRangePolicy::THROW) {
             auto err_msg = std::stringstream {};
@@ -60,7 +84,7 @@ public:
         const auto fp_index = std::floor((value - min_) / step_size_);
         const auto index = static_cast<std::uint64_t>(fp_index);
 
-        ++bins_[index];
+        bins_[index] += count;
 
         return true;
     }

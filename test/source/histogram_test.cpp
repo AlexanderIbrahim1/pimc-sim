@@ -1,10 +1,14 @@
 #include <cstddef>
+#include <sstream>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include "mathtools/histogram/histogram.hpp"
+#include "mathtools/io/histogram.hpp"
 
 TEST_CASE("basic histogram", "[Histogram]")
 {
@@ -62,4 +66,55 @@ TEST_CASE("basic histogram", "[Histogram]")
 
         REQUIRE(histogram.bins() == std::vector<std::uint64_t> {0, 0, 0, 0, 0});
     }
+}
+
+TEST_CASE("write histogram", "[Histogram]")
+{
+    auto histogram = mathtools::Histogram<double> {0.0, 1.0, 5};
+    histogram.add(0.1, 2);
+    histogram.add(0.3, 5);
+    histogram.add(0.5, 7);
+    histogram.add(0.9, 3);
+
+    auto actual = std::stringstream {};
+    mathtools::io::write_histogram(actual, histogram);
+
+    auto line = std::string {};
+    while (std::getline(actual, line)) {
+        if (line.empty()) {
+            continue;
+        }
+
+        if (line[0] != '#') {
+            break;
+        }
+    }
+
+    // check the policy
+    auto actual_policy = std::stoi(line);
+    REQUIRE(actual_policy == mathtools::io::policy_to_int(histogram.policy()));
+
+    // check the number of bins
+    auto n_bins = std::size_t {};
+    actual >> n_bins;
+    REQUIRE(n_bins == histogram.bins().size());
+
+    // check the minimum and maximum histogram bounds
+    auto min = double {};
+    actual >> min;
+    REQUIRE_THAT(histogram.min(), Catch::Matchers::WithinRel(min));
+
+    auto max = double {};
+    actual >> max;
+    REQUIRE_THAT(histogram.max(), Catch::Matchers::WithinRel(max));
+
+    // check the entries
+    auto count = std::uint64_t {};
+    auto expected_counts = std::vector<std::uint64_t> {};
+    for (std::size_t i {0}; i < 5; ++i) {
+        actual >> count;
+        expected_counts.push_back(count);
+    }
+
+    REQUIRE(histogram.bins() == expected_counts);
 }
