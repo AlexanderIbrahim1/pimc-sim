@@ -10,6 +10,8 @@
 #include "mathtools/histogram/histogram.hpp"
 #include "mathtools/io/histogram.hpp"
 
+#include "../test_utils/test_utils.hpp"
+
 TEST_CASE("basic histogram", "[Histogram]")
 {
     SECTION("throw when min and max are in the incorrect order")
@@ -79,20 +81,13 @@ TEST_CASE("write histogram", "[Histogram]")
     auto actual = std::stringstream {};
     mathtools::io::write_histogram(actual, histogram);
 
-    auto line = std::string {};
-    while (std::getline(actual, line)) {
-        if (line.empty()) {
-            continue;
-        }
-
-        if (line[0] != '#') {
-            break;
-        }
-    }
+    test_utils::skip_lines_starting_with(actual, '#');
 
     // check the policy
-    auto actual_policy = std::stoi(line);
-    REQUIRE(actual_policy == mathtools::io::policy_to_int(histogram.policy()));
+    auto policy_key = int {};
+    actual >> policy_key;
+    auto policy = static_cast<mathtools::OutOfRangePolicy>(policy_key);
+    REQUIRE(policy == histogram.policy());
 
     // check the number of bins
     auto n_bins = std::size_t {};

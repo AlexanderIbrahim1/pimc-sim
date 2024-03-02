@@ -4,7 +4,7 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include "../test_utils/filesearch.hpp"
+#include "../test_utils/test_utils.hpp"
 #include "interactions/two_body/two_body_pointwise_tabulated.hpp"
 
 TEST_CASE("basic FSH interaction check")

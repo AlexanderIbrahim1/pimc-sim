@@ -14,8 +14,8 @@ namespace mathtools
 
 enum class OutOfRangePolicy
 {
-    DO_NOTHING,
-    THROW
+    DO_NOTHING = 0,
+    THROW = 1
 };
 
 template <std::floating_point FP>
