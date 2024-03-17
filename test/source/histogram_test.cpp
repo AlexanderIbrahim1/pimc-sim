@@ -7,10 +7,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include "common/writers/writer_utils.hpp"
 #include "mathtools/histogram/histogram.hpp"
 #include "mathtools/io/histogram.hpp"
-
-#include "../test_utils/test_utils.hpp"
 
 TEST_CASE("basic histogram", "[Histogram]")
 {
@@ -81,7 +80,7 @@ TEST_CASE("write histogram", "[Histogram]")
     auto actual = std::stringstream {};
     mathtools::io::write_histogram(actual, histogram);
 
-    test_utils::skip_lines_starting_with(actual, '#');
+    common_utils::writer_utils::skip_lines_starting_with(actual, '#');
 
     // check the policy
     auto policy_key = int {};

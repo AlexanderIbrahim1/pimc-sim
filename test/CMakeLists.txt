@@ -71,7 +71,7 @@ add_test_target(TARGET grid2d_test SOURCES "source/grid2d_test.cpp")
 add_test_target(TARGET bisection_level_manager_test SOURCES "source/bisection_level_manager_test.cpp")
 add_test_target(TARGET square_adjacency_matrix_test SOURCES "source/square_adjacency_matrix_test.cpp")
 add_test_target(TARGET adjuster_test SOURCES "source/adjuster_test.cpp")
-add_test_target(TARGET histogram_test SOURCES "source/histogram_test.cpp" "test_utils/test_utils.cpp")
+add_test_target(TARGET histogram_test SOURCES "source/histogram_test.cpp")
 
 
 # ---- End-of-file commands ----
