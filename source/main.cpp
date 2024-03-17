@@ -10,11 +10,11 @@
 
 #include <argparser.hpp>
 #include <constants/constants.hpp>
-#include <coordinates/box_sides.hpp>
 #include <coordinates/coordinates.hpp>
 #include <environment/environment.hpp>
 #include <estimators/pimc/centroid.hpp>
 #include <estimators/pimc/primitive_kinetic.hpp>
+#include <estimators/pimc/radial_distribution_function.hpp>
 #include <estimators/pimc/two_body_potential.hpp>
 #include <estimators/writers/default_writers.hpp>
 #include <geometries/bravais.hpp>
@@ -27,6 +27,8 @@
 #include <interactions/two_body/two_body_pointwise.hpp>
 #include <interactions/two_body/two_body_pointwise_tabulated.hpp>
 #include <interactions/two_body/two_body_pointwise_wrapper.hpp>
+#include <mathtools/histogram/histogram.hpp>
+#include <mathtools/io/histogram.hpp>
 #include <pimc/adjusters/adjusters.hpp>
 #include <pimc/bisection_multibead_position_move_performer.hpp>
 #include <pimc/centre_of_mass_move.hpp>
@@ -181,6 +183,11 @@ auto main() -> int
     auto rms_centroid_writer = estim::default_rms_centroid_distance_writer<double>(output_dirpath);
     auto abs_centroid_writer = estim::default_absolute_centroid_distance_writer<double>(output_dirpath);
 
+    /* create the histogram and the histogram writers */
+    auto radial_dist_histo = mathtools::Histogram<double> {0.0, coord::box_cutoff_distance(minimage_box), 1024};
+    const auto radial_dist_histo_filepath = output_dirpath / "radial_dist_histo.dat";
+    const auto periodic_distance_calculator = coord::PeriodicDistanceMeasureWrapper<double, NDIM> {minimage_box};
+
     /* create the worldline writer*/
     auto worldline_writer = worldline::PeriodicBoxWorldlineWriter<double, NDIM> {output_dirpath};
 
@@ -225,6 +232,12 @@ auto main() -> int
             pair_potential_writer.write(i_block, total_potential_energy);
             rms_centroid_writer.write(i_block, rms_centroid_dist);
             abs_centroid_writer.write(i_block, abs_centroid_dist);
+
+            /* save radial distribution function histogram */
+            estim::update_radial_distribution_function_histogram(
+                radial_dist_histo, periodic_distance_calculator, worldlines
+            );
+            mathtools::io::write_histogram(radial_dist_histo_filepath, radial_dist_histo);
 
             /* save move acceptance rates */
             const auto [com_accept, com_reject] = com_tracker.get_accept_and_reject();
