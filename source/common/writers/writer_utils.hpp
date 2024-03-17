@@ -12,6 +12,7 @@ namespace writer_utils
 constexpr auto DEFAULT_WRITER_BLOCK_INDEX_PADDING = int {5};
 constexpr auto DEFAULT_WRITER_SINGLE_VALUE_PRECISION = int {8};
 constexpr auto DEFAULT_WRITER_INTEGER_PADDING = int {8};
+constexpr auto DEFAULT_TEMPORARY_SUFFIX = std::string {"_TEMPORARY"};
 
 inline void skip_lines_starting_with(std::istream& stream, char c)
 {

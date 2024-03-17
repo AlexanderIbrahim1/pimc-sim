@@ -23,20 +23,26 @@ public:
     constexpr DoubleValueBlockWriter(std::filesystem::path filepath, std::string header_contents = std::string {})
         : filepath_ {std::move(filepath)}
     {
-        auto out_stream = open_filestream_checked_(std::ios::out);
+        auto out_stream = open_filestream_checked_(filepath_, std::ios::out);
         out_stream << header_contents;
     }
 
     void write(std::size_t i_block, Number1 value1, Number2 value2) const
     {
-        auto out_stream = open_filestream_checked_(std::ios::app);
+        // performs an atomic write of the new data
+        namespace fs = std::filesystem;
 
-        out_stream << std::setw(block_index_padding) << std::setfill('0') << std::right << i_block;
-        out_stream << spacing_;
-        output_value_<Number1>(out_stream, value1, value1_floating_point_precision, value1_integer_padding);
-        out_stream << spacing_;
-        output_value_<Number2>(out_stream, value2, value2_floating_point_precision, value2_integer_padding);
-        out_stream << '\n';
+        auto temp_filepath = filepath_;
+        temp_filepath += common_utils::writer_utils::DEFAULT_TEMPORARY_SUFFIX;
+
+        fs::copy_file(filepath_, temp_filepath, fs::copy_options::overwrite_existing);
+        write_(temp_filepath, i_block, value1, value2);
+        fs::rename(temp_filepath, filepath_);
+    }
+
+    void write_nonatomic(std::size_t i_block, Number1 value1, Number2 value2) const
+    {
+        write_(filepath_, i_block, value1, value2);
     }
 
     int block_index_padding {common_utils::writer_utils::DEFAULT_WRITER_BLOCK_INDEX_PADDING};
@@ -49,12 +55,12 @@ private:
     std::filesystem::path filepath_;
     std::string spacing_ {"   "};
 
-    auto open_filestream_checked_(std::ios::openmode mode) const -> std::ofstream
+    auto open_filestream_checked_(const std::filesystem::path& filepath, std::ios::openmode mode) const -> std::ofstream
     {
-        auto out_stream = std::ofstream {filepath_, mode};
+        auto out_stream = std::ofstream {filepath, mode};
         if (!out_stream.is_open()) {
             auto err_msg = std::stringstream {};
-            err_msg << "Failed to open file: " << filepath_.string() << '\n';
+            err_msg << "Failed to open file: " << filepath.string() << '\n';
             throw std::ios_base::failure {err_msg.str()};
         }
 
@@ -70,6 +76,18 @@ private:
         else {
             out_stream << std::setw(int_padding) << std::setfill(' ') << std::right << value;
         }
+    }
+
+    void write_(const std::filesystem::path& filepath, std::size_t i_block, Number1 value1, Number2 value2) const
+    {
+        auto out_stream = open_filestream_checked_(filepath, std::ios::app);
+
+        out_stream << std::setw(block_index_padding) << std::setfill('0') << std::right << i_block;
+        out_stream << spacing_;
+        output_value_<Number1>(out_stream, value1, value1_floating_point_precision, value1_integer_padding);
+        out_stream << spacing_;
+        output_value_<Number2>(out_stream, value2, value2_floating_point_precision, value2_integer_padding);
+        out_stream << '\n';
     }
 };
 

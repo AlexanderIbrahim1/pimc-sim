@@ -15,13 +15,6 @@
 #include <environment/environment.hpp>
 #include <worldline/worldline.hpp>
 
-/*
-TODO:
-- figure out how we can format the file names for the position files
-  - just force the user to accept that they can only modify it using the block index?
-  - allow the user to provide a prefix?
-*/
-
 namespace worldline
 {
 

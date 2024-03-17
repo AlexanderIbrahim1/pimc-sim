@@ -23,23 +23,26 @@ public:
     constexpr SingleValueBlockWriter(std::filesystem::path filepath, std::string header_contents = std::string {})
         : filepath_ {std::move(filepath)}
     {
-        auto out_stream = open_filestream_checked_(std::ios::out);
+        auto out_stream = open_filestream_checked_(filepath_, std::ios::out);
         out_stream << header_contents;
     }
 
     void write(std::size_t i_block, Number value) const
     {
-        auto out_stream = open_filestream_checked_(std::ios::app);
+        // performs an atomic write of the new data
+        namespace fs = std::filesystem;
 
-        out_stream << std::setw(block_index_padding) << std::setfill('0') << std::right << i_block << spacing_;
+        auto temp_filepath = filepath_;
+        temp_filepath += common_utils::writer_utils::DEFAULT_TEMPORARY_SUFFIX;
 
-        // apply different types of formatting, depending on whether the output is a floating-point type or an integer
-        if constexpr (std::is_floating_point_v<Number>) {
-            out_stream << std::scientific << std::setprecision(floating_point_precision) << value << '\n';
-        }
-        else {
-            out_stream << std::setw(integer_padding) << std::setfill(' ') << std::right << value << '\n';
-        }
+        fs::copy_file(filepath_, temp_filepath, fs::copy_options::overwrite_existing);
+        write_(temp_filepath, i_block, value);
+        fs::rename(temp_filepath, filepath_);
+    }
+
+    void write_nonatomic(std::size_t i_block, Number value) const
+    {
+        write_(filepath_, i_block, value);
     }
 
     int block_index_padding {common_utils::writer_utils::DEFAULT_WRITER_BLOCK_INDEX_PADDING};
@@ -50,16 +53,31 @@ private:
     std::filesystem::path filepath_;
     std::string spacing_ {"   "};
 
-    auto open_filestream_checked_(std::ios::openmode mode) const -> std::ofstream
+    auto open_filestream_checked_(const std::filesystem::path& filepath, std::ios::openmode mode) const -> std::ofstream
     {
-        auto out_stream = std::ofstream {filepath_, mode};
+        auto out_stream = std::ofstream {filepath, mode};
         if (!out_stream.is_open()) {
             auto err_msg = std::stringstream {};
-            err_msg << "Failed to open file: " << filepath_.string() << '\n';
+            err_msg << "Failed to open file: " << filepath.string() << '\n';
             throw std::ios_base::failure {err_msg.str()};
         }
 
         return out_stream;
+    }
+
+    void write_(const std::filesystem::path& filepath, std::size_t i_block, Number value) const
+    {
+        auto out_stream = open_filestream_checked_(filepath, std::ios::app);
+
+        out_stream << std::setw(block_index_padding) << std::setfill('0') << std::right << i_block << spacing_;
+
+        // apply different types of formatting, depending on whether the output is a floating-point type or an integer
+        if constexpr (std::is_floating_point_v<Number>) {
+            out_stream << std::scientific << std::setprecision(floating_point_precision) << value << '\n';
+        }
+        else {
+            out_stream << std::setw(integer_padding) << std::setfill(' ') << std::right << value << '\n';
+        }
     }
 };
 
