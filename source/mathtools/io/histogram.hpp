@@ -41,19 +41,6 @@ auto histogram_file_header(const Histogram<FP>& histogram) -> std::string
 }
 
 template <std::floating_point FP>
-void write_histogram(const std::filesystem::path& savepath, const Histogram<FP>& histogram)
-{
-    auto out_stream = std::ofstream {savepath, std::ios::out};
-    if (!out_stream.is_open()) {
-        auto err_msg = std::stringstream {};
-        err_msg << "Error: Unable to open file: '" << savepath << "'\n";
-        throw std::ios_base::failure {err_msg.str()};
-    }
-
-    write_histogram(out_stream, histogram);
-}
-
-template <std::floating_point FP>
 void write_histogram(std::ostream& out_stream, const Histogram<FP>& histogram)
 {
     // everything except the bin values is already in the file header
@@ -65,16 +52,16 @@ void write_histogram(std::ostream& out_stream, const Histogram<FP>& histogram)
 }
 
 template <std::floating_point FP>
-auto read_histogram(const std::filesystem::path& loadpath) -> Histogram<FP>
+void write_histogram(const std::filesystem::path& savepath, const Histogram<FP>& histogram)
 {
-    auto in_stream = std::ifstream {loadpath, std::ios::in};
-    if (!in_stream.is_open()) {
+    auto out_stream = std::ofstream {savepath, std::ios::out};
+    if (!out_stream.is_open()) {
         auto err_msg = std::stringstream {};
-        err_msg << "Error: Unable to open file: '" << loadpath << "'\n";
+        err_msg << "Error: Unable to open file: '" << savepath << "'\n";
         throw std::ios_base::failure {err_msg.str()};
     }
 
-    return read_histogram<FP>(in_stream);
+    write_histogram(out_stream, histogram);
 }
 
 template <std::floating_point FP>
@@ -101,6 +88,19 @@ auto read_histogram(std::istream& in_stream) -> Histogram<FP>
     }
 
     return Histogram<FP> {min, max, std::move(bins), static_cast<OutOfRangePolicy>(policy_key)};
+}
+
+template <std::floating_point FP>
+auto read_histogram(const std::filesystem::path& loadpath) -> Histogram<FP>
+{
+    auto in_stream = std::ifstream {loadpath, std::ios::in};
+    if (!in_stream.is_open()) {
+        auto err_msg = std::stringstream {};
+        err_msg << "Error: Unable to open file: '" << loadpath << "'\n";
+        throw std::ios_base::failure {err_msg.str()};
+    }
+
+    return read_histogram<FP>(in_stream);
 }
 
 }  // namespace io
