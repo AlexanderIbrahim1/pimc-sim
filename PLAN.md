@@ -54,7 +54,7 @@ To make this nicer, we could create classes that wrap together:
 - the functions that take cartesian points, and calculate the stuff needed to call the potential
 
 
-### 2024-25-02
+### 2024-02-25
 - split interaction handler concept into its own file
 
 - create a new handler that owns the adjacency matrix
@@ -68,3 +68,9 @@ To make this nicer, we could create classes that wrap together:
     - problem: how do I choose the pair distance calculating function?
       - I don't want it to need to know about the periodic box (it might not exist)
   - it should only account for interactions involving those in its adjacency matrix
+
+
+### 2024-03-16
+PLAN:
+  - finish code to read a histogram file, update the contents, and rewrite them
+  - implement the `g(r)` and `centroid g(r)` estimators

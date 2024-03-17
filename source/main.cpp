@@ -249,7 +249,8 @@ auto main() -> int
             com_step_size_writer.write(i_block, new_com_step_size);
 
             const auto curr_bisect_move_info = multi_bead_mover.bisection_level_move_info();
-            const auto new_bisect_move_info = bisect_move_adjuster.adjust_step(curr_bisect_move_info, multi_bead_tracker);
+            const auto new_bisect_move_info =
+                bisect_move_adjuster.adjust_step(curr_bisect_move_info, multi_bead_tracker);
             multi_bead_mover.update_bisection_level_move_info(new_bisect_move_info);
 
             multi_bead_move_info_writer.write(

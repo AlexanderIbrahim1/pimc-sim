@@ -113,3 +113,28 @@ TEST_CASE("write histogram", "[Histogram]")
 
     REQUIRE(histogram.bins() == expected_counts);
 }
+
+TEST_CASE("write and read histogram", "[Histogram]")
+{
+    auto out_histogram = mathtools::Histogram<double> {0.0, 1.0, 5};
+    out_histogram.add(0.1, 2);
+    out_histogram.add(0.3, 5);
+    out_histogram.add(0.5, 7);
+    out_histogram.add(0.9, 3);
+
+    auto actual = std::stringstream {};
+    mathtools::io::write_histogram(actual, out_histogram);
+
+    const auto in_histogram = mathtools::io::read_histogram<double>(actual);
+
+    REQUIRE(out_histogram.policy() == in_histogram.policy());
+    REQUIRE(out_histogram.size() == in_histogram.size());
+    REQUIRE_THAT(out_histogram.min(), Catch::Matchers::WithinRel(in_histogram.min()));
+    REQUIRE_THAT(out_histogram.max(), Catch::Matchers::WithinRel(in_histogram.max()));
+
+    const auto& out_bins = out_histogram.bins();
+    const auto& in_bins = in_histogram.bins();
+    for (std::size_t i {0}; i < 5; ++i) {
+        REQUIRE(out_bins[i] == in_bins[i]);
+    }
+}

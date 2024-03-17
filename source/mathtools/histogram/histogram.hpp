@@ -48,6 +48,11 @@ public:
         return bins_;
     }
 
+    constexpr auto size() const noexcept -> std::size_t
+    {
+        return bins_.size();
+    }
+
     /* NOTE: I need all these getters because saving the histogram state requires this information */
     constexpr auto min() const noexcept -> FP
     {
