@@ -70,7 +70,12 @@ To make this nicer, we could create classes that wrap together:
   - it should only account for interactions involving those in its adjacency matrix
 
 
-### 2024-03-16
-PLAN:
-  - finish code to read a histogram file, update the contents, and rewrite them
-  - implement the `g(r)` and `centroid g(r)` estimators
+### PLAN
+- [DONE:2024-03-16] finish code to read a histogram file, update the contents, and rewrite them
+- [DONE:2024-03-16] implement the `g(r)`
+- simplify the header interface by putting several headers into a single one (too complicated right now)
+- implement `centroid g(r)`
+- make saving the histograms atomic
+- implement continuing an interrupted simulation
+- implement the 3BPES
+- implement the 4BPES
