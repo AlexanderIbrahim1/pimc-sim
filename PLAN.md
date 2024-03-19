@@ -81,6 +81,9 @@ To make this nicer, we could create classes that wrap together:
 - I'll try to find repos that have both a cmake-based C++ project, and a Python-based package system, in the same repo
   - and see what they do
 
+- I decided to create a separate subproject `pimc_simpy` that will contain the entire python package there
+  - this provides a clean separation between the C++ and Python parts of the project
+
 ### PLAN
 - [DONE:2024-03-16] finish code to read a histogram file, update the contents, and rewrite them
 - [DONE:2024-03-16] implement the `g(r)`
