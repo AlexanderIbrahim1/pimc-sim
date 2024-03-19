@@ -13,6 +13,7 @@
 #include <coordinates/coordinates.hpp>
 #include <environment/environment.hpp>
 #include <estimators/pimc/centroid.hpp>
+#include <estimators/pimc/centroid_radial_distribution_function.hpp>
 #include <estimators/pimc/primitive_kinetic.hpp>
 #include <estimators/pimc/radial_distribution_function.hpp>
 #include <estimators/pimc/two_body_potential.hpp>
@@ -49,7 +50,7 @@ constexpr auto build_hcp_lattice_structure(auto density)
     const auto lattice_constant = geom::density_to_lattice_constant(density, lattice_type);
     const auto hcp_unit_cell = geom::conventional_hcp_unit_cell(lattice_constant);
     const auto hcp_unit_cell_box = geom::unit_cell_box_sides(hcp_unit_cell);
-    const auto lattice_box_translations = geom::UnitCellTranslations<NDIM> {2ul, 2ul, 2ul};
+    const auto lattice_box_translations = geom::UnitCellTranslations<NDIM> {5ul, 3ul, 3ul};
     const auto minimage_box = geom::lattice_box(hcp_unit_cell_box, lattice_box_translations);
 
     const auto lattice_site_positions = geom::lattice_particle_positions(hcp_unit_cell, lattice_box_translations);
@@ -108,8 +109,8 @@ auto main() -> int
         first_block_index = 0
         last_block_index = 200
         n_equilibrium_blocks = 10
-        n_passes = 5
-        n_timeslices = 64
+        n_passes = 2
+        n_timeslices = 32
         centre_of_mass_step_size = 0.3
         bisection_level = 3
         bisection_ratio = 0.5
@@ -186,6 +187,11 @@ auto main() -> int
     /* create the histogram and the histogram writers */
     auto radial_dist_histo = mathtools::Histogram<double> {0.0, coord::box_cutoff_distance(minimage_box), 1024};
     const auto radial_dist_histo_filepath = output_dirpath / "radial_dist_histo.dat";
+
+    auto centroid_radial_dist_histo =
+        mathtools::Histogram<double> {0.0, coord::box_cutoff_distance(minimage_box), 1024};
+    const auto centroid_radial_dist_histo_filepath = output_dirpath / "centroid_radial_dist_histo.dat";
+
     const auto periodic_distance_calculator = coord::PeriodicDistanceMeasureWrapper<double, NDIM> {minimage_box};
 
     /* create the worldline writer*/
@@ -238,6 +244,11 @@ auto main() -> int
                 radial_dist_histo, periodic_distance_calculator, worldlines
             );
             mathtools::io::write_histogram(radial_dist_histo_filepath, radial_dist_histo);
+
+            estim::update_centroid_radial_distribution_function_histogram(
+                centroid_radial_dist_histo, environment, periodic_distance_calculator, worldlines
+            );
+            mathtools::io::write_histogram(centroid_radial_dist_histo_filepath, centroid_radial_dist_histo);
 
             /* save move acceptance rates */
             const auto [com_accept, com_reject] = com_tracker.get_accept_and_reject();
