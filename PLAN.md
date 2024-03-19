@@ -70,11 +70,24 @@ To make this nicer, we could create classes that wrap together:
   - it should only account for interactions involving those in its adjacency matrix
 
 
+### 2024-03-19
+- how do I set up the Python scripts?
+  - create a completely separate repo?
+  - [BETTER] create a separate Python package within this repo?
+- the latter is probably the better option; more cohesive, easier for users
+- after all, if a user only wants the Python, or only the C++, they don't have to run/compile the other
+  - and the project's not at the stage where pulling in stuff that people don't use is too big of a hassle
+
+- I'll try to find repos that have both a cmake-based C++ project, and a Python-based package system, in the same repo
+  - and see what they do
+
 ### PLAN
 - [DONE:2024-03-16] finish code to read a histogram file, update the contents, and rewrite them
 - [DONE:2024-03-16] implement the `g(r)`
 - simplify the header interface by putting several headers into a single one (too complicated right now)
 - [DONE:2024-03-18] implement `centroid g(r)`
+- create python scripts to extract and display important information from the output files
+  - this will require numpy, matplotlib, etc.
 - make saving the histograms atomic
 - implement continuing an interrupted simulation
 - implement the 3BPES
