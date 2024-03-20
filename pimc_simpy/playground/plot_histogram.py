@@ -1,3 +1,8 @@
+"""
+This script shows an example of loading a histogram file produced by the C++
+simulation code, and plotting the results.
+"""
+
 from pathlib import Path
 
 from pimc_simpy.histogram import read_histogram
