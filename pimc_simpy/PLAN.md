@@ -12,6 +12,8 @@ Is this stuff even worth doing?
 - plot the histogram
 - get the total number of samples
 - get the other information stored in the histogram header
+- create function to get the normalized g(r)
+- separate histogram and radial distribution function; there are probably lots of types of histograms
 
 ### Files that store information per epoch
 - move acceptance and rejection files
