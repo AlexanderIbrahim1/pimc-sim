@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import TextIO
 from typing import Union
 
+import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
 
@@ -59,3 +60,30 @@ def get_property_statistics(data: PropertyData) -> PropertyStatistics:
     stderrmean = stddev / np.sqrt(n_samples)
 
     return PropertyStatistics(first_sampled_epoch, n_samples, mean, stddev, stderrmean)
+
+
+def plot_property(data: PropertyData) -> None:
+    n_samples = data.epochs.size
+
+    cumulative_means = np.empty(n_samples, dtype=np.float64)
+    cumulative_sems = np.empty(n_samples, dtype=np.float64)
+
+    for i in range(n_samples):
+        i_upper = i + 1
+        cumulative_values = data.values[:i_upper]
+        mean = np.average(cumulative_values).astype(np.float64)
+        stddev = np.std(cumulative_values).astype(np.float64)
+        sem = stddev / np.sqrt(i_upper)
+
+        cumulative_means[i] = mean
+        cumulative_sems[i] = sem
+
+    fig = plt.figure()
+    ax = fig.add_subplot()
+
+    ax.set_xlim(data.epochs[0], data.epochs[-1])
+
+    ax.plot(data.epochs, cumulative_means)
+    ax.fill_between(data.epochs, cumulative_means + cumulative_sems, cumulative_means - cumulative_sems, alpha=0.5)
+
+    plt.show()
