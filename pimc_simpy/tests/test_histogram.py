@@ -53,4 +53,4 @@ def test_read_histogram() -> None:
     assert actual.n_bins == expected.n_bins
     assert actual.minimum == pytest.approx(expected.minimum)
     assert actual.maximum == pytest.approx(expected.maximum)
-    assert all(actual.bins == expected.bins)
+    assert all(actual.counts == expected.counts)
