@@ -9,16 +9,6 @@
 namespace argparse
 {
 
-// What do I read in?
-// - first block id
-// - last block id
-// - number of equilibrium blocks
-// - number of passes
-// - number of slices
-// - the move hyperparameters
-//   - com step size
-//   - bisection level
-
 template <typename T>
 constexpr auto cast_toml_to(const toml::table& table, std::string_view name) -> T
 {
