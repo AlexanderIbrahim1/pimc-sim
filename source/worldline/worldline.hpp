@@ -22,6 +22,10 @@ public:
         : points_ {ilist}
     {}
 
+    constexpr Worldline(std::vector<Point> points)
+        : points_ {std::move(points)}
+    {}
+
     constexpr Worldline(const std::span<const Point> container)
         : points_ {std::begin(container), std::end(container)}
     {}

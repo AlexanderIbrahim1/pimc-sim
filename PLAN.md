@@ -118,13 +118,16 @@ To make this nicer, we could create classes that wrap together:
   block ID to properly update the results
 
 #### Histograms and the worldlines need to be restored at the start of the simulation
+[DONE:2024-03-21]
 - the histograms need to be read at the start of the simulation
 - the worldlines need to have their state restored
 
 #### I need to create a function to read in the worldlines
+[DONE:2024-03-21]
 - right now, the sides of the box are part of the file; but they don't really need to be?
   - I should separate them from the rest of the worldline state, and put them into their own file
 
+[DONE:2024-03-21]
 - the benefits of splitting up the box sides from the rest of the worldline:
   - I can reuse the same worldline writer for a simulation whether or not it is periodic
   - I can store the box size in a single place
@@ -132,20 +135,22 @@ To make this nicer, we could create classes that wrap together:
 ### PLAN
 - [DONE:2024-03-16] finish code to read a histogram file, update the contents, and rewrite them
 - [DONE:2024-03-16] implement the `g(r)`
-- simplify the header interface by putting several headers into a single one (too complicated right now)
 - [DONE:2024-03-18] implement `centroid g(r)`
 - [DONE:2024-03-20] create python scripts to extract and display important information from the output files
   - this will require numpy, matplotlib, etc.
+- [DONE:2024-03-20] implement continuing an interrupted simulation
+- [DONE:2024-03-21] separate writing the box sides, from writing the worldline
+- [DONE:2024-03-21] implement a worldline reader
+- [DONE:2024-03-21] give worldline a constructor from `std::vector`, and remove the `initializer_list` one
+  - I want to be able to move the vector of coordinates into the worldline
+- simplify the header interface by putting several headers into a single one (too complicated right now)
 - make saving the histograms atomic
-- [INPROGRESS:2024-03-20] implement continuing an interrupted simulation
 - implement the 3BPES
 - implement the 4BPES
 - implement logging
 - introduce "saving schemes" for the worldline writer, in case I don't want to save literally every single worldline
   - maybe I only want the most recent n worldlines to be saved, so some might have to be deleted?
 - implement saving the PRNG state (lower priority? the physics is still the same I guess)
-- separate writing the box sides, from writing the worldline
-- implement a worldline reader
 - convert the project into a header-only library, since that's what it is basically becoming
   - this also makes it easier to turn the library into a formal target for cmake, and makes it
     less sketchy to include headers from external projects

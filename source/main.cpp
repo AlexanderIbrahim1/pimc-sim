@@ -38,8 +38,8 @@
 #include <pimc/writers/default_writers.hpp>
 #include <rng/distributions.hpp>
 #include <rng/generator.hpp>
-#include <simulation/continue.hpp>
 #include <simulation/box_sides_writer.hpp>
+#include <simulation/continue.hpp>
 #include <worldline/worldline.hpp>
 #include <worldline/writers/worldline_writer.hpp>
 
@@ -148,7 +148,20 @@ auto main() -> int
     }();
 
     const auto [n_particles, minimage_box, lattice_site_positions] = build_hcp_lattice_structure(parser.density);
-    auto worldlines = worldline::worldlines_from_positions<double, NDIM>(lattice_site_positions, n_timeslices);
+
+    /* create the worldlines and worldline writer*/
+    auto worldline_writer = worldline::WorldlineWriter<double, NDIM> {output_dirpath};
+
+    auto worldlines = [&]()
+    {
+        if (continue_file_manager.is_continued()) {
+            const auto worldline_filepath = worldline_writer.output_filepath(first_block_index);
+            return worldline::read_worldlines<double, NDIM>(worldline_filepath);
+        }
+        else {
+            return worldline::worldlines_from_positions<double, NDIM>(lattice_site_positions, n_timeslices);
+        }
+    }();
 
     sim::write_box_sides(output_dirpath / "box_sides.dat", minimage_box);
 
@@ -223,9 +236,6 @@ auto main() -> int
 
     const auto periodic_distance_calculator = coord::PeriodicDistanceMeasureWrapper<double, NDIM> {minimage_box};
 
-    /* create the worldline writer*/
-    auto worldline_writer = worldline::WorldlineWriter<double, NDIM> {output_dirpath};
-
     /* perform the simulation loop */
     for (std::size_t i_block {first_block_index}; i_block < last_block_index; ++i_block) {
         std::cout << "i_block = " << i_block << '\n';
@@ -289,8 +299,11 @@ auto main() -> int
             const auto [mb_accept, mb_reject] = multi_bead_tracker.get_accept_and_reject();
             multi_bead_move_writer.write(i_block, mb_accept, mb_reject);
 
-            /* save the worldlines*/
+            /* save the worldlines */
             worldline_writer.write(i_block, worldlines, environment);
+
+            /* create the continue file */
+            continue_file_manager.serialize_block_index(i_block);
         }
 
         /* Update the step sizes during equilibration */
