@@ -146,3 +146,6 @@ To make this nicer, we could create classes that wrap together:
 - implement saving the PRNG state (lower priority? the physics is still the same I guess)
 - separate writing the box sides, from writing the worldline
 - implement a worldline reader
+- convert the project into a header-only library, since that's what it is basically becoming
+  - this also makes it easier to turn the library into a formal target for cmake, and makes it
+    less sketchy to include headers from external projects

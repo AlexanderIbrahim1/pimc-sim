@@ -39,6 +39,7 @@
 #include <rng/distributions.hpp>
 #include <rng/generator.hpp>
 #include <simulation/continue.hpp>
+#include <simulation/box_sides_writer.hpp>
 #include <worldline/worldline.hpp>
 #include <worldline/writers/worldline_writer.hpp>
 
@@ -149,7 +150,7 @@ auto main() -> int
     const auto [n_particles, minimage_box, lattice_site_positions] = build_hcp_lattice_structure(parser.density);
     auto worldlines = worldline::worldlines_from_positions<double, NDIM>(lattice_site_positions, n_timeslices);
 
-    std::cout << "MINIMAGE BOX: " << minimage_box.as_string() << '\n';
+    sim::write_box_sides(output_dirpath / "box_sides.dat", minimage_box);
 
     const auto pot = fsh_potential(minimage_box);
 
