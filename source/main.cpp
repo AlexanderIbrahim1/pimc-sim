@@ -38,6 +38,7 @@
 #include <pimc/writers/default_writers.hpp>
 #include <rng/distributions.hpp>
 #include <rng/generator.hpp>
+#include <simulation/continue.hpp>
 #include <worldline/worldline.hpp>
 #include <worldline/writers/worldline_writer.hpp>
 
@@ -105,6 +106,8 @@ auto main() -> int
 {
     namespace fs = std::filesystem;
 
+    const auto output_dirpath = fs::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/ignore"};
+
     const auto toml_input = std::string_view {R"(
         first_block_index = 0
         last_block_index = 200
@@ -118,18 +121,30 @@ auto main() -> int
         temperature = 4.2
     )"};
 
+    const auto continue_file_manager = sim::ContinueFileManager {output_dirpath};
     auto toml_stream = std::stringstream {std::string {toml_input}};
+
     const auto parser = argparse::ArgParser {toml_stream};
+    if (!parser.is_valid()) {
+        std::cout << "PARSER DID NOT PARSE PROPERLY\n";
+        std::exit(EXIT_FAILURE);
+    }
 
     const auto temperature = parser.temperature;
     const auto n_timeslices = parser.n_timeslices;
     const auto com_step_size = parser.centre_of_mass_step_size;
     const auto bisect_move_info = pimc::BisectionLevelMoveInfo {parser.bisection_ratio, parser.bisection_level};
 
-    if (!parser.is_valid()) {
-        std::cout << "PARSER DID NOT PARSE PROPERLY\n";
-        std::exit(EXIT_FAILURE);
-    }
+    const auto last_block_index = parser.last_block_index;
+    const auto first_block_index = [&]()
+    {
+        if (continue_file_manager.file_exists()) {
+            return continue_file_manager.parse_block_index();
+        }
+        else {
+            return parser.first_block_index;
+        }
+    }();
 
     const auto [n_particles, minimage_box, lattice_site_positions] = build_hcp_lattice_structure(parser.density);
     auto worldlines = worldline::worldlines_from_positions<double, NDIM>(lattice_site_positions, n_timeslices);
@@ -159,8 +174,6 @@ auto main() -> int
     auto single_bead_mover = pimc::SingleBeadPositionMovePerformer<double, NDIM> {n_timeslices};
     auto multi_bead_mover = pimc::BisectionMultibeadPositionMovePerformer<double, NDIM> {bisect_move_info};
 
-    const auto output_dirpath = fs::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/ignore"};
-
     /* create the move adjusters */
     const auto com_move_adjuster = create_com_move_adjuster(0.4, 0.5);
     const auto bisect_move_adjuster = create_bisect_move_adjuster(0.4, 0.5);
@@ -185,12 +198,27 @@ auto main() -> int
     auto abs_centroid_writer = estim::default_absolute_centroid_distance_writer<double>(output_dirpath);
 
     /* create the histogram and the histogram writers */
-    auto radial_dist_histo = mathtools::Histogram<double> {0.0, coord::box_cutoff_distance(minimage_box), 1024};
     const auto radial_dist_histo_filepath = output_dirpath / "radial_dist_histo.dat";
+    auto radial_dist_histo = [&]()
+    {
+        if (continue_file_manager.is_continued()) {
+            return mathtools::io::read_histogram<double>(radial_dist_histo_filepath);
+        }
+        else {
+            return mathtools::Histogram<double> {0.0, coord::box_cutoff_distance(minimage_box), 1024};
+        }
+    }();
 
-    auto centroid_radial_dist_histo =
-        mathtools::Histogram<double> {0.0, coord::box_cutoff_distance(minimage_box), 1024};
     const auto centroid_radial_dist_histo_filepath = output_dirpath / "centroid_radial_dist_histo.dat";
+    auto centroid_radial_dist_histo = [&]()
+    {
+        if (continue_file_manager.is_continued()) {
+            return mathtools::io::read_histogram<double>(centroid_radial_dist_histo_filepath);
+        }
+        else {
+            return mathtools::Histogram<double> {0.0, coord::box_cutoff_distance(minimage_box), 1024};
+        }
+    }();
 
     const auto periodic_distance_calculator = coord::PeriodicDistanceMeasureWrapper<double, NDIM> {minimage_box};
 
@@ -198,7 +226,7 @@ auto main() -> int
     auto worldline_writer = worldline::PeriodicBoxWorldlineWriter<double, NDIM> {output_dirpath};
 
     /* perform the simulation loop */
-    for (std::size_t i_block {parser.first_block_index}; i_block < parser.last_block_index; ++i_block) {
+    for (std::size_t i_block {first_block_index}; i_block < last_block_index; ++i_block) {
         std::cout << "i_block = " << i_block << '\n';
         /* the number of passes is chosen such that the autocorrelation time between blocks is passed */
         for (std::size_t i_pass {0}; i_pass < parser.n_passes; ++i_pass) {

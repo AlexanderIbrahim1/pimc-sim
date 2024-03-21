@@ -22,10 +22,8 @@ class DoubleValueBlockWriter
 public:
     constexpr DoubleValueBlockWriter(std::filesystem::path filepath, std::string header_contents = std::string {})
         : filepath_ {std::move(filepath)}
-    {
-        auto out_stream = open_filestream_checked_(filepath_, std::ios::out);
-        out_stream << header_contents;
-    }
+        , header_contents_ {std::move(header_contents)}
+    {}
 
     void write(std::size_t i_block, Number1 value1, Number2 value2) const
     {
@@ -35,6 +33,10 @@ public:
         auto temp_filepath = filepath_;
         temp_filepath += common_utils::writer_utils::DEFAULT_TEMPORARY_SUFFIX;
 
+        if (!fs::exists(filepath_)) {
+            write_first_();
+        }
+
         fs::copy_file(filepath_, temp_filepath, fs::copy_options::overwrite_existing);
         write_(temp_filepath, i_block, value1, value2);
         fs::rename(temp_filepath, filepath_);
@@ -42,6 +44,12 @@ public:
 
     void write_nonatomic(std::size_t i_block, Number1 value1, Number2 value2) const
     {
+        namespace fs = std::filesystem;
+
+        if (!fs::exists(filepath_)) {
+            write_first_();
+        }
+
         write_(filepath_, i_block, value1, value2);
     }
 
@@ -53,6 +61,7 @@ public:
 
 private:
     std::filesystem::path filepath_;
+    std::string header_contents_;
     std::string spacing_ {"   "};
 
     auto open_filestream_checked_(const std::filesystem::path& filepath, std::ios::openmode mode) const -> std::ofstream
@@ -88,6 +97,12 @@ private:
         out_stream << spacing_;
         output_value_<Number2>(out_stream, value2, value2_floating_point_precision, value2_integer_padding);
         out_stream << '\n';
+    }
+
+    void write_first_() const
+    {
+        auto out_stream = open_filestream_checked_(filepath_, std::ios::out);
+        out_stream << header_contents_;
     }
 };
 

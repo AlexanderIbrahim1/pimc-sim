@@ -85,9 +85,10 @@ To make this nicer, we could create classes that wrap together:
   - this provides a clean separation between the C++ and Python parts of the project
 
 ### 2024-03-20
-- how do I implement continuing an interrupted simulation
+- how do I implement continuing an interrupted simulation?
 
 #### Using a continue file to hold the most recently completed block index
+[DONE:2024-03-20]
 - in the previous MoRiBS, I had a qmc.continue file that I read the most recent block number from
 - I assume I'll use the same strategy:
   - have a function that looks for a "continue" file
@@ -100,8 +101,11 @@ To make this nicer, we could create classes that wrap together:
       the simulation is updated during the saving of the data
   - actually, that's probably it
     - everything else can be found from the written simulation code
+  - NO! I also need the current state of the PRNG!
+    - but that's a bit too much for now
 
 #### Single and Double value writers need to change how they work
+[DONE:2024-03-20]
 - there's currently an issue with the writers
   - they create a brand new output file to write to upon construction
   - I would have to pass some sort of "continue simulation" flag into EVERY writer to prevent it
@@ -117,6 +121,14 @@ To make this nicer, we could create classes that wrap together:
 - the histograms need to be read at the start of the simulation
 - the worldlines need to have their state restored
 
+#### I need to create a function to read in the worldlines
+- right now, the sides of the box are part of the file; but they don't really need to be?
+  - I should separate them from the rest of the worldline state, and put them into their own file
+
+- the benefits of splitting up the box sides from the rest of the worldline:
+  - I can reuse the same worldline writer for a simulation whether or not it is periodic
+  - I can store the box size in a single place
+
 ### PLAN
 - [DONE:2024-03-16] finish code to read a histogram file, update the contents, and rewrite them
 - [DONE:2024-03-16] implement the `g(r)`
@@ -125,8 +137,12 @@ To make this nicer, we could create classes that wrap together:
 - [DONE:2024-03-20] create python scripts to extract and display important information from the output files
   - this will require numpy, matplotlib, etc.
 - make saving the histograms atomic
-- implement continuing an interrupted simulation
+- [INPROGRESS:2024-03-20] implement continuing an interrupted simulation
 - implement the 3BPES
 - implement the 4BPES
 - implement logging
 - introduce "saving schemes" for the worldline writer, in case I don't want to save literally every single worldline
+  - maybe I only want the most recent n worldlines to be saved, so some might have to be deleted?
+- implement saving the PRNG state (lower priority? the physics is still the same I guess)
+- separate writing the box sides, from writing the worldline
+- implement a worldline reader

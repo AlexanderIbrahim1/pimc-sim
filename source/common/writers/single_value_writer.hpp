@@ -22,10 +22,8 @@ class SingleValueBlockWriter
 public:
     constexpr SingleValueBlockWriter(std::filesystem::path filepath, std::string header_contents = std::string {})
         : filepath_ {std::move(filepath)}
-    {
-        auto out_stream = open_filestream_checked_(filepath_, std::ios::out);
-        out_stream << header_contents;
-    }
+        , header_contents_ {std::move(header_contents)}
+    {}
 
     void write(std::size_t i_block, Number value) const
     {
@@ -35,6 +33,10 @@ public:
         auto temp_filepath = filepath_;
         temp_filepath += common_utils::writer_utils::DEFAULT_TEMPORARY_SUFFIX;
 
+        if (!fs::exists(filepath_)) {
+            write_first_();
+        }
+
         fs::copy_file(filepath_, temp_filepath, fs::copy_options::overwrite_existing);
         write_(temp_filepath, i_block, value);
         fs::rename(temp_filepath, filepath_);
@@ -42,6 +44,12 @@ public:
 
     void write_nonatomic(std::size_t i_block, Number value) const
     {
+        namespace fs = std::filesystem;
+
+        if (!fs::exists(filepath_)) {
+            write_first_();
+        }
+
         write_(filepath_, i_block, value);
     }
 
@@ -51,6 +59,7 @@ public:
 
 private:
     std::filesystem::path filepath_;
+    std::string header_contents_;
     std::string spacing_ {"   "};
 
     auto open_filestream_checked_(const std::filesystem::path& filepath, std::ios::openmode mode) const -> std::ofstream
@@ -78,6 +87,12 @@ private:
         else {
             out_stream << std::setw(integer_padding) << std::setfill(' ') << std::right << value << '\n';
         }
+    }
+
+    void write_first_() const
+    {
+        auto out_stream = open_filestream_checked_(filepath_, std::ios::out);
+        out_stream << header_contents_;
     }
 };
 
