@@ -70,10 +70,10 @@ static auto periodic_box_simulation_header(
 }
 
 template <std::floating_point FP, std::size_t NDIM>
-class WorldlineWriter
+class _WorldlineWriterImpl
 {
 public:
-    explicit WorldlineWriter(
+    explicit _WorldlineWriterImpl(
         std::filesystem::path output_dirpath,
         std::string prefix = std::string {"worldline"},
         std::string suffix = std::string {".dat"}
@@ -166,7 +166,7 @@ public:
     }
 
 private:
-    WorldlineWriter<FP, NDIM> worldline_writer_;
+    _WorldlineWriterImpl<FP, NDIM> worldline_writer_;
 };
 
 }  // namespace worldline
