@@ -224,7 +224,7 @@ auto main() -> int
     const auto periodic_distance_calculator = coord::PeriodicDistanceMeasureWrapper<double, NDIM> {minimage_box};
 
     /* create the worldline writer*/
-    auto worldline_writer = worldline::PeriodicBoxWorldlineWriter<double, NDIM> {output_dirpath};
+    auto worldline_writer = worldline::WorldlineWriter<double, NDIM> {output_dirpath};
 
     /* perform the simulation loop */
     for (std::size_t i_block {first_block_index}; i_block < last_block_index; ++i_block) {
@@ -290,7 +290,7 @@ auto main() -> int
             multi_bead_move_writer.write(i_block, mb_accept, mb_reject);
 
             /* save the worldlines*/
-            worldline_writer.write(i_block, worldlines, environment, minimage_box);
+            worldline_writer.write(i_block, worldlines, environment);
         }
 
         /* Update the step sizes during equilibration */

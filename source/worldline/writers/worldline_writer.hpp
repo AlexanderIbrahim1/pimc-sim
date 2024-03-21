@@ -31,22 +31,19 @@ namespace worldline
 {
 
 template <std::floating_point FP, std::size_t NDIM>
-static auto periodic_box_simulation_header(
+static auto worldline_file_header(
     std::size_t n_particles,
     std::size_t n_timeslices,
-    std::size_t i_block,
-    const coord::BoxSides<FP, NDIM>& box
+    std::size_t i_block
 ) noexcept -> std::string
 {
     auto header = std::stringstream {};
-    header << "# This file contains the positions of all the beads in all the particles\n";
-    header << "# in a simulation with periodic boundary conditions;\n";
+    header << "# This file contains the positions of all the beads in all the particles in a simulation\n";
     header << "# The information after the comments is laid out in the following manner:\n";
     header << "# - [integer] block index of the simulation this snapshot is taken at\n";
     header << "# - [integer] NDIM: number of dimensions the simulation was performed in\n";
     header << "# - [integer] n_particles: total number of particles\n";
     header << "# - [integer] n_timeslices: total number of timeslices\n";
-    header << "# - [(NDIM many) floating-point] periodic box edges\n";
     header << "# ... followed by the bead positions...\n";
     header << "# \n";
     header << "# The positions of the beads are laid out in `NDIM` space-separated columns;\n";
@@ -58,13 +55,6 @@ static auto periodic_box_simulation_header(
     header << NDIM << '\n';
     header << n_particles << '\n';
     header << n_timeslices << '\n';
-
-    header << std::scientific << std::setprecision(8);
-
-    for (std::size_t i {0}; i < NDIM - 1; ++i) {
-        header << box[i] << writer_utils::POSITION_SPACING;
-    }
-    header << box[NDIM - 1] << '\n';
 
     return header.str();
 }
@@ -140,10 +130,10 @@ private:
 };
 
 template <std::floating_point FP, std::size_t NDIM>
-class PeriodicBoxWorldlineWriter
+class WorldlineWriter
 {
 public:
-    explicit PeriodicBoxWorldlineWriter(
+    explicit WorldlineWriter(
         std::filesystem::path output_dirpath,
         std::string prefix = std::string {"worldline"},
         std::string suffix = std::string {".dat"}
@@ -154,13 +144,12 @@ public:
     void write(
         std::size_t i_block,
         const std::vector<worldline::Worldline<FP, NDIM>>& worldlines,
-        const envir::Environment<FP> environment,
-        const coord::BoxSides<FP, NDIM>& box
+        const envir::Environment<FP> environment
     ) const
     {
         const auto n_particles = environment.n_particles();
         const auto n_timeslices = environment.n_timeslices();
-        auto header = periodic_box_simulation_header<FP, NDIM>(n_particles, n_timeslices, i_block, box);
+        auto header = worldline_file_header<FP, NDIM>(n_particles, n_timeslices, i_block);
 
         worldline_writer_.write(i_block, std::move(header), worldlines);
     }
