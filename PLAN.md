@@ -84,14 +84,49 @@ To make this nicer, we could create classes that wrap together:
 - I decided to create a separate subproject `pimc_simpy` that will contain the entire python package there
   - this provides a clean separation between the C++ and Python parts of the project
 
+### 2024-03-20
+- how do I implement continuing an interrupted simulation
+
+#### Using a continue file to hold the most recently completed block index
+- in the previous MoRiBS, I had a qmc.continue file that I read the most recent block number from
+- I assume I'll use the same strategy:
+  - have a function that looks for a "continue" file
+    - if I find it, then I'll do things that assume I'm continuing an interrupted simulation
+    - if I don't find it, then I'll do things that assume I'm starting a brand new simulation
+
+- what information should I store in it?
+  - the most recently saved block index!
+    - and this should be updated at the end of saving all the values; otherwise, I might lose data if
+      the simulation is updated during the saving of the data
+  - actually, that's probably it
+    - everything else can be found from the written simulation code
+
+#### Single and Double value writers need to change how they work
+- there's currently an issue with the writers
+  - they create a brand new output file to write to upon construction
+  - I would have to pass some sort of "continue simulation" flag into EVERY writer to prevent it
+    from overwriting the existing output file when continuing a simulation!
+  - SOLUTION: it's probably better to delay creating the output files until the first call to `.write()`
+    - inside, it can check if the file exists at the start of each write
+    - this is almost certainly not a performance-intensive part of the code, so this isn't an issue
+
+- as far as the single/double value writers are concerned, all they need to know is the most recent
+  block ID to properly update the results
+
+#### Histograms and the worldlines need to be restored at the start of the simulation
+- the histograms need to be read at the start of the simulation
+- the worldlines need to have their state restored
+
 ### PLAN
 - [DONE:2024-03-16] finish code to read a histogram file, update the contents, and rewrite them
 - [DONE:2024-03-16] implement the `g(r)`
 - simplify the header interface by putting several headers into a single one (too complicated right now)
 - [DONE:2024-03-18] implement `centroid g(r)`
-- create python scripts to extract and display important information from the output files
+- [DONE:2024-03-20] create python scripts to extract and display important information from the output files
   - this will require numpy, matplotlib, etc.
 - make saving the histograms atomic
 - implement continuing an interrupted simulation
 - implement the 3BPES
 - implement the 4BPES
+- implement logging
+- introduce "saving schemes" for the worldline writer, in case I don't want to save literally every single worldline
