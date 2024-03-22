@@ -12,5 +12,6 @@ compile_commands.json
 
 !playground/CMakeUserPresets.json
 playground/ignore/
+playground/scripts/
 
 **/__pycache__/
