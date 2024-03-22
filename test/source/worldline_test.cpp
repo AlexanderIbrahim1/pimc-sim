@@ -8,6 +8,7 @@
 #include "coordinates/cartesian.hpp"
 #include "coordinates/measure.hpp"
 #include "worldline/worldline.hpp"
+#include "worldline/writers/read_worldlines.hpp"
 #include "worldline/writers/worldline_writer.hpp"
 
 TEST_CASE("worldline construction", "[Worldline]")

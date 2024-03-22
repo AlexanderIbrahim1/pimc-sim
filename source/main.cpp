@@ -41,6 +41,7 @@
 #include <simulation/box_sides_writer.hpp>
 #include <simulation/continue.hpp>
 #include <worldline/worldline.hpp>
+#include <worldline/writers/read_worldlines.hpp>
 #include <worldline/writers/worldline_writer.hpp>
 
 constexpr auto NDIM = std::size_t {3};
