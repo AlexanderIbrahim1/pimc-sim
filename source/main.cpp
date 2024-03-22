@@ -41,6 +41,7 @@
 #include <simulation/box_sides_writer.hpp>
 #include <simulation/continue.hpp>
 #include <worldline/worldline.hpp>
+#include <worldline/writers/delete_worldlines.hpp>
 #include <worldline/writers/read_worldlines.hpp>
 #include <worldline/writers/worldline_writer.hpp>
 
@@ -122,6 +123,8 @@ auto main() -> int
         density = 0.026
         temperature = 4.2
     )"};
+
+    const auto n_most_recent_worldlines_to_save = 5;
 
     const auto continue_file_manager = sim::ContinueFileManager {output_dirpath};
     auto toml_stream = std::stringstream {std::string {toml_input}};
@@ -328,6 +331,8 @@ auto main() -> int
         com_tracker.reset();
         single_bead_tracker.reset();
         multi_bead_tracker.reset();
+
+        worldline::delete_worldlines_file<double, NDIM>(worldline_writer, i_block, n_most_recent_worldlines_to_save);
     }
 
     return 0;

@@ -143,13 +143,15 @@ To make this nicer, we could create classes that wrap together:
 - [DONE:2024-03-21] implement a worldline reader
 - [DONE:2024-03-21] give worldline a constructor from `std::vector`, and remove the `initializer_list` one
   - I want to be able to move the vector of coordinates into the worldline
+- [DONE:2024-03-21] introduce "saving schemes" for the worldline writer, in case I don't want to save literally every single worldline
+  - maybe I only want the most recent n worldlines to be saved, so some might have to be deleted?
+  - NOTE: did not implement schemes; just a function to delete the worldline file that is n blocks behind the current one
+    - this is much simpler
 - simplify the header interface by putting several headers into a single one (too complicated right now)
 - make saving the histograms atomic
 - implement the 3BPES
 - implement the 4BPES
 - implement logging
-- introduce "saving schemes" for the worldline writer, in case I don't want to save literally every single worldline
-  - maybe I only want the most recent n worldlines to be saved, so some might have to be deleted?
 - implement saving the PRNG state (lower priority? the physics is still the same I guess)
 - convert the project into a header-only library, since that's what it is basically becoming
   - this also makes it easier to turn the library into a formal target for cmake, and makes it
