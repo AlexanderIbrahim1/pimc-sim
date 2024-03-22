@@ -150,6 +150,8 @@ To make this nicer, we could create classes that wrap together:
 - simplify the header interface by putting several headers into a single one (too complicated right now)
 - make saving the histograms atomic
 - implement the 3BPES
+  - finish creating the smaller three-body PES grid, and verify that it gives the expected energies for specific configurations
+    - do the verification in Python first, then some unit tests in C++
 - implement the 4BPES
 - implement logging
 - implement saving the PRNG state (lower priority? the physics is still the same I guess)
