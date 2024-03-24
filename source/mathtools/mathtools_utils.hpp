@@ -9,6 +9,36 @@
 namespace mathtools_utils
 {
 
+template <std::floating_point FP>
+class AxisLimits
+{
+public:
+    AxisLimits(FP lower, FP upper)
+        : lower_ {lower}
+        , upper_ {upper}
+    {
+        if (upper_ <= lower_) {
+            auto err_msg = std::stringstream {};
+            err_msg << "Cannot create AxisLimits instance with upper limit below lower limit.\n";
+            err_msg << "lower = " << lower_ << '\n';
+            err_msg << "upper = " << upper_ << '\n';
+            throw std::runtime_error {err_msg.str()};
+        }
+    }
+
+    constexpr auto lower() const noexcept -> FP {
+        return lower_;
+    }
+    
+    constexpr auto upper() const noexcept -> FP {
+        return upper_;
+    }
+
+private:
+    FP lower_;
+    FP upper_;
+};
+
 [[maybe_unused]] static void check_in_bounds(std::size_t index, std::size_t size)
 {
     if (index >= size) {
@@ -31,7 +61,7 @@ namespace mathtools_utils
 }
 
 template <std::floating_point FP>
-constexpr void ctr_check_min_max_order(FP xmin, FP xmax)
+void ctr_check_min_max_order(FP xmin, FP xmax)
 {
     if (xmin >= xmax) {
         auto err_msg = std::stringstream {};
