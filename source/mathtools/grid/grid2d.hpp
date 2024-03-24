@@ -3,6 +3,7 @@
 #include <concepts>
 #include <cstddef>
 #include <vector>
+#include <string_view>
 
 #include <common/common_utils.hpp>
 #include <mathtools/mathtools_utils.hpp>
@@ -15,7 +16,7 @@ template <common_utils::Numeric Number>
 class Grid2D
 {
 public:
-    constexpr Grid2D(std::size_t n_rows, std::size_t n_cols)
+    Grid2D(std::size_t n_rows, std::size_t n_cols)
         : n_rows_ {n_rows}
         , n_cols_ {n_cols}
     {

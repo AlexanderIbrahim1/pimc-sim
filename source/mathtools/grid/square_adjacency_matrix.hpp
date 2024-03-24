@@ -14,7 +14,7 @@ namespace mathtools
 class SquareAdjacencyMatrix
 {
 public:
-    constexpr SquareAdjacencyMatrix(std::size_t n_particles)
+    SquareAdjacencyMatrix(std::size_t n_particles)
         : n_particles_ {n_particles}
         , index_grid_ {n_particles, n_particles}
         , sizes_(n_particles, 0)
