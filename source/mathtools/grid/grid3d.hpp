@@ -3,7 +3,7 @@
 #include <concepts>
 #include <cstddef>
 #include <vector>
-#include <sstring>
+#include <sstream>
 #include <stdexcept>
 #include <tuple>
 
@@ -21,52 +21,55 @@ struct Shape3D
     std::size_t size2;
 };
 
+struct Index3D
+{
+    std::size_t idx0;
+    std::size_t idx1;
+    std::size_t idx2;
+};
+
 template <common_utils::Numeric Number>
 class Grid3D
 {
 public:
-    Grid3D(std::size_t size0, std::size_t size1, std::size_t size2)
-        : size0_ {size0}
-        , size1_ {size1}
-        , size2_ {size2}
+    Grid3D(Shape3D shape)
+        : shape_ {shape}
         , data_ {}
     {
-        mathtools_utils::ctr_check_positive(size0_, "size0");
-        mathtools_utils::ctr_check_positive(size1_, "size1");
-        mathtools_utils::ctr_check_positive(size2_, "size1");
+        mathtools_utils::ctr_check_positive(shape_.size0, "size0");
+        mathtools_utils::ctr_check_positive(shape_.size1, "size1");
+        mathtools_utils::ctr_check_positive(shape_.size2, "size1");
 
-        data_.resize(size0_ * size1_ * size2_);
+        data_.resize(shape_.size0 * shape_.size1 * shape_.size2);
     }
 
-    Grid3D(std::vector<Number> data, std::size_t size0, std::size_t size1, std::size_t size2)
-        : size0_ {size0}
-        , size1_ {size1}
-        , size2_ {size2}
+    Grid3D(std::vector<Number> data, Shape3D shape)
+        : shape_ {shape}
         , data_ {std::move(data)}
     {
-        mathtools_utils::ctr_check_positive(size0_, "size0");
-        mathtools_utils::ctr_check_positive(size1_, "size1");
-        mathtools_utils::ctr_check_positive(size2_, "size1");
+        mathtools_utils::ctr_check_positive(shape_.size0, "size0");
+        mathtools_utils::ctr_check_positive(shape_.size1, "size1");
+        mathtools_utils::ctr_check_positive(shape_.size2, "size1");
 
-        if (size0_ * size1_ * size2_ != data_.size()) {
+        if (shape_.size0 * shape_.size1 * shape_.size2 != data_.size()) {
             auto err_msg = std::stringstream {};
             err_msg << "Attempting to create a Grid3D instance with invalid side lengths provided.\n";
             err_msg << "data size: " << data_.size() << '\n';
             err_msg << "side lengths provided: ";
-            err_msg << size0_ << ", " << size1_ << ", " << size2_ << '\n';
+            err_msg << shape_.size0 << ", " << shape_.size1 << ", " << shape_.size2 << '\n';
             throw std::runtime_error {err_msg.str()};
         }
     }
 
     constexpr auto get(std::size_t i0, std::size_t i1, std::size_t i2) const noexcept -> Number
     {
-        const auto index = i0 * size1_ * size2_ + i1 * size2_ + i2;
+        const auto index = i0 * shape_.size1 * shape_.size2 + i1 * shape_.size2 + i2;
         return data_[index];
     }
 
-    constexpr void set(std::size_t i0, std::size_t i1, std::size_t i2, Number value) const noexcept
+    constexpr void set(std::size_t i0, std::size_t i1, std::size_t i2, Number value) noexcept
     {
-        const auto index = i0 * size1_ * size2_ + i1 * size2_ + i2;
+        const auto index = i0 * shape_.size1 * shape_.size2 + i1 * shape_.size2 + i2;
         data_[index] = value;
     }
 
@@ -75,15 +78,13 @@ public:
         return data_;
     }
 
-    constexpr auto shape() const noexcept
+    constexpr auto shape() const noexcept -> Shape3D
     {
-        return {size0_, size1_, size2_};
+        return shape_;
     }
 
 private:
-    std::size_t size0_;
-    std::size_t size1_;
-    std::size_t size2_;
+    Shape3D shape_;
     std::vector<Number> data_;
 };
 

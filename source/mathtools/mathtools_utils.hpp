@@ -1,6 +1,7 @@
 #pragma once
 
 #include <concepts>
+#include <iomanip>
 #include <sstream>
 #include <stdexcept>
 #include <string_view>
@@ -38,6 +39,18 @@ private:
     FP lower_;
     FP upper_;
 };
+
+template <std::floating_point FP>
+auto is_in_halfopen_limits(AxisLimits<FP> limits, FP value, std::string_view name) -> bool {
+    if (value < limits.lower() || value >= limits.upper()) {
+        auto err_msg = std::stringstream {};
+        err_msg << "The value of '" << name << "' provided is outside of its half-open range limits.\n";
+        err_msg << std::scientific << std::setprecision(8);
+        err_msg << "Limits: (" << limits.lower() << ", " << limits.upper() << ")\n";
+        err_msg << "'" << name << "': " << value << '\n';
+        throw std::runtime_error {err_msg.str()};
+    }
+}
 
 [[maybe_unused]] static void check_in_bounds(std::size_t index, std::size_t size)
 {

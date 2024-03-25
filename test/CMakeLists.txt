@@ -73,7 +73,7 @@ add_test_target(TARGET square_adjacency_matrix_test SOURCES "source/square_adjac
 add_test_target(TARGET adjuster_test SOURCES "source/adjuster_test.cpp")
 add_test_target(TARGET histogram_test SOURCES "source/histogram_test.cpp")
 add_test_target(TARGET continue_test SOURCES "source/continue_test.cpp")
-
+add_test_target(TARGET trilinear_interp_test SOURCES "source/trilinear_interp_test.cpp")
 
 # ---- End-of-file commands ----
 
