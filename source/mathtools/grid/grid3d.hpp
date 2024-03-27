@@ -2,10 +2,10 @@
 
 #include <concepts>
 #include <cstddef>
-#include <vector>
 #include <sstream>
 #include <stdexcept>
 #include <tuple>
+#include <vector>
 
 #include <common/common_utils.hpp>
 #include <mathtools/mathtools_utils.hpp>
@@ -63,13 +63,13 @@ public:
 
     constexpr auto get(std::size_t i0, std::size_t i1, std::size_t i2) const noexcept -> Number
     {
-        const auto index = i0 * shape_.size1 * shape_.size2 + i1 * shape_.size2 + i2;
+        const auto index = i2 + shape_.size2 * i1 + shape_.size2 * shape_.size1 * i0;
         return data_[index];
     }
 
     constexpr void set(std::size_t i0, std::size_t i1, std::size_t i2, Number value) noexcept
     {
-        const auto index = i0 * shape_.size1 * shape_.size2 + i1 * shape_.size2 + i2;
+        const auto index = i2 + shape_.size2 * i1 + shape_.size2 * shape_.size1 * i0;
         data_[index] = value;
     }
 

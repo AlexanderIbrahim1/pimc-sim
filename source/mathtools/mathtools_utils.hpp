@@ -27,11 +27,13 @@ public:
         }
     }
 
-    constexpr auto lower() const noexcept -> FP {
+    constexpr auto lower() const noexcept -> FP
+    {
         return lower_;
     }
-    
-    constexpr auto upper() const noexcept -> FP {
+
+    constexpr auto upper() const noexcept -> FP
+    {
         return upper_;
     }
 
@@ -41,7 +43,8 @@ private:
 };
 
 template <std::floating_point FP>
-auto is_in_halfopen_limits(AxisLimits<FP> limits, FP value, std::string_view name) -> bool {
+auto is_in_halfopen_limits(AxisLimits<FP> limits, FP value, std::string_view name) -> bool
+{
     if (value < limits.lower() || value >= limits.upper()) {
         auto err_msg = std::stringstream {};
         err_msg << "The value of '" << name << "' provided is outside of its half-open range limits.\n";

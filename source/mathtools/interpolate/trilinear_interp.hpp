@@ -59,7 +59,8 @@ private:
     FP d1_;
     FP d2_;
 
-    constexpr auto lower_indices_(FP x0, FP x1, FP x2) const noexcept -> Index3D {
+    constexpr auto lower_indices_(FP x0, FP x1, FP x2) const noexcept -> Index3D
+    {
         const auto idx0 = static_cast<std::size_t>((x0 - limits0_.lower()) / d0_);
         const auto idx1 = static_cast<std::size_t>((x1 - limits1_.lower()) / d1_);
         const auto idx2 = static_cast<std::size_t>((x2 - limits2_.lower()) / d2_);
@@ -67,7 +68,8 @@ private:
         return {idx0, idx1, idx2};
     }
 
-    constexpr auto interpolate_(FP x0, FP x1, FP x2, Index3D idx) const noexcept -> FP {
+    constexpr auto interpolate_(FP x0, FP x1, FP x2, Index3D idx) const noexcept -> FP
+    {
         const auto [idx0, idx1, idx2] = idx;
 
         const auto left0 = limits0_.lower() + static_cast<FP>(idx0) * d0_;
