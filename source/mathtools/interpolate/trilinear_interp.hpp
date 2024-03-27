@@ -50,6 +50,21 @@ public:
         return interpolate_(x0, x1, x2, idx);
     }
 
+    constexpr auto get_limits0() const -> mathtools_utils::AxisLimits<FP>
+    {
+        return limits0_;
+    }
+
+    constexpr auto get_limits1() const -> mathtools_utils::AxisLimits<FP>
+    {
+        return limits1_;
+    }
+
+    constexpr auto get_limits2() const -> mathtools_utils::AxisLimits<FP>
+    {
+        return limits2_;
+    }
+
 private:
     Grid3D<FP> grid_;
     mathtools_utils::AxisLimits<FP> limits0_;
