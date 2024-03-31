@@ -18,7 +18,7 @@ public:
     explicit AxilrodTellerMuto(FP c9_coefficient)
         : c9_coefficient_ {c9_coefficient}
     {
-        if (c9_coefficient_ < FP{0.0}) {
+        if (c9_coefficient_ < FP {0.0}) {
             auto err_msg = std::stringstream {};
             err_msg << "The c9 coefficient for the AxilrodTellerMuto potential must be positive.\n";
             err_msg << "Found: " << std::scientific << std::setprecision(8) << c9_coefficient_ << '\n';
@@ -36,12 +36,12 @@ public:
         const auto cos2_numer = (dist01_sq + dist12_sq - dist02_sq);
         const auto cos3_numer = (dist02_sq + dist12_sq - dist01_sq);
 
-        const auto cos_denom = FP{8.0} * dist01_sq * dist12_sq * dist02_sq;
-        const auto fterm = FP{3.0} * cos1_numer * cos2_numer * cos3_numer / cos_denom;
+        const auto cos_denom = FP {8.0} * dist01_sq * dist12_sq * dist02_sq;
+        const auto fterm = FP {3.0} * cos1_numer * cos2_numer * cos3_numer / cos_denom;
 
         const auto denom = dist01_sq * dist02_sq * dist12_sq + dist01 * dist02 * dist12;
 
-        return c9_coefficient_ * (FP{1.0} + fterm) / denom;
+        return c9_coefficient_ * (FP {1.0} + fterm) / denom;
     }
 
 private:

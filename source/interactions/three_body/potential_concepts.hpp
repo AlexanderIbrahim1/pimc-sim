@@ -29,7 +29,9 @@ concept PeriodicTripletPointPotential = requires(Potential pot) {
         pot(coord::Cartesian<FP, NDIM> {}, coord::Cartesian<FP, NDIM> {}, coord::Cartesian<FP, NDIM> {})
     } -> std::same_as<FP>;
     {
-        pot.within_box_cutoff(coord::Cartesian<FP, NDIM> {}, coord::Cartesian<FP, NDIM> {}, coord::Cartesian<FP, NDIM> {})
+        pot.within_box_cutoff(
+            coord::Cartesian<FP, NDIM> {}, coord::Cartesian<FP, NDIM> {}, coord::Cartesian<FP, NDIM> {}
+        )
     } -> std::same_as<FP>;
 };
 
