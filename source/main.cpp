@@ -270,7 +270,8 @@ auto main() -> int
         if (i_block >= parser.n_equilibrium_blocks) {
             /* run estimators */
             const auto total_kinetic_energy = estim::total_primitive_kinetic_energy(worldlines, environment);
-            const auto total_potential_energy = estim::total_pair_potential_energy(worldlines, pot, environment);
+            const auto total_potential_energy =
+                estim::total_pair_potential_energy_periodic(worldlines, pot, environment);
             const auto rms_centroid_dist = estim::rms_centroid_distance(worldlines, environment);
             const auto abs_centroid_dist = estim::absolute_centroid_distance(worldlines, environment);
 

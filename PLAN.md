@@ -147,11 +147,15 @@ To make this nicer, we could create classes that wrap together:
   - maybe I only want the most recent n worldlines to be saved, so some might have to be deleted?
   - NOTE: did not implement schemes; just a function to delete the worldline file that is n blocks behind the current one
     - this is much simpler
+- [IN-PROGRESS:2024-04-02] implement the 3BPES
+  - [DONE] finish creating the smaller three-body PES grid, and verify that it gives the expected energies for specific configurations
+    - [DONE] do the verification in Python first, then some unit tests in C++
+  - create estimators for the 3BPES
+- create interaction handler that allows both 2B and 3B interactions
+- check if the Attard minimage condition is implemented properly in the 3BPES wrapper
+  - this was the source of the error in the earlier simulation code!!!
 - simplify the header interface by putting several headers into a single one (too complicated right now)
 - make saving the histograms atomic
-- implement the 3BPES
-  - finish creating the smaller three-body PES grid, and verify that it gives the expected energies for specific configurations
-    - do the verification in Python first, then some unit tests in C++
 - implement the 4BPES
 - implement logging
 - implement saving the PRNG state (lower priority? the physics is still the same I guess)

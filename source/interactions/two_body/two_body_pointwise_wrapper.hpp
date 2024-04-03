@@ -11,9 +11,9 @@ namespace interact
 {
 
 template <typename Potential, std::floating_point FP, std::size_t NDIM>
+requires PairPotential<Potential>
 class PairDistancePotential
 {
-    static_assert(PairPotential<Potential>);
     using Point = coord::Cartesian<FP, NDIM>;
 
 public:
@@ -31,9 +31,9 @@ private:
 };
 
 template <typename Potential, std::floating_point FP, std::size_t NDIM>
+requires PairPotential<Potential>
 class PeriodicPairDistancePotential
 {
-    static_assert(PairPotential<Potential>);
     using Point = coord::Cartesian<FP, NDIM>;
     using Box = coord::BoxSides<FP, NDIM>;
 
@@ -68,9 +68,9 @@ private:
 };
 
 template <typename Potential, std::floating_point FP, std::size_t NDIM>
+requires PairPotential<Potential>
 class PeriodicPairDistanceSquaredPotential
 {
-    static_assert(PairPotential<Potential>);
     using Point = coord::Cartesian<FP, NDIM>;
     using Box = coord::BoxSides<FP, NDIM>;
 
