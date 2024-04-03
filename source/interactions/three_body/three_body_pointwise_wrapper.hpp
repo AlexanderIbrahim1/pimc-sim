@@ -51,24 +51,28 @@ public:
 
     auto within_box_cutoff(const Point& p0, const Point& p1, const Point& p2) const noexcept -> FP
     {
-        // NOTE: it doesn't matter which of the points that the group of three points is centred around;
-        // whether or not the Attard minimage condition is accepted or rejected does not change; thus, we
-        // can arbitrarily choose `p0`
+        // I am 99% sure what I just wrote below is wrong, and I need to reimplement what was put in
+        // the Attard paper, or just replicate what I put in the pimcanalysis Python repo (where I know
+        // I implemented it correctly, for both the 3B and 4B interactions)
 
-        // p0 becomes the origin
-        const auto p01 = p1 - p0;
-        const auto p02 = p2 - p0;
+        // // NOTE: it doesn't matter which of the points that the group of three points is centred around;
+        // // whether or not the Attard minimage condition is accepted or rejected does not change; thus, we
+        // // can arbitrarily choose `p0`
 
-        const auto dist01_sq = coord::norm_squared(p01);
-        const auto dist02_sq = coord::norm_squared(p02);
-        const auto dist12_sq = coord::distance_squared(p01, p02);
+        // // p0 becomes the origin
+        // const auto p01 = p1 - p0;
+        // const auto p02 = p2 - p0;
 
-        if (dist01_sq < cutoff_dist_sq_ && dist02_sq < cutoff_dist_sq_ && dist12_sq < cutoff_dist_sq_) {
-            return pot_(std::sqrt(dist01_sq), std::sqrt(dist02_sq), std::sqrt(dist12_sq));
-        }
-        else {
-            return FP {0.0};
-        }
+        // const auto dist01_sq = coord::norm_squared(p01);
+        // const auto dist02_sq = coord::norm_squared(p02);
+        // const auto dist12_sq = coord::distance_squared(p01, p02);
+
+        // if (dist01_sq < cutoff_dist_sq_ && dist02_sq < cutoff_dist_sq_ && dist12_sq < cutoff_dist_sq_) {
+        //     return pot_(std::sqrt(dist01_sq), std::sqrt(dist02_sq), std::sqrt(dist12_sq));
+        // }
+        // else {
+        //     return FP {0.0};
+        // }
     }
 
 private:
