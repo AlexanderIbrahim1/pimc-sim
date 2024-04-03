@@ -13,7 +13,6 @@
 #include <coordinates/cartesian.hpp>
 #include <coordinates/measure.hpp>
 #include <environment/environment.hpp>
-#include <interactions/handlers/full_pair_interaction_handler.hpp>
 #include <interactions/handlers/interaction_handler_concepts.hpp>
 #include <interactions/two_body/two_body_pointwise.hpp>
 #include <pimc/trackers/move_success_tracker.hpp>

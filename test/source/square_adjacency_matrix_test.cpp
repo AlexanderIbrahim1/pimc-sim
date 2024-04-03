@@ -6,7 +6,7 @@
 #include "coordinates/box_sides.hpp"
 #include "coordinates/cartesian.hpp"
 #include "environment/environment.hpp"
-#include "interactions/handlers/nearest_neighbour_pair_interaction_handler.hpp"
+#include "interactions/handlers/nearest_neighbour_interaction_handler.hpp"
 #include "mathtools/grid/square_adjacency_matrix.hpp"
 #include "worldline/worldline.hpp"
 
