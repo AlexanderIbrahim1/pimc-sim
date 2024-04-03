@@ -105,6 +105,20 @@ auto create_bisect_move_adjuster(double lower_range_limit, double upper_range_li
     return pimc::BisectionLevelMoveAdjuster<double> {com_accept_range, com_adjust_step};
 }
 
+auto create_histogram(
+    const std::filesystem::path& histogram_filepath,
+    const sim::ContinueFileManager& manager,
+    const coord::BoxSides<double, NDIM>& minimage_box
+)
+{
+    if (manager.is_continued()) {
+        return mathtools::io::read_histogram<double>(histogram_filepath);
+    }
+    else {
+        return mathtools::Histogram<double> {0.0, coord::box_cutoff_distance(minimage_box), 1024};
+    }
+}
+
 auto main() -> int
 {
     namespace fs = std::filesystem;
@@ -217,26 +231,10 @@ auto main() -> int
 
     /* create the histogram and the histogram writers */
     const auto radial_dist_histo_filepath = output_dirpath / "radial_dist_histo.dat";
-    auto radial_dist_histo = [&]()
-    {
-        if (continue_file_manager.is_continued()) {
-            return mathtools::io::read_histogram<double>(radial_dist_histo_filepath);
-        }
-        else {
-            return mathtools::Histogram<double> {0.0, coord::box_cutoff_distance(minimage_box), 1024};
-        }
-    }();
+    auto radial_dist_histo = create_histogram(radial_dist_histo_filepath, continue_file_manager, minimage_box);
 
-    const auto centroid_radial_dist_histo_filepath = output_dirpath / "centroid_radial_dist_histo.dat";
-    auto centroid_radial_dist_histo = [&]()
-    {
-        if (continue_file_manager.is_continued()) {
-            return mathtools::io::read_histogram<double>(centroid_radial_dist_histo_filepath);
-        }
-        else {
-            return mathtools::Histogram<double> {0.0, coord::box_cutoff_distance(minimage_box), 1024};
-        }
-    }();
+    const auto centroid_dist_histo_filepath = output_dirpath / "centroid_radial_dist_histo.dat";
+    auto centroid_dist_histo = create_histogram(centroid_dist_histo_filepath, continue_file_manager, minimage_box);
 
     const auto periodic_distance_calculator = coord::PeriodicDistanceMeasureWrapper<double, NDIM> {minimage_box};
 
@@ -289,9 +287,9 @@ auto main() -> int
             mathtools::io::write_histogram(radial_dist_histo_filepath, radial_dist_histo);
 
             estim::update_centroid_radial_distribution_function_histogram(
-                centroid_radial_dist_histo, environment, periodic_distance_calculator, worldlines
+                centroid_dist_histo, environment, periodic_distance_calculator, worldlines
             );
-            mathtools::io::write_histogram(centroid_radial_dist_histo_filepath, centroid_radial_dist_histo);
+            mathtools::io::write_histogram(centroid_dist_histo_filepath, centroid_dist_histo);
 
             /* save move acceptance rates */
             const auto [com_accept, com_reject] = com_tracker.get_accept_and_reject();
