@@ -94,18 +94,29 @@ namespace geom
 {
 
 template <std::floating_point FP, std::size_t NDIM>
-auto three_body_attard_side_lengths(
+auto three_body_attard_side_lengths_squared(
     const std::array<coord::Cartesian<FP, NDIM>, 3>& points,
     const coord::BoxSides<FP, NDIM>& box
 ) noexcept -> std::array<FP, 3>
 {
     const auto separation_points = priv_geom::three_body_separation_points(points, box);
 
-    const auto dist01 = coord::norm(separation_points[0]);
-    const auto dist02 = coord::norm(separation_points[1]);
-    const auto dist12 = coord::norm(separation_points[2]);
+    const auto dist01_sq = coord::norm_squared(separation_points[0]);
+    const auto dist02_sq = coord::norm_squared(separation_points[1]);
+    const auto dist12_sq = coord::norm_squared(separation_points[2]);
 
-    return {dist01, dist02, dist12};
+    return {dist01_sq, dist02_sq, dist12_sq};
+}
+
+template <std::floating_point FP, std::size_t NDIM>
+auto three_body_attard_side_lengths(
+    const std::array<coord::Cartesian<FP, NDIM>, 3>& points,
+    const coord::BoxSides<FP, NDIM>& box
+) noexcept -> std::array<FP, 3>
+{
+    const auto [dist01_sq, dist02_sq, dist12_sq] = three_body_attard_side_lengths_squared(points, box);
+
+    return {std::sqrt(dist01_sq), std::sqrt(dist02_sq), std::sqrt(dist12_sq)};
 }
 
 }  // namespace geom

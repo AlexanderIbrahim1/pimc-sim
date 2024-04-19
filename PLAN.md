@@ -151,6 +151,7 @@ To make this nicer, we could create classes that wrap together:
   - [DONE] finish creating the smaller three-body PES grid, and verify that it gives the expected energies for specific configurations
     - [DONE] do the verification in Python first, then some unit tests in C++
   - create estimators for the 3BPES
+  - create unit tests for the ATM potential in specific geometries
 - create interaction handler that allows both 2B and 3B interactions
 - check if the Attard minimage condition is implemented properly in the 3BPES wrapper
   - this was the source of the error in the earlier simulation code!!!

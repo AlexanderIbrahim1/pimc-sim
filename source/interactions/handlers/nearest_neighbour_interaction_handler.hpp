@@ -10,6 +10,7 @@
 #include <coordinates/cartesian.hpp>
 #include <coordinates/measure.hpp>
 #include <environment/environment.hpp>
+#include <interactions/three_body/potential_concepts.hpp>
 #include <interactions/two_body/potential_concepts.hpp>
 #include <mathtools/grid/square_adjacency_matrix.hpp>
 #include <worldline/worldline.hpp>
@@ -31,8 +32,10 @@ void update_centroid_adjacency_matrix(
     const auto n_particles = environment.n_particles();
     const auto n_timeslices = environment.n_timeslices();
 
-    // TODO: put this somewhere else where I can use it repeatedly
-    //       - probably in the worldlines subdirectory?
+    // NOTE: there is a function to calculate the centroids, but it assumes that you
+    // pass in a contiguous sequence of coordinates; but centroids from the worldline
+    // require using points between different timeslices; so we need to create a
+    // a separate function/lambda
     const auto create_centroid = [&worldlines, &n_timeslices](std::size_t i_part) -> Point
     {
         auto centroid = Point::origin();
@@ -83,6 +86,45 @@ public:
         const auto& points = worldline.points();
         for (auto i_neigh : centroid_adjmat_.neighbours(i_particle)) {
             pot_energy += pot_(points[i_particle], points[i_neigh]);
+        }
+
+        return pot_energy;
+    }
+
+    constexpr auto adjacency_matrix() noexcept -> mathtools::SquareAdjacencyMatrix&
+    {
+        // mutable reference to the underlying adjacency matrix so an external function can update it
+        return centroid_adjmat_;
+    }
+
+private:
+    PointPotential pot_;
+    mathtools::SquareAdjacencyMatrix centroid_adjmat_;
+};
+
+template <typename PointPotential, std::floating_point FP, std::size_t NDIM>
+requires TripletPointPotential<PointPotential, FP, NDIM>
+class NearestNeighbourTripletInteractionHandler
+{
+    using Worldline = worldline::Worldline<FP, NDIM>;
+
+public:
+    explicit NearestNeighbourTripletInteractionHandler(PointPotential pot, std::size_t n_particles)
+        : pot_ {std::move(pot)}
+        , centroid_adjmat_ {n_particles}
+    {}
+
+    constexpr auto operator()(std::size_t i_particle, const Worldline& worldline) const noexcept -> FP
+    {
+        auto pot_energy = FP {};
+
+        const auto& points = worldline.points();
+        const auto neighbours = centroid_adjmat_.neighbours(i_particle);
+
+        for (std::size_t i_neigh0 {0}; i_neigh0 < neighbours.size() - 1; ++i_neigh0) {
+            for (std::size_t i_neigh1 {i_neigh0 + 1}; i_neigh1 < neighbours.size(); ++i_neigh1) {
+                pot_energy += pot_(points[i_particle], points[i_neigh0], points[i_neigh1]);
+            }
         }
 
         return pot_energy;

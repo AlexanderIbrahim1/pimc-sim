@@ -6,6 +6,7 @@
 
 #include <coordinates/cartesian.hpp>
 #include <coordinates/measure.hpp>
+#include <geometries/attard/three_body.hpp>
 #include <interactions/three_body/potential_concepts.hpp>
 
 namespace interact
@@ -41,6 +42,7 @@ class PeriodicTripletDistancePotential
 public:
     explicit PeriodicTripletDistancePotential(Potential pot, Box box)
         : cutoff_dist_sq_ {coord::box_cutoff_distance_squared(box)}
+        , box_ {std::move(box)}
         , pot_ {std::move(pot)}
     {}
 
@@ -51,32 +53,19 @@ public:
 
     auto within_box_cutoff(const Point& p0, const Point& p1, const Point& p2) const noexcept -> FP
     {
-        // I am 99% sure what I just wrote below is wrong, and I need to reimplement what was put in
-        // the Attard paper, or just replicate what I put in the pimcanalysis Python repo (where I know
-        // I implemented it correctly, for both the 3B and 4B interactions)
+        const auto [dist01_sq, dist02_sq, dist12_sq] = geom::three_body_attard_side_lengths_squared({p0, p1, p2}, box_);
 
-        // // NOTE: it doesn't matter which of the points that the group of three points is centred around;
-        // // whether or not the Attard minimage condition is accepted or rejected does not change; thus, we
-        // // can arbitrarily choose `p0`
-
-        // // p0 becomes the origin
-        // const auto p01 = p1 - p0;
-        // const auto p02 = p2 - p0;
-
-        // const auto dist01_sq = coord::norm_squared(p01);
-        // const auto dist02_sq = coord::norm_squared(p02);
-        // const auto dist12_sq = coord::distance_squared(p01, p02);
-
-        // if (dist01_sq < cutoff_dist_sq_ && dist02_sq < cutoff_dist_sq_ && dist12_sq < cutoff_dist_sq_) {
-        //     return pot_(std::sqrt(dist01_sq), std::sqrt(dist02_sq), std::sqrt(dist12_sq));
-        // }
-        // else {
-        //     return FP {0.0};
-        // }
+        if (dist01_sq < cutoff_dist_sq_ && dist02_sq < cutoff_dist_sq_ && dist12_sq < cutoff_dist_sq_) {
+            return pot_(std::sqrt(dist01_sq), std::sqrt(dist02_sq), std::sqrt(dist12_sq));
+        }
+        else {
+            return FP {0.0};
+        }
     }
 
 private:
     FP cutoff_dist_sq_;
+    Box box_;
     Potential pot_;
 };
 
