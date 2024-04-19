@@ -80,16 +80,15 @@ auto three_body_separation_points(
     auto separation02 = coord::Cartesian<FP, NDIM> {};
     auto separation12 = coord::Cartesian<FP, NDIM> {};
     for (std::size_t i_dim {0}; i_dim < NDIM; ++i_dim) {
-        separation01[i_dim] = coordinates[3*i_dim + 0];
-        separation02[i_dim] = coordinates[3*i_dim + 1];
-        separation12[i_dim] = coordinates[3*i_dim + 2];
+        separation01[i_dim] = coordinates[3 * i_dim + 0];
+        separation02[i_dim] = coordinates[3 * i_dim + 1];
+        separation12[i_dim] = coordinates[3 * i_dim + 2];
     }
 
     return {separation01, separation02, separation12};
 }
 
 }  // namespace priv_geom
-
 
 namespace geom
 {
