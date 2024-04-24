@@ -1,9 +1,12 @@
 #pragma once
 
 #include <concepts>
+#include <cstddef>
 #include <tuple>
+#include <utility>
 
 #include <interactions/handlers/interaction_handler_concepts.hpp>
+#include <worldline/worldline.hpp>
 
 /*
 TODO: create a class that takes a variadic number of other interaction handlers and combines
@@ -15,13 +18,31 @@ them into a single one
 namespace interact
 {
 
-template <typename Handler, std::floating_point FP, std::size_t NDIM>
-class CompositeInteractionHandler
+template <std::floating_point FP, std::size_t NDIM, typename... Handlers>
+class CompositeFullInteractionHandler
 {
 public:
+    using Worldline = worldline::Worldline<FP, NDIM>;
+
+    CompositeFullInteractionHandler(Handlers... handlers)
+        : _handlers {std::move(handlers)...}
+    {
+        static_assert(sizeof...(handlers) >= 1, "There must be at least one handler in the CompositeInteractionHandler");
+        static_assert(InteractionHandler<Handlers...>, "All inputs must be InteractionHandlers");
+    }
+
+    constexpr auto operator()(std::size_t i_particle, const Worldline& worldline) const noexcept -> FP
+    {
+        auto pot_energy = FP {};
+        for (const auto& handler : _handlers) {
+            pot_energy += handler(i_particle, worldline);
+        }
+
+        return pot_energy;
+    }
 
 private:
-
+    std::tuple<Handlers...> _handlers;
 };
     
 }  // namespace interact
