@@ -4,9 +4,9 @@
 #include <cstddef>
 #include <utility>
 
+#include <interactions/handlers/interaction_handler_concepts.hpp>
 #include <interactions/three_body/potential_concepts.hpp>
 #include <interactions/two_body/potential_concepts.hpp>
-#include <interactions/handlers/interaction_handler_concepts.hpp>
 #include <worldline/worldline.hpp>
 
 namespace interact

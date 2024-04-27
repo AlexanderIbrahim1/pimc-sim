@@ -3,6 +3,7 @@
 #include <concepts>
 #include <cstddef>
 #include <tuple>
+#include <type_traits>
 #include <utility>
 
 #include <interactions/handlers/interaction_handler_concepts.hpp>
@@ -27,16 +28,19 @@ public:
     CompositeFullInteractionHandler(Handlers... handlers)
         : _handlers {std::move(handlers)...}
     {
-        static_assert(sizeof...(handlers) >= 1, "There must be at least one handler in the CompositeInteractionHandler");
-        static_assert(InteractionHandler<Handlers...>, "All inputs must be InteractionHandlers");
+        static_assert(
+            sizeof...(handlers) >= 1, "There must be at least one handler in the CompositeInteractionHandler"
+        );
+        // static_assert(InteractionHandler<Handlers>..., "All inputs must be InteractionHandlers");
+        static_assert(std::conjunction<std::bool_constant<InteractionHandler<Handlers>>...>::value, "");
     }
 
     constexpr auto operator()(std::size_t i_particle, const Worldline& worldline) const noexcept -> FP
     {
         auto pot_energy = FP {};
-        for (const auto& handler : _handlers) {
-            pot_energy += handler(i_particle, worldline);
-        }
+        const auto handler_looper = [&](auto&&... handler) { ((pot_energy += handler(i_particle, worldline)), ...); };
+
+        std::apply(handler_looper, _handlers);
 
         return pot_energy;
     }
@@ -44,5 +48,5 @@ public:
 private:
     std::tuple<Handlers...> _handlers;
 };
-    
+
 }  // namespace interact
