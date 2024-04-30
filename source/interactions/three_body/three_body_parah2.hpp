@@ -115,7 +115,6 @@ class ThreeBodyParaH2PotentialEarlyRejector
 public:
     ThreeBodyParaH2PotentialEarlyRejector(mathtools::TrilinearInterpolator<FP> interpolator, EarlyRejectInfo<FP> info)
         : interpolator_ {std::move(interpolator)}
-        ,
         , info_ {info}
         , r_max_ {interpolator_.get_limits0().upper()}
         , s_max_ {interpolator_.get_limits1().upper()}

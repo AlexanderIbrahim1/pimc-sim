@@ -30,6 +30,7 @@
 #include <interactions/two_body/two_body_pointwise_wrapper.hpp>
 #include <mathtools/histogram/histogram.hpp>
 #include <mathtools/io/histogram.hpp>
+#include <mathtools/interpolate/trilinear_interp.hpp>
 #include <pimc/adjusters/adjusters.hpp>
 #include <pimc/bisection_multibead_position_move_performer.hpp>
 #include <pimc/centre_of_mass_move.hpp>
@@ -77,7 +78,7 @@ constexpr auto lennard_jones_parah2_potential(auto minimage_box)
     return pot;
 }
 
-constexpr auto fsh_potential(auto minimage_box)
+auto fsh_potential(auto minimage_box)
 {
     const auto fsh_dirpath = std::filesystem::path {"/home/a68ibrah/research/simulations/pimc-sim/potentials"};
     const auto fsh_filename = "fsh_potential_angstroms_wavenumbers.potext_sq";
@@ -86,6 +87,28 @@ constexpr auto fsh_potential(auto minimage_box)
 
     return pot;
 }
+
+// auto load_trilinear_interpolator(const std::filesystem::path& data_filepath)
+// {
+//     auto instream = std::ifstream(data_filepath, std::ios::in);
+//     if (!instream.is_open()) {
+//         auto err_msg = std::stringstream {};
+//         err_msg << "Error: Unable to open file for trilinear interpolation data: '" << data_filepath << "'\n";
+//         throw std::ios_base::failure {err_msg.str()};
+//     }
+// 
+//     return mathtools::TrilinearInterpolator<double> {{}, {}, {}, {}};
+// }
+// 
+// auto threebodyparah2_potential()
+// {
+//     const auto pot_dirpath = std::filesystem::path {"/home/a68ibrah/research/simulations/pimc-sim/potentials"};
+//     const auto pot_filename = "I STILL DON'T HAVE IT";
+// 
+//     auto interpolator = load_trilinear_interpolator(pot_dirpath / pot_filename);
+// 
+//     // ... continue from here
+// }
 
 auto create_com_move_adjuster(double lower_range_limit, double upper_range_limit) noexcept
     -> pimc::SingleValueMoveAdjuster<double>
