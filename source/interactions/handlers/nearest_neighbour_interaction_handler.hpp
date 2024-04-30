@@ -116,6 +116,12 @@ public:
 
     constexpr auto operator()(std::size_t i_particle, const Worldline& worldline) const noexcept -> FP
     {
+        // NOTE
+        // this member function doesn't actually take periodicity into account; so the Attard
+        //   nearest-neighbour correction won't be called;
+        // instead, it assumes that the centroid adjacency matrix is tight enough that the nearest
+        //   neighbours being considered in the interaction won't break the Attard convention;
+        // for the simulations that I currently run, the box is large enough that this is always true
         auto pot_energy = FP {};
 
         const auto& points = worldline.points();
