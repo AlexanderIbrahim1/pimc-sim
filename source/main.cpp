@@ -9,6 +9,7 @@
 #include <tomlplusplus/toml.hpp>
 
 #include <argparser.hpp>
+#include <common/writers/writer_utils.hpp>
 #include <constants/constants.hpp>
 #include <coordinates/coordinates.hpp>
 #include <environment/environment.hpp>
@@ -25,12 +26,14 @@
 #include <interactions/handlers/full_interaction_handler.hpp>
 #include <interactions/handlers/interaction_handler_concepts.hpp>
 #include <interactions/handlers/nearest_neighbour_interaction_handler.hpp>
+#include <interactions/three_body/three_body_parah2.hpp>
 #include <interactions/two_body/two_body_pointwise.hpp>
 #include <interactions/two_body/two_body_pointwise_tabulated.hpp>
 #include <interactions/two_body/two_body_pointwise_wrapper.hpp>
+#include <mathtools/grid/grid3d.hpp>
 #include <mathtools/histogram/histogram.hpp>
-#include <mathtools/io/histogram.hpp>
 #include <mathtools/interpolate/trilinear_interp.hpp>
+#include <mathtools/io/histogram.hpp>
 #include <pimc/adjusters/adjusters.hpp>
 #include <pimc/bisection_multibead_position_move_performer.hpp>
 #include <pimc/centre_of_mass_move.hpp>
@@ -88,27 +91,64 @@ auto fsh_potential(auto minimage_box)
     return pot;
 }
 
-// auto load_trilinear_interpolator(const std::filesystem::path& data_filepath)
-// {
-//     auto instream = std::ifstream(data_filepath, std::ios::in);
-//     if (!instream.is_open()) {
-//         auto err_msg = std::stringstream {};
-//         err_msg << "Error: Unable to open file for trilinear interpolation data: '" << data_filepath << "'\n";
-//         throw std::ios_base::failure {err_msg.str()};
-//     }
-// 
-//     return mathtools::TrilinearInterpolator<double> {{}, {}, {}, {}};
-// }
-// 
-// auto threebodyparah2_potential()
-// {
-//     const auto pot_dirpath = std::filesystem::path {"/home/a68ibrah/research/simulations/pimc-sim/potentials"};
-//     const auto pot_filename = "I STILL DON'T HAVE IT";
-// 
-//     auto interpolator = load_trilinear_interpolator(pot_dirpath / pot_filename);
-// 
-//     // ... continue from here
-// }
+auto load_trilinear_interpolator(const std::filesystem::path& data_filepath)
+{
+    auto instream = std::ifstream(data_filepath, std::ios::in);
+    if (!instream.is_open()) {
+        auto err_msg = std::stringstream {};
+        err_msg << "Error: Unable to open file for trilinear interpolation data: '" << data_filepath << "'\n";
+        throw std::ios_base::failure {err_msg.str()};
+    }
+
+    common_utils::writer_utils::skip_lines_starting_with(instream, '#');
+
+    // arguments (r, s, u) correspond to coordinates (R, s, cos(phi)) in the published paper
+    std::size_t r_size, s_size, u_size;
+    instream >> r_size;
+    instream >> s_size;
+    instream >> u_size;
+
+    double r_min, r_max, s_min, s_max, u_min, u_max;
+    instream >> r_min;
+    instream >> r_max;
+    instream >> s_min;
+    instream >> s_max;
+    instream >> u_min;
+    instream >> u_max;
+
+    const auto shape = mathtools::Shape3D {r_size, s_size, u_size};
+    const auto r_limits = mathtools_utils::AxisLimits {r_min, r_max};
+    const auto s_limits = mathtools_utils::AxisLimits {s_min, s_max};
+    const auto u_limits = mathtools_utils::AxisLimits {u_min, u_max};
+
+    // read in all the energies into a vector
+    const auto n_elements = r_size * s_size * u_size;
+    auto energies = std::vector<double> {};
+    energies.reserve(n_elements);
+
+    double energy;
+    for (std::size_t i {0}; i < n_elements; ++i) {
+        instream >> energy;
+        energies.push_back(energy);
+    }
+
+    // create the 3D grid of energies to perform trilinear interpolation on
+    auto grid = mathtools::Grid3D {std::move(energies), shape};
+
+    return mathtools::TrilinearInterpolator<double> {std::move(grid), r_limits, s_limits, u_limits};
+}
+
+auto threebodyparah2_potential()
+{
+    const auto pot_dirpath = std::filesystem::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/scripts"};
+    const auto pot_filename = "threebody_126_101_51.dat";
+
+    auto interpolator = load_trilinear_interpolator(pot_dirpath / pot_filename);
+
+    const auto c9_coefficient = 34336.2;  // [cm]^[-1] * [Angstrom]^[9]
+
+    return interact::ThreeBodyParaH2Potential {std::move(interpolator), c9_coefficient};
+}
 
 auto create_com_move_adjuster(double lower_range_limit, double upper_range_limit) noexcept
     -> pimc::SingleValueMoveAdjuster<double>
@@ -207,6 +247,10 @@ auto main() -> int
     sim::write_box_sides(output_dirpath / "box_sides.dat", minimage_box);
 
     const auto pot = fsh_potential(minimage_box);
+    const auto pot3b = threebodyparah2_potential();
+
+    std::cout << "THREE-BODY ENERGY: " << pot3b(2.2, 2.2, 2.2) << '\n';
+    std::exit(EXIT_SUCCESS);
 
     /* create the environment object */
     const auto h2_mass = constants::H2_MASS_IN_AMU<double>;

@@ -10,7 +10,6 @@
 #include <interactions/three_body/potential_concepts.hpp>
 #include <worldline/worldline.hpp>
 
-
 namespace estim
 {
 
@@ -47,7 +46,6 @@ constexpr auto total_triplet_potential_energy(
 
     return total_triplet_pot_energy;
 }
-
 
 // a lot of code duplication for a single line, but I tried the if-constexpr approach and it was a bit worse IMO
 // - the concepts overlap, etc.
