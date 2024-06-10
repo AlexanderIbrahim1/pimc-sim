@@ -34,13 +34,13 @@ private:
 
 template <typename Potential, std::floating_point FP, std::size_t NDIM>
 requires TripletPotential<Potential>
-class PeriodicTripletDistancePotential
+class PeriodicThreeBodyPointPotential
 {
     using Point = coord::Cartesian<FP, NDIM>;
     using Box = coord::BoxSides<FP, NDIM>;
 
 public:
-    explicit PeriodicTripletDistancePotential(Potential pot, Box box)
+    explicit PeriodicThreeBodyPointPotential(Potential pot, Box box)
         : cutoff_dist_sq_ {coord::box_cutoff_distance_squared(box)}
         , box_ {std::move(box)}
         , pot_ {std::move(pot)}
@@ -48,7 +48,10 @@ public:
 
     auto operator()(const Point& p0, const Point& p1, const Point& p2) const noexcept -> FP
     {
-        return pot_(coord::distance(p0, p1), coord::distance(p0, p2), coord::distance(p1, p2));
+        const auto dist01 = coord::distance_periodic(p0, p1, box_);
+        const auto dist02 = coord::distance_periodic(p0, p2, box_);
+        const auto dist12 = coord::distance_periodic(p1, p2, box_);
+        return pot_(dist01, dist02, dist12);
     }
 
     auto within_box_cutoff(const Point& p0, const Point& p1, const Point& p2) const noexcept -> FP
