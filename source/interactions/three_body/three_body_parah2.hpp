@@ -5,7 +5,7 @@
 #include <concepts>
 #include <utility>
 
-#include <interactions/three_body/three_body_pointwise.hpp>
+#include <interactions/three_body/axilrod_teller_muto.hpp>
 #include <mathtools/interpolate/trilinear_interp.hpp>
 
 namespace interact
@@ -88,11 +88,6 @@ public:
         }
     }
 
-    auto from_jacobi(FP r, FP s, FP cosu) const noexcept -> FP
-    {
-        return interpolator_(r, s, cosu);
-    }
-
 private:
     mathtools::TrilinearInterpolator<FP> interpolator_;
     AxilrodTellerMuto<FP> atm_potential_;
@@ -109,10 +104,10 @@ struct EarlyRejectInfo
 };
 
 template <std::floating_point FP>
-class ThreeBodyParaH2PotentialEarlyRejector
+class EarlyRejectorThreeBodyParaH2Potential
 {
 public:
-    ThreeBodyParaH2PotentialEarlyRejector(mathtools::TrilinearInterpolator<FP> interpolator, EarlyRejectInfo<FP> info)
+    EarlyRejectorThreeBodyParaH2Potential(mathtools::TrilinearInterpolator<FP> interpolator, EarlyRejectInfo<FP> info)
         : interpolator_ {std::move(interpolator)}
         , info_ {info}
         , r_max_ {interpolator_.get_limits0().upper()}

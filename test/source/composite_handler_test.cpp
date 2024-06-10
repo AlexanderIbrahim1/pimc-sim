@@ -6,7 +6,7 @@
 #include "coordinates/cartesian.hpp"
 #include "interactions/handlers/composite_interaction_handler.hpp"
 #include "interactions/handlers/full_interaction_handler.hpp"
-#include "interactions/three_body/three_body_pointwise.hpp"
+#include "interactions/three_body/axilrod_teller_muto.hpp"
 #include "interactions/three_body/three_body_pointwise_wrapper.hpp"
 #include "interactions/two_body/two_body_pointwise.hpp"
 #include "interactions/two_body/two_body_pointwise_wrapper.hpp"
