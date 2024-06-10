@@ -1,4 +1,5 @@
 #include <cmath>
+#include <iostream>
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
@@ -47,7 +48,9 @@ TEST_CASE("test composite full handler : equilateral triangle", "CompositeFullIn
 
     // the FullPairInteractionHandler takes as an argument a functor that takes
     // two points and returns a floating-point value as a result
-    auto pairpot = interact::LennardJonesPotential {1.0, 1.0};
+    //  - NOTE: if particle_size == well_depth, then the LennardJonesPotential is always 0.0
+    //          so I had to set it to 2.0 instead of 1.0
+    auto pairpot = interact::LennardJonesPotential {1.0, 2.0};
     auto pairpot_wrapper = interact::PairDistancePotential<decltype(pairpot), double, 2> {pairpot};
     auto pair_interaction_handler =
         interact::FullPairInteractionHandler<decltype(pairpot_wrapper), double, 2> {pairpot_wrapper};
@@ -55,7 +58,7 @@ TEST_CASE("test composite full handler : equilateral triangle", "CompositeFullIn
     // the FullTripletInteractionHandler takes as an argument a functor that takes
     // three points and returns a floating-point value as a result
     auto tripletpot = interact::AxilrodTellerMuto {1.0};
-    auto tripletpot_wrapper = interact::TripletDistancePotential<decltype(tripletpot), double, 2> {tripletpot};
+    auto tripletpot_wrapper = interact::ThreeBodyPointPotential<decltype(tripletpot), double, 2> {tripletpot};
     auto triplet_interaction_handler =
         interact::FullTripletInteractionHandler<decltype(tripletpot_wrapper), double, 2> {tripletpot_wrapper};
 
@@ -65,10 +68,15 @@ TEST_CASE("test composite full handler : equilateral triangle", "CompositeFullIn
     const auto interaction_handler_2b3b = interact::CompositeFullInteractionHandler<double, 2, PairType, TripletType> {
         pair_interaction_handler, triplet_interaction_handler};
 
+    // clang-format off
     const auto actual = interaction_handler_2b3b(0, worldlines[0]);
-    const auto expected_direct = 3.0 * pairpot(side_length) + tripletpot(side_length, side_length, side_length);
-    const auto expected_sep_handlers =
-        pair_interaction_handler(0, worldlines[0]) + triplet_interaction_handler(0, worldlines[0]);
+
+    const auto expected_sep_handlers = pair_interaction_handler(0, worldlines[0]) + triplet_interaction_handler(0, worldlines[0]);
+
+    const auto expected_direct =
+        2.0 * pairpot(side_length) +
+        tripletpot(side_length, side_length, side_length);
+    // clang-format on
 
     REQUIRE_THAT(actual, Catch::Matchers::WithinRel(expected_direct));
     REQUIRE_THAT(actual, Catch::Matchers::WithinRel(expected_sep_handlers));
@@ -84,7 +92,7 @@ TEST_CASE("test composite full handler : square", "CompositeFullInteractionHandl
 
     // the FullPairInteractionHandler takes as an argument a functor that takes
     // two points and returns a floating-point value as a result
-    auto pairpot = interact::LennardJonesPotential {1.0f, 1.0f};
+    auto pairpot = interact::LennardJonesPotential {1.0f, 2.0f};
     auto pairpot_wrapper = interact::PairDistancePotential<decltype(pairpot), float, 3> {pairpot};
     auto pair_interaction_handler =
         interact::FullPairInteractionHandler<decltype(pairpot_wrapper), float, 3> {pairpot_wrapper};
@@ -92,7 +100,7 @@ TEST_CASE("test composite full handler : square", "CompositeFullInteractionHandl
     // the FullTripletInteractionHandler takes as an argument a functor that takes
     // three points and returns a floating-point value as a result
     auto tripletpot = interact::AxilrodTellerMuto {1.0f};
-    auto tripletpot_wrapper = interact::TripletDistancePotential<decltype(tripletpot), float, 3> {tripletpot};
+    auto tripletpot_wrapper = interact::ThreeBodyPointPotential<decltype(tripletpot), float, 3> {tripletpot};
     auto triplet_interaction_handler =
         interact::FullTripletInteractionHandler<decltype(tripletpot_wrapper), float, 3> {tripletpot_wrapper};
 
@@ -102,15 +110,20 @@ TEST_CASE("test composite full handler : square", "CompositeFullInteractionHandl
     const auto interaction_handler_2b3b = interact::CompositeFullInteractionHandler<float, 3, PairType, TripletType> {
         pair_interaction_handler, triplet_interaction_handler};
 
+    // clang-format off
     const auto actual = interaction_handler_2b3b(0, worldlines[0]);
 
-    const auto expected_direct = 2.0f * pairpot(side_length) + pairpot(std::sqrt(2.0f) * side_length)
-                               + tripletpot(side_length, std::sqrt(2.0f) * side_length, side_length)
-                               + tripletpot(side_length, side_length, std::sqrt(2.0f) * side_length)
-                               + tripletpot(std::sqrt(2.0f) * side_length, side_length, side_length);
-
     const auto expected_sep_handlers =
-        pair_interaction_handler(0, worldlines[0]) + triplet_interaction_handler(0, worldlines[0]);
+        pair_interaction_handler(0, worldlines[0]) +
+        triplet_interaction_handler(0, worldlines[0]);
+
+    const auto expected_direct =
+        2.0f * pairpot(side_length) +
+        pairpot(std::sqrt(2.0f) * side_length) + 
+        tripletpot(side_length, std::sqrt(2.0f) * side_length, side_length) +
+        tripletpot(side_length, side_length, std::sqrt(2.0f) * side_length) + 
+        tripletpot(std::sqrt(2.0f) * side_length, side_length, side_length);
+    // clang-format on
 
     REQUIRE_THAT(actual, Catch::Matchers::WithinRel(expected_direct));
     REQUIRE_THAT(actual, Catch::Matchers::WithinRel(expected_sep_handlers));

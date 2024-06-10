@@ -14,12 +14,12 @@ namespace interact
 
 template <typename Potential, std::floating_point FP, std::size_t NDIM>
 requires TripletPotential<Potential>
-class TripletDistancePotential
+class ThreeBodyPointPotential
 {
     using Point = coord::Cartesian<FP, NDIM>;
 
 public:
-    explicit TripletDistancePotential(Potential pot)
+    explicit ThreeBodyPointPotential(Potential pot)
         : pot_ {std::move(pot)}
     {}
 
