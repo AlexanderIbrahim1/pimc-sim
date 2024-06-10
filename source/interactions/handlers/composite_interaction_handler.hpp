@@ -49,4 +49,13 @@ private:
     std::tuple<Handlers...> _handlers;
 };
 
+// NOTE:
+// - in the CompositeNearestNeighbourInteractionHandler
+//   - we should allow redundant calculations of the adjacency matrices
+//   - the 2B and 3B PESs will likely have different cutoff distances
+//     - so the neighbours for each one will be completely different
+// - one way to improve this is to create a function that calculates the centroid pair distance grid
+//   - and we can pass that to another function to help set the adjacency matrices
+//     depending on the provided cutoff value!
+
 }  // namespace interact
