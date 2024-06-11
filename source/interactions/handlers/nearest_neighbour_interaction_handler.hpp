@@ -19,15 +19,46 @@
 namespace interact
 {
 
-// template <std::floating_point FP, std::size_t NDIM>
-// auto create_centroid_pair_distance_matrix(
-//     const std::vector<worldline::Worldline<FP, NDIM>>& worldlines,
-//     const coord::BoxSides<FP, NDIM>& minimage_box,
-//     const envir::Environment<FP>& environment
-// ) -> mathtools::Grid2D<FP>
-// {
-//     using Point = coord::Cartesian<FP, NDIM>;
-// }
+template <std::floating_point FP, std::size_t NDIM>
+auto create_centroid_pair_distance_squared_grid(
+    const std::vector<worldline::Worldline<FP, NDIM>>& worldlines,
+    const coord::BoxSides<FP, NDIM>& minimage_box,
+    const envir::Environment<FP>& environment
+) -> mathtools::Grid2D<FP>
+{
+    const auto n_particles = environment.n_particles();
+    auto grid = mathtools::Grid2D<FP> {n_particles, n_particles};
+
+    const auto centroids = worldline::calculate_all_centroids(worldlines);
+    for (std::size_t ip0 {0}; ip0 < centroids.size() - 1; ++ip0) {
+        for (std::size_t ip1 {ip0 + 1}; ip1 < centroids.size(); ++ip1) {
+            const auto dist_sq = coord::distance_squared_periodic(centroids[ip0], centroids[ip1], minimage_box);
+            grid.set(ip0, ip1, dist_sq);
+            grid.set(ip1, ip0, dist_sq);
+        }
+    }
+
+    return grid;
+}
+
+template <std::floating_point FP>
+void update_centroid_adjacency_matrix_from_grid(
+    const mathtools::Grid2D<FP>& distance_squared_grid,
+    mathtools::SquareAdjacencyMatrix& adjmat,
+    FP cutoff_distance
+)
+{
+    const auto n_particles = distance_squared_grid.n_rows();
+    const auto cutoff_distance_sq = cutoff_distance * cutoff_distance;
+
+    for (std::size_t ip0 {0}; ip0 < n_particles - 1; ++ip0) {
+        for (std::size_t ip1 {ip0 + 1}; ip1 < n_particles; ++ip1) {
+            if (distance_squared_grid.get(ip0, ip1) <= cutoff_distance_sq) {
+                adjmat.add_neighbour_both(ip0, ip1);
+            }
+        }
+    }
+}
 
 template <std::floating_point FP, std::size_t NDIM>
 void update_centroid_adjacency_matrix(
@@ -38,22 +69,8 @@ void update_centroid_adjacency_matrix(
     FP cutoff_distance
 )
 {
-    const auto n_particles = environment.n_particles();
-
-    const auto centroids = worldline::calculate_all_centroids(worldlines);
-
-    adjmat.clear_all();
-
-    const auto cutoff_distance_sq = cutoff_distance * cutoff_distance;
-
-    for (std::size_t ip0 {0}; ip0 < n_particles - 1; ++ip0) {
-        for (std::size_t ip1 {ip0 + 1}; ip1 < n_particles; ++ip1) {
-            const auto dist_sq = coord::distance_squared_periodic(centroids[ip0], centroids[ip1], minimage_box);
-            if (dist_sq <= cutoff_distance_sq) {
-                adjmat.add_neighbour_both(ip0, ip1);
-            }
-        }
-    }
+    const auto distance_sq_grid = create_centroid_pair_distance_squared_grid(worldlines, minimage_box, environment);
+    update_centroid_adjacency_matrix_from_grid(distance_sq_grid, adjmat, cutoff_distance);
 }
 
 template <typename PointPotential, std::floating_point FP, std::size_t NDIM>
