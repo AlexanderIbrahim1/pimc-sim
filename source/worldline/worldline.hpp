@@ -74,4 +74,21 @@ constexpr auto worldlines_from_positions(
     return worldlines;
 }
 
+template <std::floating_point FP, std::size_t NDIM>
+constexpr auto calculate_centroid(const std::vector<Worldline<FP, NDIM>>& worldlines, std::size_t i_particle)
+    -> coord::Cartesian<FP, NDIM>
+{
+    const auto n_timeslices = worldlines.size();
+
+    auto accumulated_centroid = coord::Cartesian<FP, NDIM>::origin();
+    for (std::size_t i_tslice {0}; i_tslice < n_timeslices; ++i_tslice) {
+        accumulated_centroid += worldlines[i_tslice][i_particle];
+    }
+
+    accumulated_centroid /= static_cast<FP>(n_timeslices);
+
+    return accumulated_centroid;
+}
+
+
 }  // namespace worldline

@@ -16,22 +16,6 @@ namespace estim
 {
 
 template <std::floating_point FP, std::size_t NDIM>
-constexpr auto create_centroid(const std::vector<worldline::Worldline<FP, NDIM>>& worldlines, std::size_t i_particle)
-    -> coord::Cartesian<FP, NDIM>
-{
-    const auto n_timeslices = worldlines.size();
-
-    auto accumulated_centroid = coord::Cartesian<FP, NDIM>::origin();
-    for (std::size_t i_tslice {0}; i_tslice < n_timeslices; ++i_tslice) {
-        accumulated_centroid += worldlines[i_tslice][i_particle];
-    }
-
-    accumulated_centroid /= static_cast<FP>(n_timeslices);
-
-    return accumulated_centroid;
-}
-
-template <std::floating_point FP, std::size_t NDIM>
 constexpr auto rms_centroid_distance(
     const std::vector<worldline::Worldline<FP, NDIM>>& worldlines,
     const envir::Environment<FP>& environment
@@ -49,7 +33,7 @@ constexpr auto rms_centroid_distance(
     // NOTE: this sum is not done over contiguous elements, but this isn't part of the hot loop,
     //       so I'm not too concerned about the performance issues here
     for (std::size_t i_part {0}; i_part < n_particles; ++i_part) {
-        auto centroid = create_centroid(worldlines, i_part);
+        auto centroid = worldline::calculate_centroid(worldlines, i_part);
 
         for (std::size_t i_tslice {0}; i_tslice < n_timeslices; ++i_tslice) {
             const auto point = worldlines[i_tslice][i_part];
@@ -80,7 +64,7 @@ constexpr auto absolute_centroid_distance(
     // NOTE: this sum is not done over contiguous elements, but this isn't part of the hot loop,
     //       so I'm not too concerned about the performance issues here
     for (std::size_t i_part {0}; i_part < n_particles; ++i_part) {
-        auto centroid = create_centroid(worldlines, i_part);
+        auto centroid = worldline::calculate_centroid(worldlines, i_part);
 
         for (std::size_t i_tslice {0}; i_tslice < n_timeslices; ++i_tslice) {
             const auto point = worldlines[i_tslice][i_part];

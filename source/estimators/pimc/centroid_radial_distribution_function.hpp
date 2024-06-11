@@ -28,7 +28,7 @@ constexpr void update_centroid_radial_distribution_function_histogram(
     auto centroids = std::vector<Point> {};
     centroids.reserve(n_particles);
     for (std::size_t i_part {0}; i_part < n_particles; ++i_part) {
-        auto centroid = create_centroid(worldlines, i_part);
+        auto centroid = worldline::calculate_centroid(worldlines, i_part);
         centroids.emplace_back(centroid);
     }
 
