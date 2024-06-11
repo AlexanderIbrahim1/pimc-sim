@@ -51,13 +51,13 @@ TEST_CASE("test composite full handler : equilateral triangle", "CompositeFullIn
     //  - NOTE: if particle_size == well_depth, then the LennardJonesPotential is always 0.0
     //          so I had to set it to 2.0 instead of 1.0
     auto pairpot = interact::LennardJonesPotential {1.0, 2.0};
-    auto pairpot_wrapper = interact::PairDistancePotential<decltype(pairpot), double, 2> {pairpot};
+    auto pairpot_wrapper = interact::TwoBodyPointPotential<decltype(pairpot), double, 2> {pairpot};
     auto pair_interaction_handler =
         interact::FullPairInteractionHandler<decltype(pairpot_wrapper), double, 2> {pairpot_wrapper};
 
     // the FullTripletInteractionHandler takes as an argument a functor that takes
     // three points and returns a floating-point value as a result
-    auto tripletpot = interact::AxilrodTellerMuto {1.0};
+    auto tripletpot = interact::AxilrodTellerMutoPotential {1.0};
     auto tripletpot_wrapper = interact::ThreeBodyPointPotential<decltype(tripletpot), double, 2> {tripletpot};
     auto triplet_interaction_handler =
         interact::FullTripletInteractionHandler<decltype(tripletpot_wrapper), double, 2> {tripletpot_wrapper};
@@ -93,13 +93,13 @@ TEST_CASE("test composite full handler : square", "CompositeFullInteractionHandl
     // the FullPairInteractionHandler takes as an argument a functor that takes
     // two points and returns a floating-point value as a result
     auto pairpot = interact::LennardJonesPotential {1.0f, 2.0f};
-    auto pairpot_wrapper = interact::PairDistancePotential<decltype(pairpot), float, 3> {pairpot};
+    auto pairpot_wrapper = interact::TwoBodyPointPotential<decltype(pairpot), float, 3> {pairpot};
     auto pair_interaction_handler =
         interact::FullPairInteractionHandler<decltype(pairpot_wrapper), float, 3> {pairpot_wrapper};
 
     // the FullTripletInteractionHandler takes as an argument a functor that takes
     // three points and returns a floating-point value as a result
-    auto tripletpot = interact::AxilrodTellerMuto {1.0f};
+    auto tripletpot = interact::AxilrodTellerMutoPotential {1.0f};
     auto tripletpot_wrapper = interact::ThreeBodyPointPotential<decltype(tripletpot), float, 3> {tripletpot};
     auto triplet_interaction_handler =
         interact::FullTripletInteractionHandler<decltype(tripletpot_wrapper), float, 3> {tripletpot_wrapper};

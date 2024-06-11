@@ -12,10 +12,10 @@ namespace interact
 {
 
 template <std::floating_point FP>
-class AxilrodTellerMuto
+class AxilrodTellerMutoPotential
 {
 public:
-    explicit AxilrodTellerMuto(FP c9_coefficient)
+    explicit AxilrodTellerMutoPotential(FP c9_coefficient)
         : c9_coefficient_ {c9_coefficient}
     {
         if (c9_coefficient_ < FP {0.0}) {

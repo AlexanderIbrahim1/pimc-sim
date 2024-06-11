@@ -12,12 +12,12 @@ namespace interact
 
 template <typename Potential, std::floating_point FP, std::size_t NDIM>
 requires PairPotential<Potential>
-class PairDistancePotential
+class TwoBodyPointPotential
 {
     using Point = coord::Cartesian<FP, NDIM>;
 
 public:
-    explicit PairDistancePotential(Potential pot)
+    explicit TwoBodyPointPotential(Potential pot)
         : pot_ {std::move(pot)}
     {}
 
@@ -32,13 +32,13 @@ private:
 
 template <typename Potential, std::floating_point FP, std::size_t NDIM>
 requires PairPotential<Potential>
-class PeriodicPairDistancePotential
+class PeriodicTwoBodyPointPotential
 {
     using Point = coord::Cartesian<FP, NDIM>;
     using Box = coord::BoxSides<FP, NDIM>;
 
 public:
-    explicit PeriodicPairDistancePotential(Potential pot, Box box)
+    explicit PeriodicTwoBodyPointPotential(Potential pot, Box box)
         : cutoff_distance_ {coord::box_cutoff_distance(box)}
         , pot_ {std::move(pot)}
         , box_ {std::move(box)}
@@ -69,13 +69,13 @@ private:
 
 template <typename Potential, std::floating_point FP, std::size_t NDIM>
 requires PairPotential<Potential>
-class PeriodicPairDistanceSquaredPotential
+class PeriodicTwoBodySquaredPointPotential
 {
     using Point = coord::Cartesian<FP, NDIM>;
     using Box = coord::BoxSides<FP, NDIM>;
 
 public:
-    explicit PeriodicPairDistanceSquaredPotential(Potential pot, Box box)
+    explicit PeriodicTwoBodySquaredPointPotential(Potential pot, Box box)
         : cutoff_distance_squared_ {coord::box_cutoff_distance_squared(box)}
         , pot_ {std::move(pot)}
         , box_ {std::move(box)}

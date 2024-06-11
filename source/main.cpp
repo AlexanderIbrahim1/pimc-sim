@@ -76,7 +76,7 @@ constexpr auto lennard_jones_parah2_potential(auto minimage_box)
     */
 
     const auto distance_pot = interact::LennardJonesPotential {23.77, 2.96};
-    const auto pot = interact::PeriodicPairDistancePotential {distance_pot, minimage_box};
+    const auto pot = interact::PeriodicTwoBodyPointPotential {distance_pot, minimage_box};
 
     return pot;
 }
@@ -86,7 +86,7 @@ auto fsh_potential(auto minimage_box)
     const auto fsh_dirpath = std::filesystem::path {"/home/a68ibrah/research/simulations/pimc-sim/potentials"};
     const auto fsh_filename = "fsh_potential_angstroms_wavenumbers.potext_sq";
     const auto distance_pot = interact::create_fsh_pair_potential<double>(fsh_dirpath / fsh_filename);
-    const auto pot = interact::PeriodicPairDistanceSquaredPotential {distance_pot, minimage_box};
+    const auto pot = interact::PeriodicTwoBodyPointPotential {distance_pot, minimage_box};
 
     return pot;
 }

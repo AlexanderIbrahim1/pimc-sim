@@ -152,9 +152,8 @@ To make this nicer, we could create classes that wrap together:
     - [DONE] do the verification in Python first, then some unit tests in C++
   - create estimators for the 3BPES
   - create unit tests for the ATM potential in specific geometries
+- [DONE:2024-06-11] check if the Attard minimage condition is implemented properly in the 3BPES wrapper - this was the source of the error in the earlier simulation code!!!
 - create interaction handler that allows both 2B and 3B interactions
-- check if the Attard minimage condition is implemented properly in the 3BPES wrapper
-  - this was the source of the error in the earlier simulation code!!!
 - simplify the header interface by putting several headers into a single one (too complicated right now)
 - make saving the histograms atomic
 - implement the 4BPES

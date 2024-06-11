@@ -90,7 +90,7 @@ public:
 
 private:
     mathtools::TrilinearInterpolator<FP> interpolator_;
-    AxilrodTellerMuto<FP> atm_potential_;
+    AxilrodTellerMutoPotential<FP> atm_potential_;
     FP r_min_;
     FP r_max_;
     FP s_max_;
