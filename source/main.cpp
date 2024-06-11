@@ -23,10 +23,12 @@
 #include <geometries/lattice.hpp>
 #include <geometries/lattice_type.hpp>
 #include <geometries/unit_cell_translations.hpp>
+#include <interactions/handlers/composite_interaction_handler.hpp>
 #include <interactions/handlers/full_interaction_handler.hpp>
 #include <interactions/handlers/interaction_handler_concepts.hpp>
 #include <interactions/handlers/nearest_neighbour_interaction_handler.hpp>
 #include <interactions/three_body/three_body_parah2.hpp>
+#include <interactions/three_body/three_body_pointwise_wrapper.hpp>
 #include <interactions/two_body/two_body_pointwise.hpp>
 #include <interactions/two_body/two_body_pointwise_tabulated.hpp>
 #include <interactions/two_body/two_body_pointwise_wrapper.hpp>
@@ -58,7 +60,7 @@ constexpr auto build_hcp_lattice_structure(auto density)
     const auto lattice_constant = geom::density_to_lattice_constant(density, lattice_type);
     const auto hcp_unit_cell = geom::conventional_hcp_unit_cell(lattice_constant);
     const auto hcp_unit_cell_box = geom::unit_cell_box_sides(hcp_unit_cell);
-    const auto lattice_box_translations = geom::UnitCellTranslations<NDIM> {5ul, 3ul, 3ul};
+    const auto lattice_box_translations = geom::UnitCellTranslations<NDIM> {2ul, 2ul, 2ul};
     const auto minimage_box = geom::lattice_box(hcp_unit_cell_box, lattice_box_translations);
 
     const auto lattice_site_positions = geom::lattice_particle_positions(hcp_unit_cell, lattice_box_translations);
@@ -85,8 +87,8 @@ auto fsh_potential(auto minimage_box)
 {
     const auto fsh_dirpath = std::filesystem::path {"/home/a68ibrah/research/simulations/pimc-sim/potentials"};
     const auto fsh_filename = "fsh_potential_angstroms_wavenumbers.potext_sq";
-    const auto distance_pot = interact::create_fsh_pair_potential<double>(fsh_dirpath / fsh_filename);
-    const auto pot = interact::PeriodicTwoBodyPointPotential {distance_pot, minimage_box};
+    auto distance_pot = interact::create_fsh_pair_potential<double>(fsh_dirpath / fsh_filename);
+    const auto pot = interact::PeriodicTwoBodySquaredPointPotential {std::move(distance_pot), minimage_box};
 
     return pot;
 }
@@ -138,16 +140,16 @@ auto load_trilinear_interpolator(const std::filesystem::path& data_filepath)
     return mathtools::TrilinearInterpolator<double> {std::move(grid), r_limits, s_limits, u_limits};
 }
 
-auto threebodyparah2_potential()
+auto threebodyparah2_potential(auto minimage_box)
 {
     const auto pot_dirpath = std::filesystem::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/scripts"};
     const auto pot_filename = "threebody_126_101_51.dat";
-
-    auto interpolator = load_trilinear_interpolator(pot_dirpath / pot_filename);
-
     const auto c9_coefficient = 34336.2;  // [cm]^[-1] * [Angstrom]^[9]
 
-    return interact::ThreeBodyParaH2Potential {std::move(interpolator), c9_coefficient};
+    auto interpolator = load_trilinear_interpolator(pot_dirpath / pot_filename);
+    auto distance_pot = interact::ThreeBodyParaH2Potential {std::move(interpolator), c9_coefficient};
+
+    return interact::PeriodicThreeBodyPointPotential {std::move(distance_pot), minimage_box};
 }
 
 auto create_com_move_adjuster(double lower_range_limit, double upper_range_limit) noexcept
@@ -247,10 +249,7 @@ auto main() -> int
     sim::write_box_sides(output_dirpath / "box_sides.dat", minimage_box);
 
     const auto pot = fsh_potential(minimage_box);
-    const auto pot3b = threebodyparah2_potential();
-
-    std::cout << "THREE-BODY ENERGY: " << pot3b(2.2, 2.2, 2.2) << '\n';
-    std::exit(EXIT_SUCCESS);
+    const auto pot3b = threebodyparah2_potential(minimage_box);
 
     /* create the environment object */
     const auto h2_mass = constants::H2_MASS_IN_AMU<double>;
@@ -258,12 +257,19 @@ auto main() -> int
 
     /* create the interaction handler */
     // const auto interaction_handler = interact::FullPairInteractionHandler<decltype(pot), double, NDIM> {pot};
-    using InteractionHandler = interact::NearestNeighbourPairInteractionHandler<decltype(pot), double, 3>;
-    const auto cutoff_distance = double {7.0};
-    auto interaction_handler = InteractionHandler {pot, n_particles};
-    interact::update_centroid_adjacency_matrix<double, 3>(
-        worldlines, minimage_box, environment, interaction_handler.adjacency_matrix(), cutoff_distance
-    );
+    // using InteractionHandler = interact::NearestNeighbourPairInteractionHandler<decltype(pot), double, 3>;
+    using PairInteractionHandler = interact::FullPairInteractionHandler<decltype(pot), double, NDIM>;
+    using TripletInteractionHandler = interact::FullTripletInteractionHandler<decltype(pot3b), double, NDIM>;
+    using InteractionHandler = interact::CompositeFullInteractionHandler<double, NDIM, PairInteractionHandler, TripletInteractionHandler>;
+    // const auto cutoff_distance = double {7.0};
+
+    auto pair_interaction_handler = PairInteractionHandler {pot};
+    auto triplet_interaction_handler = TripletInteractionHandler {std::move(pot3b)};
+    auto interaction_handler = InteractionHandler {std::move(pair_interaction_handler), std::move(triplet_interaction_handler)};
+
+    // interact::update_centroid_adjacency_matrix<double, 3>(
+    //     worldlines, minimage_box, environment, interaction_handler.adjacency_matrix(), cutoff_distance
+    // );
 
     /* create the PRNG; save the seed (or set it?) */
     auto prngw = rng::RandomNumberGeneratorWrapper<std::mt19937>::from_random_uint64();
@@ -330,9 +336,9 @@ auto main() -> int
             }
         }
 
-        interact::update_centroid_adjacency_matrix<double, 3>(
-            worldlines, minimage_box, environment, interaction_handler.adjacency_matrix(), cutoff_distance
-        );
+        // interact::update_centroid_adjacency_matrix<double, 3>(
+        //     worldlines, minimage_box, environment, interaction_handler.adjacency_matrix(), cutoff_distance
+        // );
 
         if (i_block >= parser.n_equilibrium_blocks) {
             /* run estimators */
