@@ -13,10 +13,21 @@
 #include <interactions/three_body/potential_concepts.hpp>
 #include <interactions/two_body/potential_concepts.hpp>
 #include <mathtools/grid/square_adjacency_matrix.hpp>
+#include <mathtools/grid/grid2d.hpp>
 #include <worldline/worldline.hpp>
 
 namespace interact
 {
+
+// template <std::floating_point FP, std::size_t NDIM>
+// auto create_centroid_pair_distance_matrix(
+//     const std::vector<worldline::Worldline<FP, NDIM>>& worldlines,
+//     const coord::BoxSides<FP, NDIM>& minimage_box,
+//     const envir::Environment<FP>& environment
+// ) -> mathtools::Grid2D<FP>
+// {
+//     using Point = coord::Cartesian<FP, NDIM>;
+// }
 
 template <std::floating_point FP, std::size_t NDIM>
 void update_centroid_adjacency_matrix(
@@ -27,31 +38,9 @@ void update_centroid_adjacency_matrix(
     FP cutoff_distance
 )
 {
-    using Point = coord::Cartesian<FP, NDIM>;
-
     const auto n_particles = environment.n_particles();
-    const auto n_timeslices = environment.n_timeslices();
 
-    // NOTE: there is a function to calculate the centroids, but it assumes that you
-    // pass in a contiguous sequence of coordinates; but centroids from the worldline
-    // require using points between different timeslices; so we need to create a
-    // a separate function/lambda
-    const auto create_centroid = [&worldlines, &n_timeslices](std::size_t i_part) -> Point
-    {
-        auto centroid = Point::origin();
-        for (std::size_t i_tslice {0}; i_tslice < n_timeslices; ++i_tslice) {
-            centroid += worldlines[i_tslice][i_part];
-        }
-        centroid /= static_cast<FP>(n_timeslices);
-
-        return centroid;
-    };
-
-    auto centroids = std::vector<Point> {};
-    centroids.reserve(n_particles);
-    for (std::size_t i_part {0}; i_part < n_particles; ++i_part) {
-        centroids.push_back(create_centroid(i_part));
-    }
+    const auto centroids = worldline::calculate_all_centroids(worldlines);
 
     adjmat.clear_all();
 

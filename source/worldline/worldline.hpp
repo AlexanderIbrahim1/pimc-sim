@@ -90,5 +90,22 @@ constexpr auto calculate_centroid(const std::vector<Worldline<FP, NDIM>>& worldl
     return accumulated_centroid;
 }
 
+template <std::floating_point FP, std::size_t NDIM>
+constexpr auto calculate_all_centroids(const std::vector<Worldline<FP, NDIM>>& worldlines)
+    -> std::vector<coord::Cartesian<FP, NDIM>>
+{
+    using Point = coord::Cartesian<FP, NDIM>;
+
+    const auto n_particles = worldlines[0].size();
+
+    auto centroids = std::vector<Point> {};
+    centroids.reserve(n_particles);
+    for (std::size_t i_part {0}; i_part < n_particles; ++i_part) {
+        centroids.push_back(calculate_centroid(worldlines, i_part));
+    }
+
+    return centroids;
+}
+
 
 }  // namespace worldline
