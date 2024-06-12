@@ -82,6 +82,12 @@ public:
         return handler.adjacency_matrix();
     }
 
+    template <std::size_t Index>
+    constexpr auto get() noexcept -> const NearestNeighbourInteractionHandler auto&
+    {
+        return std::get<Index>(handlers_);
+    }
+
 private:
     std::tuple<Handlers...> handlers_;
 };

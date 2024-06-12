@@ -17,6 +17,7 @@
 #include <estimators/pimc/centroid_radial_distribution_function.hpp>
 #include <estimators/pimc/primitive_kinetic.hpp>
 #include <estimators/pimc/radial_distribution_function.hpp>
+#include <estimators/pimc/three_body_potential.hpp>
 #include <estimators/pimc/two_body_potential.hpp>
 #include <estimators/writers/default_writers.hpp>
 #include <geometries/bravais.hpp>
@@ -319,6 +320,7 @@ auto main() -> int
     /* create the file writers for the estimators */
     auto kinetic_writer = estim::default_kinetic_writer<double>(output_dirpath);
     auto pair_potential_writer = estim::default_pair_potential_writer<double>(output_dirpath);
+    auto triplet_potential_writer = estim::default_triplet_potential_writer<double>(output_dirpath);
     auto rms_centroid_writer = estim::default_rms_centroid_distance_writer<double>(output_dirpath);
     auto abs_centroid_writer = estim::default_absolute_centroid_distance_writer<double>(output_dirpath);
 
@@ -361,16 +363,22 @@ auto main() -> int
         // );
 
         if (i_block >= parser.n_equilibrium_blocks) {
+            const auto& threebody_pot = interaction_handler.get<1>();
+
             /* run estimators */
             const auto total_kinetic_energy = estim::total_primitive_kinetic_energy(worldlines, environment);
-            const auto total_potential_energy =
+            const auto total_pair_potential_energy =
                 estim::total_pair_potential_energy_periodic(worldlines, pot, environment);
+            const auto total_triplet_potential_energy = estim::total_triplet_potential_energy_periodic(
+                worldlines, threebody_pot.point_potential(), environment
+            );
             const auto rms_centroid_dist = estim::rms_centroid_distance(worldlines, environment);
             const auto abs_centroid_dist = estim::absolute_centroid_distance(worldlines, environment);
 
             /* save estimators */
             kinetic_writer.write(i_block, total_kinetic_energy);
-            pair_potential_writer.write(i_block, total_potential_energy);
+            pair_potential_writer.write(i_block, total_pair_potential_energy);
+            triplet_potential_writer.write(i_block, total_triplet_potential_energy);
             rms_centroid_writer.write(i_block, rms_centroid_dist);
             abs_centroid_writer.write(i_block, abs_centroid_dist);
 

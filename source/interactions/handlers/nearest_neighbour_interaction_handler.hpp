@@ -103,6 +103,11 @@ public:
         return centroid_adjmat_;
     }
 
+    constexpr auto point_potential() const -> const PointPotential&
+    {
+        return pot_;
+    }
+
 private:
     PointPotential pot_;
     mathtools::SquareAdjacencyMatrix centroid_adjmat_;
@@ -148,6 +153,11 @@ public:
     {
         // mutable reference to the underlying adjacency matrix so an external function can update it
         return centroid_adjmat_;
+    }
+
+    constexpr auto point_potential() const -> const PointPotential&
+    {
+        return pot_;
     }
 
 private:
