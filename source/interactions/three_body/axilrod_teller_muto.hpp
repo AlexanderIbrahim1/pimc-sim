@@ -39,7 +39,7 @@ public:
         const auto cos_denom = FP {8.0} * dist01_sq * dist12_sq * dist02_sq;
         const auto fterm = FP {3.0} * cos1_numer * cos2_numer * cos3_numer / cos_denom;
 
-        const auto denom = dist01_sq * dist02_sq * dist12_sq + dist01 * dist02 * dist12;
+        const auto denom = dist01_sq * dist02_sq * dist12_sq * dist01 * dist02 * dist12;
 
         return c9_coefficient_ * (FP {1.0} + fterm) / denom;
     }
