@@ -153,14 +153,21 @@ To make this nicer, we could create classes that wrap together:
   - create estimators for the 3BPES
   - create unit tests for the ATM potential in specific geometries
 - [DONE:2024-06-11] check if the Attard minimage condition is implemented properly in the 3BPES wrapper - this was the source of the error in the earlier simulation code!!!
-- create interaction handler that allows both 2B and 3B interactions
-- simplify the header interface by putting several headers into a single one (too complicated right now)
+- [DONE:2024-06-12] create interaction handler that allows both 2B and 3B interactions
+- [DONE:2024-06-12] fix the three-body potential estimator
+  - the energies are positive, and way too big (about 1/2 the magnitude of the pair energy!)
 - make saving the histograms atomic
 - implement the 4BPES
 - implement logging
 - implement saving the PRNG state (lower priority? the physics is still the same I guess)
+- simplify the header interface by putting several headers into a single one (too complicated right now)
 - convert the project into a header-only library, since that's what it is basically becoming
   - this also makes it easier to turn the library into a formal target for cmake, and makes it
     less sketchy to include headers from external projects
-- fix the three-body potential estimator
-  - the energies are positive, and way too big (about 1/2 the magnitude of the pair energy!)
+- modify main so it reads the arguments from an actual toml file instead of a string view
+- create separate executables
+  - one for running the simulation *and* calling certain estimators
+  - another for reading worldline files and calling certain estimators on them
+  + this is because the 3B potential estimator is actually much slower than the 3B potential sampler
+    + the time complexity makes a difference!
+    + I might want to skip calling the estimator so I can go through more states in a simulation
