@@ -162,3 +162,5 @@ To make this nicer, we could create classes that wrap together:
 - convert the project into a header-only library, since that's what it is basically becoming
   - this also makes it easier to turn the library into a formal target for cmake, and makes it
     less sketchy to include headers from external projects
+- fix the three-body potential estimator
+  - the energies are positive, and way too big (about 1/2 the magnitude of the pair energy!)
