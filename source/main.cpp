@@ -60,7 +60,7 @@ constexpr auto build_hcp_lattice_structure(auto density)
     const auto lattice_constant = geom::density_to_lattice_constant(density, lattice_type);
     const auto hcp_unit_cell = geom::conventional_hcp_unit_cell(lattice_constant);
     const auto hcp_unit_cell_box = geom::unit_cell_box_sides(hcp_unit_cell);
-    const auto lattice_box_translations = geom::UnitCellTranslations<NDIM> {2ul, 2ul, 2ul};
+    const auto lattice_box_translations = geom::UnitCellTranslations<NDIM> {5ul, 3ul, 3ul};
     const auto minimage_box = geom::lattice_box(hcp_unit_cell_box, lattice_box_translations);
 
     const auto lattice_site_positions = geom::lattice_particle_positions(hcp_unit_cell, lattice_box_translations);
@@ -256,20 +256,40 @@ auto main() -> int
     const auto environment = envir::create_environment(temperature, h2_mass, n_timeslices, n_particles);
 
     /* create the interaction handler */
-    // const auto interaction_handler = interact::FullPairInteractionHandler<decltype(pot), double, NDIM> {pot};
-    // using InteractionHandler = interact::NearestNeighbourPairInteractionHandler<decltype(pot), double, 3>;
-    using PairInteractionHandler = interact::FullPairInteractionHandler<decltype(pot), double, NDIM>;
-    using TripletInteractionHandler = interact::FullTripletInteractionHandler<decltype(pot3b), double, NDIM>;
-    using InteractionHandler = interact::CompositeFullInteractionHandler<double, NDIM, PairInteractionHandler, TripletInteractionHandler>;
-    // const auto cutoff_distance = double {7.0};
 
-    auto pair_interaction_handler = PairInteractionHandler {pot};
-    auto triplet_interaction_handler = TripletInteractionHandler {std::move(pot3b)};
-    auto interaction_handler = InteractionHandler {std::move(pair_interaction_handler), std::move(triplet_interaction_handler)};
+    // using PairInteractionHandler = interact::FullPairInteractionHandler<decltype(pot), double, NDIM>;
+    // using TripletInteractionHandler = interact::FullTripletInteractionHandler<decltype(pot3b), double, NDIM>;
+    // using InteractionHandler = interact::CompositeFullInteractionHandler<double, NDIM, PairInteractionHandler,
+    // TripletInteractionHandler>;
 
-    // interact::update_centroid_adjacency_matrix<double, 3>(
-    //     worldlines, minimage_box, environment, interaction_handler.adjacency_matrix(), cutoff_distance
+    using PairInteractionHandler = interact::NearestNeighbourPairInteractionHandler<decltype(pot), double, NDIM>;
+    using TripletInteractionHandler =
+        interact::NearestNeighbourTripletInteractionHandler<decltype(pot3b), double, NDIM>;
+    using InteractionHandler = interact::
+        CompositeNearestNeighbourInteractionHandler<double, NDIM, PairInteractionHandler, TripletInteractionHandler>;
+
+    const auto lattice_constant = geom::density_to_lattice_constant(parser.density, geom::LatticeType::HCP);
+    const auto pair_cutoff_distance = 2.2 * lattice_constant;
+    const auto triplet_cutoff_distance = 1.1 * lattice_constant;
+
+    // using InteractionHandler = interact::NearestNeighbourPairInteractionHandler<decltype(pot), double, NDIM>;
+    // auto interaction_handler = InteractionHandler {pot, n_particles};
+    // interact::update_centroid_adjacency_matrix<double, NDIM>(
+    //     worldlines, minimage_box, environment, interaction_handler.adjacency_matrix(), pair_cutoff_distance
     // );
+
+    auto pair_interaction_handler = PairInteractionHandler {pot, n_particles};
+    auto triplet_interaction_handler = TripletInteractionHandler {std::move(pot3b), n_particles};
+    auto interaction_handler =
+        InteractionHandler {std::move(pair_interaction_handler), std::move(triplet_interaction_handler)};
+
+    interact::update_centroid_adjacency_matrix<double, NDIM>(
+        worldlines, minimage_box, environment, interaction_handler.adjacency_matrix<0>(), pair_cutoff_distance
+    );
+
+    interact::update_centroid_adjacency_matrix<double, NDIM>(
+        worldlines, minimage_box, environment, interaction_handler.adjacency_matrix<1>(), triplet_cutoff_distance
+    );
 
     /* create the PRNG; save the seed (or set it?) */
     auto prngw = rng::RandomNumberGeneratorWrapper<std::mt19937>::from_random_uint64();

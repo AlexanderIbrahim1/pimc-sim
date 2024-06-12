@@ -39,7 +39,8 @@ public:
         return pot_energy;
     }
 
-    constexpr auto point_potential() const -> const PointPotential& {
+    constexpr auto point_potential() const -> const PointPotential&
+    {
         return pot_;
     }
 
@@ -79,7 +80,8 @@ public:
         return pot_energy;
     }
 
-    constexpr auto point_potential() const -> const PointPotential& {
+    constexpr auto point_potential() const -> const PointPotential&
+    {
         return pot_;
     }
 

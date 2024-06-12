@@ -7,6 +7,7 @@
 #include <utility>
 
 #include <interactions/handlers/interaction_handler_concepts.hpp>
+#include <mathtools/grid/square_adjacency_matrix.hpp>
 #include <worldline/worldline.hpp>
 
 /*
@@ -26,7 +27,7 @@ public:
     using Worldline = worldline::Worldline<FP, NDIM>;
 
     CompositeFullInteractionHandler(Handlers... handlers)
-        : _handlers {std::move(handlers)...}
+        : handlers_ {std::move(handlers)...}
     {
         static_assert(
             sizeof...(handlers) >= 1, "There must be at least one handler in the CompositeInteractionHandler"
@@ -40,22 +41,49 @@ public:
         auto pot_energy = FP {};
         const auto handler_looper = [&](auto&&... handler) { ((pot_energy += handler(i_particle, worldline)), ...); };
 
-        std::apply(handler_looper, _handlers);
+        std::apply(handler_looper, handlers_);
 
         return pot_energy;
     }
 
 private:
-    std::tuple<Handlers...> _handlers;
+    std::tuple<Handlers...> handlers_;
 };
 
-// NOTE:
-// - in the CompositeNearestNeighbourInteractionHandler
-//   - we should allow redundant calculations of the adjacency matrices
-//   - the 2B and 3B PESs will likely have different cutoff distances
-//     - so the neighbours for each one will be completely different
-// - one way to improve this is to create a function that calculates the centroid pair distance grid
-//   - and we can pass that to another function to help set the adjacency matrices
-//     depending on the provided cutoff value!
+template <std::floating_point FP, std::size_t NDIM, typename... Handlers>
+class CompositeNearestNeighbourInteractionHandler
+{
+public:
+    using Worldline = worldline::Worldline<FP, NDIM>;
+
+    CompositeNearestNeighbourInteractionHandler(Handlers... handlers)
+        : handlers_ {std::move(handlers)...}
+    {
+        static_assert(
+            sizeof...(handlers) >= 1, "There must be at least one handler in the CompositeInteractionHandler"
+        );
+        static_assert(std::conjunction<std::bool_constant<NearestNeighbourInteractionHandler<Handlers>>...>::value, "");
+    }
+
+    constexpr auto operator()(std::size_t i_particle, const Worldline& worldline) const noexcept -> FP
+    {
+        auto pot_energy = FP {};
+        const auto handler_looper = [&](auto&&... handler) { ((pot_energy += handler(i_particle, worldline)), ...); };
+
+        std::apply(handler_looper, handlers_);
+
+        return pot_energy;
+    }
+
+    template <std::size_t Index>
+    constexpr auto adjacency_matrix() noexcept -> mathtools::SquareAdjacencyMatrix&
+    {
+        auto& handler = std::get<Index>(handlers_);
+        return handler.adjacency_matrix();
+    }
+
+private:
+    std::tuple<Handlers...> handlers_;
+};
 
 }  // namespace interact

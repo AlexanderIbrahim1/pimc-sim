@@ -12,8 +12,8 @@
 #include <environment/environment.hpp>
 #include <interactions/three_body/potential_concepts.hpp>
 #include <interactions/two_body/potential_concepts.hpp>
-#include <mathtools/grid/square_adjacency_matrix.hpp>
 #include <mathtools/grid/grid2d.hpp>
+#include <mathtools/grid/square_adjacency_matrix.hpp>
 #include <worldline/worldline.hpp>
 
 namespace interact
@@ -133,8 +133,10 @@ public:
         const auto& points = worldline.points();
         const auto neighbours = centroid_adjmat_.neighbours(i_particle);
 
-        for (std::size_t i_neigh0 {0}; i_neigh0 < neighbours.size() - 1; ++i_neigh0) {
-            for (std::size_t i_neigh1 {i_neigh0 + 1}; i_neigh1 < neighbours.size(); ++i_neigh1) {
+        for (std::size_t idx_neigh0 {0}; idx_neigh0 < neighbours.size() - 1; ++idx_neigh0) {
+            for (std::size_t idx_neigh1 {idx_neigh0 + 1}; idx_neigh1 < neighbours.size(); ++idx_neigh1) {
+                const auto i_neigh0 = neighbours[idx_neigh0];
+                const auto i_neigh1 = neighbours[idx_neigh1];
                 pot_energy += pot_(points[i_particle], points[i_neigh0], points[i_neigh1]);
             }
         }

@@ -107,5 +107,4 @@ constexpr auto calculate_all_centroids(const std::vector<Worldline<FP, NDIM>>& w
     return centroids;
 }
 
-
 }  // namespace worldline

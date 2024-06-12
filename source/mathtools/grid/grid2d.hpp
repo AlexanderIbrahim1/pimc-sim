@@ -43,11 +43,13 @@ public:
         return data_;
     }
 
-    constexpr auto n_rows() const noexcept -> std::size_t {
+    constexpr auto n_rows() const noexcept -> std::size_t
+    {
         return n_rows_;
     }
 
-    constexpr auto n_cols() const noexcept -> std::size_t {
+    constexpr auto n_cols() const noexcept -> std::size_t
+    {
         return n_cols_;
     }
 
