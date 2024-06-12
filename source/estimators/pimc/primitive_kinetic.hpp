@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 
+#include <constants/conversions.hpp>
 #include <coordinates/measure.hpp>
 #include <environment/environment.hpp>
 #include <worldline/worldline.hpp>
@@ -31,7 +32,10 @@ constexpr auto primitive_kinetic_energy(
     const auto thermal_kinetic_energy = 0.5 * static_cast<FP>(ndim * n_particles) / tau;
     const auto vibration_correction_energy = total_dist_squared / (FP {4.0} * tau * beta * lambda);
 
-    return thermal_kinetic_energy - vibration_correction_energy;
+    const auto energy_in_kelvin = thermal_kinetic_energy - vibration_correction_energy;
+    const auto energy_in_wvn = energy_in_kelvin * conversions::WAVENUMBERS_PER_KELVIN<FP>;
+
+    return energy_in_wvn;
 }
 
 template <std::floating_point FP, std::size_t NDIM>

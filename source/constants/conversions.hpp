@@ -23,4 +23,13 @@ constexpr double ANGSTROMS_PER_METRE<double> = 1.0e10;
 template <>
 constexpr float ANGSTROMS_PER_METRE<float> = 1.0e10f;
 
+template <std::floating_point FP>
+static constexpr FP WAVENUMBERS_PER_KELVIN;
+
+template <>
+constexpr double WAVENUMBERS_PER_KELVIN<double> = 0.695030250611;
+
+template <>
+constexpr float WAVENUMBERS_PER_KELVIN<float> = 0.695030250611f;
+
 }  // namespace conversions
