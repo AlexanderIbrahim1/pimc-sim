@@ -15,3 +15,5 @@ playground/ignore*/
 playground/scripts/
 
 **/__pycache__/
+
+playground/fourbodypes/
