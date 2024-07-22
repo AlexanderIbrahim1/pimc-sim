@@ -8,7 +8,7 @@
 #include <type_traits>
 #include <utility>
 
-// #include <torch/script.h>
+#include <torch/script.h>
 
 namespace interact
 {

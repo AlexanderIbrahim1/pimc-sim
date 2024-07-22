@@ -7,6 +7,7 @@
 #include <tuple>
 
 #include <tomlplusplus/toml.hpp>
+#include <torch/script.h>
 
 #include <argparser.hpp>
 #include <common/writers/writer_utils.hpp>
@@ -33,6 +34,7 @@
 #include <interactions/two_body/two_body_pointwise.hpp>
 #include <interactions/two_body/two_body_pointwise_tabulated.hpp>
 #include <interactions/two_body/two_body_pointwise_wrapper.hpp>
+#include <interactions/four_body/rescaling.hpp>
 #include <mathtools/grid/grid3d.hpp>
 #include <mathtools/histogram/histogram.hpp>
 #include <mathtools/interpolate/trilinear_interp.hpp>
@@ -187,6 +189,18 @@ auto create_histogram(
 
 auto main() -> int
 {
+    // const auto rescaling_limits = interact::RescalingLimits {1.0, 2.0, 3.0, 4.0};
+    // const auto rescaling_function = interact::RescalingFunction {1.0, 1.0, 1.0};
+    // const auto forward_rescaler = interact::ForwardEnergyRescaler {rescaling_function, rescaling_limits};
+
+    // const auto side_length_groups = torch::tensor({{1.0, 2.0, 3.0, 4.0, 5.0, 6.0}}, torch::dtype(torch::kFloat64));
+    // auto energies_to_rescale = torch::tensor({{6.0}}, torch::dtype(torch::kFloat64));
+
+    // interact::forward_rescale_energies(forward_rescaler, side_length_groups, energies_to_rescale);
+
+    // std::cout << "RESULT: " << energies_to_rescale[0].item<double>() << '\n';
+    // std::exit(EXIT_SUCCESS);
+
     namespace fs = std::filesystem;
 
     const auto output_dirpath = fs::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/ignore"};
