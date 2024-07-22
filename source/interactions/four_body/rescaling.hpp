@@ -184,11 +184,9 @@ template <std::floating_point FP>
 class RescalingEnergyModel
 {
 public:
-    using TorchModule = torch::jit::script::Module;
-
-    explicit RescalingEnergyModel(TorchModule&& rescaled_module, const ReverseEnergyRescaler<FP>& reverse_rescaler)
-        : m_rescaled_module {std::move(rescaled_module)}
-        , m_reverse_rescaler {reverse_rescaler}
+    explicit RescalingEnergyModel(torch::jit::script::Module&& rescaled_module, const ReverseEnergyRescaler<FP>& reverse_rescaler)
+        : rescaled_module_ {std::move(rescaled_module)}
+        , reverse_rescaler_ {reverse_rescaler}
     {}
 
     constexpr auto operator()(const torch::Tensor& x_data, const torch::Tensor& side_length_groups) const
@@ -206,22 +204,22 @@ public:
 
         const auto rescaled_energies = [&]()
         {
-            m_rescaled_module.eval();
+            rescaled_module_.eval();
             torch::NoGradGuard no_grad;
             return m_rescaled_module.forward({x_data}).toTensor();
         }();
 
         for (long int i {}; i < n_samples; ++i) {
             const FP res_energy = rescaled_energies[i].template item<FP>();
-            rescaled_energies[i] = m_reverse_rescaler(res_energy, side_length_groups[i]);
+            rescaled_energies[i] = reverse_rescaler_(res_energy, side_length_groups[i]);
         }
 
         return rescaled_energies;
     }
 
 private:
-    mutable TorchModule m_rescaled_module;  // .forward() is not const
-    ReverseEnergyRescaler<FP> m_reverse_rescaler;
+    mutable torch::jit::script::Module rescaled_module_;  // .forward() is not const
+    ReverseEnergyRescaler<FP> reverse_rescaler_;
 };
 
 }  // namespace interact
