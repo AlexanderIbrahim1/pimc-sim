@@ -23,7 +23,6 @@ constexpr auto dot_product(const Cartesian<FP, NDIM>& point0, const Cartesian<FP
     return result;
 }
 
-
 template <std::floating_point FP>
 constexpr auto six_side_lengths_to_cartesian(FP r01, FP r02, FP r03, FP r12, FP r13, FP r23, FP tolerance)
 {
@@ -31,11 +30,11 @@ constexpr auto six_side_lengths_to_cartesian(FP r01, FP r02, FP r03, FP r12, FP 
         NOTE
         Sometimes, floating-point errors cause the arguments of `std::sqrt` for the calculations of `y2`
         and `z3` to be very slightly negative.
-         
+
         This function assumes that the six side lengths passed as arguments are always capable of forming
         a real four-body geometry, and that each time `y2` and `z3` receive a negative argument, it is a
         borderline case where the argument is just very slightly negative.
-        
+
         It will not check if the argument is "very negative" (an indication that the six side lengths do
         not actually form a proper four-body geometry).
     */
@@ -49,8 +48,8 @@ constexpr auto six_side_lengths_to_cartesian(FP r01, FP r02, FP r03, FP r12, FP 
 
     // calculate x2, x3
     const auto x1 = r01;
-    const auto x2 = (r01_sq + r02_sq - r12_sq) / (FP{2.0} * r01);
-    const auto x3 = (r03_sq - r13_sq + r01_sq) / (FP{2.0} * r01);
+    const auto x2 = (r01_sq + r02_sq - r12_sq) / (FP {2.0} * r01);
+    const auto x3 = (r03_sq - r13_sq + r01_sq) / (FP {2.0} * r01);
 
     // calculate y2, y3
     /*
@@ -80,26 +79,28 @@ constexpr auto six_side_lengths_to_cartesian(FP r01, FP r02, FP r03, FP r12, FP 
 
     */
     const auto y1 = FP {0.0};
-    const auto [y2, y3] = [&]() {
+    const auto [y2, y3] = [&]()
+    {
         const auto y2_inner = r02_sq - x2 * x2;
         const bool y2_large_enough = y2_inner > tolerance;
 
         if (y2_large_enough) {
             const auto y2_ = std::sqrt(y2_inner);
-            const auto y3_ = (r03_sq - r23_sq + r02_sq - FP{2.0} * x2 * x3) / (FP{2.0} * y2_);
+            const auto y3_ = (r03_sq - r23_sq + r02_sq - FP {2.0} * x2 * x3) / (FP {2.0} * y2_);
             return std::make_tuple(y2_, y3_);
         }
         else {
-            return std::make_tuple(FP{0.0}, FP{0.0});
+            return std::make_tuple(FP {0.0}, FP {0.0});
         }
     }();
 
     // calculate z2, z3
     const auto z1 = FP {0.0};
     const auto z2 = FP {0.0};
-    const auto z3 = [&]() {
+    const auto z3 = [&]()
+    {
         const auto z3_inner = r03_sq - x3 * x3 - y3 * y3;
-        const auto z3_large_enough = static_cast<FP>(z3_inner > FP{0.0});
+        const auto z3_large_enough = static_cast<FP>(z3_inner > FP {0.0});
         return std::sqrt(z3_large_enough * z3_inner);
     }();
 
@@ -110,7 +111,6 @@ constexpr auto six_side_lengths_to_cartesian(FP r01, FP r02, FP r03, FP r12, FP 
         Cartesian<FP, NDIM> {x3, y3, z3}
     );
 }
-
 
 template <std::floating_point FP, std::size_t NDIM>
 constexpr auto cartesian_to_six_side_lengths(

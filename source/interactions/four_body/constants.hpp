@@ -11,76 +11,77 @@
 
 #include <concepts>
 
+namespace interact
+{
 
-namespace interact {
-
-namespace constants4b {
-
-template <std::floating_point FP>
-constexpr FP MIN_SIDELENGTH = FP{2.2};
+namespace constants4b
+{
 
 template <std::floating_point FP>
-constexpr FP MAX_SIDELENGTH = FP{4.5};
+constexpr FP MIN_SIDELENGTH = FP {2.2};
 
 template <std::floating_point FP>
-constexpr FP STANDARDIZE_FROM_LEFT = FP{0.0};
+constexpr FP MAX_SIDELENGTH = FP {4.5};
 
 template <std::floating_point FP>
-constexpr FP STANDARDIZE_FROM_RIGHT = FP{1.0} / MIN_SIDELENGTH<FP>;
+constexpr FP STANDARDIZE_FROM_LEFT = FP {0.0};
 
 template <std::floating_point FP>
-constexpr FP STANDARDIZE_TO_LEFT = FP{0.0};
+constexpr FP STANDARDIZE_FROM_RIGHT = FP {1.0} / MIN_SIDELENGTH<FP>;
 
 template <std::floating_point FP>
-constexpr FP STANDARDIZE_TO_RIGHT = FP{1.0};
+constexpr FP STANDARDIZE_TO_LEFT = FP {0.0};
 
 template <std::floating_point FP>
-constexpr FP BADE_COEFF_MIDZUNO_KIHARA = FP{33760.08799487081};
+constexpr FP STANDARDIZE_TO_RIGHT = FP {1.0};
 
 template <std::floating_point FP>
-constexpr FP BADE_COEFF_AVDZ = FP{31666.96253918882};
+constexpr FP BADE_COEFF_MIDZUNO_KIHARA = FP {33760.08799487081};
 
 template <std::floating_point FP>
-constexpr FP BADE_COEFF_AVTZ = FP{29492.81287231914};
+constexpr FP BADE_COEFF_AVDZ = FP {31666.96253918882};
 
 template <std::floating_point FP>
-constexpr FP SHORT_RANGE_CORRECT_SLOPE_MIN = FP{6.0};
+constexpr FP BADE_COEFF_AVTZ = FP {29492.81287231914};
 
 template <std::floating_point FP>
-constexpr FP SHORT_RANGE_CORRECT_SLOPE_MAX = FP{8.0};
+constexpr FP SHORT_RANGE_CORRECT_SLOPE_MIN = FP {6.0};
 
 template <std::floating_point FP>
-constexpr FP RESCALING_EXPON_COEFF = FP{3180260.750000};
+constexpr FP SHORT_RANGE_CORRECT_SLOPE_MAX = FP {8.0};
 
 template <std::floating_point FP>
-constexpr FP RESCALING_EXPON_DECAY = FP{4.623057};
+constexpr FP RESCALING_EXPON_COEFF = FP {3180260.750000};
 
 template <std::floating_point FP>
-constexpr FP RESCALING_DISP_COEFF = FP{4220.011};
+constexpr FP RESCALING_EXPON_DECAY = FP {4.623057};
 
 template <std::floating_point FP>
-constexpr FP REVERSE_RESCALING_LIMITS_TO_LEFT = FP{-1.0};
+constexpr FP RESCALING_DISP_COEFF = FP {4220.011};
 
 template <std::floating_point FP>
-constexpr FP REVERSE_RESCALING_LIMITS_TO_RIGHT = FP{1.0};
+constexpr FP REVERSE_RESCALING_LIMITS_TO_LEFT = FP {-1.0};
 
 template <std::floating_point FP>
-constexpr FP REVERSE_RESCALING_LIMITS_FROM_LEFT = FP{-3.2619903087615967};
+constexpr FP REVERSE_RESCALING_LIMITS_TO_RIGHT = FP {1.0};
 
 template <std::floating_point FP>
-constexpr FP REVERSE_RESCALING_LIMITS_FROM_RIGHT = FP{8.64592170715332};
+constexpr FP REVERSE_RESCALING_LIMITS_FROM_LEFT = FP {-3.2619903087615967};
 
 template <std::floating_point FP>
-constexpr FP SHORT_RANGE_SCALING_STEP = FP{0.05};
+constexpr FP REVERSE_RESCALING_LIMITS_FROM_RIGHT = FP {8.64592170715332};
 
 template <std::floating_point FP>
-constexpr FP SHORT_RANGE_CUTOFF = FP{2.2};
+constexpr FP SHORT_RANGE_SCALING_STEP = FP {0.05};
 
 template <std::floating_point FP>
-constexpr FP LONG_RANGE_CUTOFF_BEGIN = FP{3.8};
+constexpr FP SHORT_RANGE_CUTOFF = FP {2.2};
 
 template <std::floating_point FP>
-constexpr FP LONG_RANGE_CUTOFF_END = FP{4.5};
+constexpr FP LONG_RANGE_CUTOFF_BEGIN = FP {3.8};
+
+template <std::floating_point FP>
+constexpr FP LONG_RANGE_CUTOFF_END = FP {4.5};
 
 }  // namespace constants4b
 

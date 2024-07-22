@@ -8,25 +8,25 @@
 #include <coordinates/measure.hpp>
 #include <coordinates/operations.hpp>
 
-
-namespace impl_interact_dispersion {
+namespace impl_interact_dispersion
+{
 
 template <std::floating_point FP, std::size_t NDIM>
-struct MagnitudeAndDirection {
+struct MagnitudeAndDirection
+{
     coord::Cartesian3D<FP, NDIM> direction;
     FP magnitude;
 };
 
-
 template <std::floating_point FP, std::size_t NDIM>
-constexpr auto convert_to_magnitude_and_direction(const coord::Cartesian<FP, NDIM>& point) -> MagnitudeAndDirection<FP, NDIM> 
+constexpr auto convert_to_magnitude_and_direction(const coord::Cartesian<FP, NDIM>& point)
+    -> MagnitudeAndDirection<FP, NDIM>
 {
     const auto distance = coord::norm(point);
     const auto unit_vec = point / distance;
 
-    return { unit_vec, distance };
+    return {unit_vec, distance};
 }
-
 
 template <std::floating_point FP, std::size_t NDIM>
 constexpr auto quadruplet_contribution(
@@ -62,17 +62,17 @@ constexpr auto quadruplet_contribution(
         + FP{9.0} * (prod_ijjk * prod_jkkl * prod_klli * prod_ijli);
     // clang-format on
 
-    return FP{2.0} * numerator / denominator;
+    return FP {2.0} * numerator / denominator;
 }
 
+}  // namespace impl_interact_dispersion
 
-} // namespace disp_impl
-
-
-namespace interact {
+namespace interact
+{
 
 template <std::floating_point FP, std::size_t NDIM>
-class FourBodyDispersionPotential {
+class FourBodyDispersionPotential
+{
 public:
     FourBodyDispersionPotential(FP bade_coefficient)
         : bade_coefficient_ {bade_coefficient}
@@ -85,7 +85,7 @@ public:
         const coord::Cartesian<FP, NDIM>& point1,
         const coord::Cartesian<FP, NDIM>& point2,
         const coord::Cartesian<FP, NDIM>& point3
-    ) const -> FP 
+    ) const -> FP
     {
         const auto vec10 = impl_interact_dispersion::convert_to_magnitude_and_direction(point1 - point0);
         const auto vec20 = impl_interact_dispersion::convert_to_magnitude_and_direction(point2 - point0);
@@ -101,18 +101,18 @@ public:
             + impl_interact_dispersion::quadruplet_contribution(vec20, vec21, vec31, vec30);
         // clang-format on
 
-        return - bade_coefficient_ * total_energy;
+        return -bade_coefficient_ * total_energy;
     }
 
 private:
     FP bade_coefficient_;
 
-    void m_check_coefficient_is_positive(FP bade_coefficient) const {
-        if (bade_coefficient < FP{0.0}) {
+    void m_check_coefficient_is_positive(FP bade_coefficient) const
+    {
+        if (bade_coefficient < FP {0.0}) {
             throw std::runtime_error("The bade coefficient must be positive. Found a non-positive value.");
         }
     }
 };
 
-
-} // namespace disp
+}  // namespace interact
