@@ -37,7 +37,11 @@ enum class InteractionRange
 };
 
 template <std::floating_point FP>
-constexpr auto classify_interaction_range(const std::array<FP, 6>& side_lengths, const InteractionCutoffDistances<FP>& cutoffs) noexcept -> InteractionRange {
+constexpr auto classify_interaction_range(
+    const std::array<FP, 6>& side_lengths,
+    const InteractionCutoffDistances<FP>& cutoffs
+) noexcept -> InteractionRange
+{
     using IR = InteractionRange;
 
     const auto average_side_length = mean_of_six(side_lengths);
@@ -47,59 +51,70 @@ constexpr auto classify_interaction_range(const std::array<FP, 6>& side_lengths,
     }
 
     const auto is_abinitio = [&](FP x) { return x < cutoffs.lower_mixed_distance; };
-    const auto is_short = [&](const std::array<FP, 6>& side_lengths_) {
-        return std::any_of(side_lengths_.begin(), side_lengths_.end(), 
-            [](FP x) { return x < cutoffs.lower_short_distance; })
+    const auto is_short = [&](const std::array<FP, 6>& side_lengths_)
+    {
+        return std::any_of(
+            side_lengths_.begin(), side_lengths_.end(), [](FP x) { return x < cutoffs.lower_short_distance; }
+        )
     };
-    const auto is_shortmid = [&](const std::array<FP, 6>& side_lengths_) {
-        return std::any_of(side_lengths_.begin(), side_lengths_.end(),
-            [](FP x) { return cutoffs.lower_short_distance <= x && x < cutoffs.upper_short_distance; })
+    const auto is_shortmid = [&](const std::array<FP, 6>& side_lengths_)
+    {
+        return std::any_of(
+            side_lengths_.begin(),
+            side_lengths_.end(),
+            [](FP x) { return cutoffs.lower_short_distance <= x && x < cutoffs.upper_short_distance; }
+        )
     };
 
     if (is_abinitio(average_side_length)) {
         if (is_short(side_lengths)) {
             return IR::ABINITIO_SHORT;
-        } else
-        if (is_shortmid(side_lengths)) {
+        }
+        else if (is_shortmid(side_lengths)) {
             return IR::ABINITIO_SHORTMID;
-        } else
-        {
+        }
+        else {
             return IR::ABINITIO_MID;
         }
-    } else {
+    }
+    else {
         if (is_short(side_lengths)) {
             return IR::MIXED_SHORT;
-        } else
-        if (is_shortmid(side_lengths)) {
+        }
+        else if (is_shortmid(side_lengths)) {
             return IR::MIXED_SHORTMID;
-        } else
-        {
+        }
+        else {
             return IR::MIXED_MID;
         }
     }
 }
 
-constexpr auto interaction_range_size_allocation(InteractionRange ir) noexcept -> std::size_t {
+constexpr auto interaction_range_size_allocation(InteractionRange ir) noexcept -> std::size_t
+{
     using IR = InteractionRange;
 
     if (ir == IR::LONG) {
         return 0;
-    } else
-    if (ir == IR::ABINITIO_MID || ir == IR::MIXED_MID) {
+    }
+    else if (ir == IR::ABINITIO_MID || ir == IR::MIXED_MID) {
         return 1;
-    } else
-    if (ir == IR::ABINITIO_SHORT || ir == IR::MIXED_SHORT) {
+    }
+    else if (ir == IR::ABINITIO_SHORT || ir == IR::MIXED_SHORT) {
         return 2;
-    } else
-    {
+    }
+    else {
         return 3;
     }
 }
 
-constexpr auto is_partly_short(InteractionRange ir) noexcept -> bool {
+constexpr auto is_partly_short(InteractionRange ir) noexcept -> bool
+{
     using IR = InteractionRange;
 
-    return (ir == IR::ABINITIO_SHORT || ir == IR::ABINITIO_SHORTMID || ir == IR::MIXED_SHORT || ir == IR::MIXED_SHORTMID);
+    return (
+        ir == IR::ABINITIO_SHORT || ir == IR::ABINITIO_SHORTMID || ir == IR::MIXED_SHORT || ir == IR::MIXED_SHORTMID
+    );
 }
 
 }  // namespace interact
