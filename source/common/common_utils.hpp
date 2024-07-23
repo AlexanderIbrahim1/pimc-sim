@@ -50,4 +50,10 @@ constexpr auto sign(NumericType x)
     }
 }
 
+template <std::floating_point FP, typename... Args>
+constexpr auto calculate_mean(FP value, Args... args) -> FP
+{
+    return (value + (args + ...)) / (1 + sizeof...(args));
+}
+
 }  // namespace common_utils

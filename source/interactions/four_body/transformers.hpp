@@ -1,7 +1,7 @@
 #pragma once
 
-#include <array>
 #include <algorithm>
+#include <array>
 #include <concepts>
 #include <tuple>
 
@@ -14,11 +14,12 @@
     But I just need to get it working for now
 */
 
-
-namespace trans {
+namespace interact
+{
 
 constexpr static auto g_n_permutations = std::size_t {24};
 
+// clang-format off
 constexpr static auto g_index_swap_permutations = std::array<std::size_t, 6 * 24> {
     0, 1, 2, 3, 4, 5,
     0, 2, 1, 4, 3, 5,
@@ -45,20 +46,22 @@ constexpr static auto g_index_swap_permutations = std::array<std::size_t, 6 * 24
     5, 3, 1, 4, 2, 0,
     5, 4, 2, 3, 1, 0
 };
-
+// clang-format on
 
 /*
     The ReciprocalFactorTransformer both calculates the reciprocal of each element, and
     multiplies it by a certain constant factor.
 */
 template <std::floating_point FP>
-class ReciprocalFactorTransformer {
+class ReciprocalFactorTransformer
+{
 public:
     explicit ReciprocalFactorTransformer(FP factor)
         : factor_ {factor}
     {}
 
-    constexpr void operator()(torch::Tensor& values) const {
+    constexpr void operator()(torch::Tensor& values) const
+    {
         for (long int i {}; i < values.size(0); ++i) {
             values[i] = factor_ / values[i];
         }
@@ -68,11 +71,12 @@ private:
     FP factor_;
 };
 
-
 template <std::floating_point FP>
-class MinimumPermutationTransformer {
+class MinimumPermutationTransformer
+{
 public:
-    constexpr void operator()(torch::Tensor& values) const {
+    constexpr void operator()(torch::Tensor& values) const
+    {
         std::array<FP, 6> original_permutation;
         const auto values_begin = values.data_ptr<FP>();
         const auto values_end = values.data_ptr<FP>() + values.numel();
@@ -89,24 +93,22 @@ public:
     }
 
 private:
-    constexpr auto permute_six_side_lengths_(
-        std::size_t i_permutation,
-        const std::array<FP, 6>& side_lengths
-    ) const -> std::array<FP, 6>
+    constexpr auto permute_six_side_lengths_(std::size_t i_permutation, const std::array<FP, 6>& side_lengths) const
+        -> std::array<FP, 6>
     {
         std::array<FP, 6> permuted_side_lengths;
         auto i_offset = i_permutation * 6;
-    
+
         for (std::size_t i {}; i < 6; ++i) {
             auto index_to_swap = g_index_swap_permutations[i_offset + i];
             permuted_side_lengths[i] = side_lengths[index_to_swap];
         }
-    
+
         return permuted_side_lengths;
     }
 };
 
-
+// clang-format off
 constexpr static auto g_second_indices = std::array<std::size_t, 4 * 6> {
     1, 2, 3, 4,
     0, 2, 3, 5,
@@ -115,15 +117,16 @@ constexpr static auto g_second_indices = std::array<std::size_t, 4 * 6> {
     0, 2, 3, 5,
     1, 2, 3, 4
 };
-
+// clang-format on
 
 constexpr static auto g_n_second_indices = std::size_t {4};
 
-
 template <std::floating_point FP>
-class ApproximateMinimumPermutationTransformer {
+class ApproximateMinimumPermutationTransformer
+{
 public:
-    constexpr void operator()(torch::Tensor& values) const {
+    constexpr void operator()(torch::Tensor& values) const
+    {
         const auto i_min0 = static_cast<std::size_t>(torch::argmin(values).item<long>());
         const auto i_min1 = argmin_over_(values, i_min0);
 
@@ -132,7 +135,8 @@ public:
     }
 
 private:
-    constexpr auto argmin_over_(const torch::Tensor& values, std::size_t i_second) const -> std::size_t {
+    constexpr auto argmin_over_(const torch::Tensor& values, std::size_t i_second) const -> std::size_t
+    {
         const auto offset = N_SECOND_INDICES * i_second;
         const auto it_start = SECOND_INDICES.cbegin() + offset;
 
@@ -154,9 +158,10 @@ private:
         return i_enum_min;
     }
 
-    constexpr auto permute_(torch::Tensor& values, std::size_t i_perm) const -> void {
+    constexpr auto permute_(torch::Tensor& values, std::size_t i_perm) const -> void
+    {
         auto permuted_values = std::array<FP, 6> {};
-        
+
         const auto i_offset = 6 * i_perm;
         for (std::size_t i {}; i < 6; ++i) {
             const auto index_to_swap = static_cast<long>(g_index_swap_permutations[i_offset + i]);
@@ -167,9 +172,9 @@ private:
     }
 };
 
-
 template <std::floating_point FP>
-class SampleTransformer {
+class SampleTransformer
+{
 public:
     explicit SampleTransformer(
         ReciprocalFactorTransformer<FP> reciprocal_factor_transformer,
@@ -179,8 +184,9 @@ public:
         , permutation_transformer_ {permutation_transformer}
     {}
 
-    constexpr auto operator()(torch::Tensor& values) const {
-        reciprocal_factor_transformer_(values); 
+    constexpr auto operator()(torch::Tensor& values) const
+    {
+        reciprocal_factor_transformer_(values);
         permutation_transformer_(values);
     }
 
@@ -189,4 +195,4 @@ private:
     ApproximateMinimumPermutationTransformer<FP> permutation_transformer_;
 };
 
-} // namespace trans
+}  // namespace interact
