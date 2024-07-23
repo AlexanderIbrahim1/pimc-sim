@@ -184,7 +184,10 @@ template <std::floating_point FP>
 class RescalingEnergyModel
 {
 public:
-    explicit RescalingEnergyModel(torch::jit::script::Module&& rescaled_module, const ReverseEnergyRescaler<FP>& reverse_rescaler)
+    explicit RescalingEnergyModel(
+        torch::jit::script::Module&& rescaled_module,
+        const ReverseEnergyRescaler<FP>& reverse_rescaler
+    )
         : rescaled_module_ {std::move(rescaled_module)}
         , reverse_rescaler_ {reverse_rescaler}
     {}

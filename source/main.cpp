@@ -25,6 +25,7 @@
 #include <geometries/lattice.hpp>
 #include <geometries/lattice_type.hpp>
 #include <geometries/unit_cell_translations.hpp>
+#include <interactions/four_body/rescaling.hpp>
 #include <interactions/handlers/composite_interaction_handler.hpp>
 #include <interactions/handlers/full_interaction_handler.hpp>
 #include <interactions/handlers/interaction_handler_concepts.hpp>
@@ -34,7 +35,6 @@
 #include <interactions/two_body/two_body_pointwise.hpp>
 #include <interactions/two_body/two_body_pointwise_tabulated.hpp>
 #include <interactions/two_body/two_body_pointwise_wrapper.hpp>
-#include <interactions/four_body/rescaling.hpp>
 #include <mathtools/grid/grid3d.hpp>
 #include <mathtools/histogram/histogram.hpp>
 #include <mathtools/interpolate/trilinear_interp.hpp>
