@@ -5,6 +5,8 @@
 #include <concepts>
 #include <numeric>
 
+#include <interactions/four_body/constants.hpp>
+
 namespace interact
 {
 
@@ -15,15 +17,6 @@ constexpr auto mean_of_six(const std::array<FP, 6> side_lengths) -> FP
     auto total = std::accumulate(side_lengths.begin(), side_lengths.end(), add, FP {});
     return total / FP {6.0};
 }
-
-template <std::floating_point FP>
-struct InteractionCutoffDistances
-{
-    FP lower_short_distance;
-    FP upper_short_distance;
-    FP lower_mixed_distance;
-    FP upper_mixed_distance;
-};
 
 enum class InteractionRange
 {
@@ -37,24 +30,21 @@ enum class InteractionRange
 };
 
 template <std::floating_point FP>
-constexpr auto classify_interaction_range(
-    const std::array<FP, 6>& side_lengths,
-    const InteractionCutoffDistances<FP>& cutoffs
-) noexcept -> InteractionRange
+constexpr auto classify_interaction_range(const std::array<FP, 6>& side_lengths) noexcept -> InteractionRange
 {
     using IR = InteractionRange;
 
     const auto average_side_length = mean_of_six(side_lengths);
 
-    if (average_side_length > cutoffs.upper_mixed_distance) {
+    if (average_side_length > constants4b::UPPER_MIXED_DISTANCE<FP>) {
         return IR::LONG;
     }
 
-    const auto is_abinitio = [&](FP x) { return x < cutoffs.lower_mixed_distance; };
+    const auto is_abinitio = [&](FP x) { return x < constants4b::LOWER_MIXED_DISTANCE<FP>; };
     const auto is_short = [&](const std::array<FP, 6>& side_lengths_)
     {
         return std::any_of(
-            side_lengths_.begin(), side_lengths_.end(), [](FP x) { return x < cutoffs.lower_short_distance; }
+            side_lengths_.begin(), side_lengths_.end(), [](FP x) { return x < constants4b::LOWER_SHORT_DISTANCE<FP>; }
         )
     };
     const auto is_shortmid = [&](const std::array<FP, 6>& side_lengths_)
@@ -62,7 +52,7 @@ constexpr auto classify_interaction_range(
         return std::any_of(
             side_lengths_.begin(),
             side_lengths_.end(),
-            [](FP x) { return cutoffs.lower_short_distance <= x && x < cutoffs.upper_short_distance; }
+            [](FP x) { return constants4b::LOWER_SHORT_DISTANCE<FP> <= x && x < constants4b::UPPER_SHORT_DISTANCE<FP>; }
         )
     };
 

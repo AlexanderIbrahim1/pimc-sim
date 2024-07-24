@@ -72,16 +72,19 @@ template <std::floating_point FP>
 constexpr FP REVERSE_RESCALING_LIMITS_FROM_RIGHT = FP {8.64592170715332};
 
 template <std::floating_point FP>
-constexpr FP SHORT_RANGE_SCALING_STEP = FP {0.05};
+constexpr FP SHORT_RANGE_SCALING_STEP = FP {0.01};
 
 template <std::floating_point FP>
-constexpr FP SHORT_RANGE_CUTOFF = FP {2.2};
+constexpr FP LOWER_SHORT_DISTANCE = FP {2.2};
 
 template <std::floating_point FP>
-constexpr FP LONG_RANGE_CUTOFF_BEGIN = FP {3.8};
+constexpr FP UPPER_SHORT_DISTANCE = FP {2.25};
 
 template <std::floating_point FP>
-constexpr FP LONG_RANGE_CUTOFF_END = FP {4.5};
+constexpr FP LOWER_MIXED_DISTANCE = FP {4.0};
+
+template <std::floating_point FP>
+constexpr FP UPPER_MIXED_DISTANCE = FP {4.5};
 
 }  // namespace constants4b
 
