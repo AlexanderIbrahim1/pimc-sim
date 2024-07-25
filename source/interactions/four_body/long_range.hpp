@@ -10,7 +10,12 @@
 #include <coordinates/cartesian.hpp>
 #include <coordinates/operations.hpp>
 
+#include <interactions/four_body/dispersion_potential.hpp>
+
 namespace interact
+{
+
+namespace long_range
 {
 
 template <std::floating_point FP, std::size_t NDIM>
@@ -18,7 +23,7 @@ class LongRangeEnergyCorrector
 {
 public:
     using Point3D = typename coord::Cartesian<FP, NDIM>;
-    using DispersionPot = typename disp::FourBodyDispersionPotential<FP>;
+    using DispersionPot = typename interact::disp::FourBodyDispersionPotential<FP, NDIM>;
 
     explicit LongRangeEnergyCorrector(
         DispersionPot dispersion_potential,
@@ -108,5 +113,7 @@ private:
         }
     }
 };
+
+}  // namespace long_range
 
 }  // namespace interact

@@ -17,6 +17,9 @@
 namespace interact
 {
 
+namespace trans
+{
+
 constexpr static auto g_n_permutations = std::size_t {24};
 
 // clang-format off
@@ -194,5 +197,7 @@ private:
     ReciprocalFactorTransformer<FP> reciprocal_factor_transformer_;
     ApproximateMinimumPermutationTransformer<FP> permutation_transformer_;
 };
+
+}  // namespace trans
 
 }  // namespace interact

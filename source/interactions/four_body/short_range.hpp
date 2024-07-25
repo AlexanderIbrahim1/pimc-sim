@@ -9,6 +9,9 @@
 namespace interact
 {
 
+namespace short_range
+{
+
 template <std::floating_point FP>
 struct ExtrapolationEnergies
 {
@@ -277,5 +280,7 @@ private:
         }
     }
 };
+
+}  // namespace short_range
 
 }  // namespace interact

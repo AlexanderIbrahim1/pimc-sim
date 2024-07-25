@@ -70,6 +70,9 @@ constexpr auto quadruplet_contribution(
 namespace interact
 {
 
+namespace dict
+{
+
 template <std::floating_point FP, std::size_t NDIM>
 class FourBodyDispersionPotential
 {
@@ -114,5 +117,7 @@ private:
         }
     }
 };
+
+}  // namespace dict
 
 }  // namespace interact

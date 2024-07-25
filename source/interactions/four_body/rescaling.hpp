@@ -13,6 +13,9 @@
 namespace interact
 {
 
+namespace rescale
+{
+
 template <std::floating_point FP>
 struct RescalingLimits
 {
@@ -224,5 +227,7 @@ private:
     mutable torch::jit::script::Module rescaled_module_;  // .forward() is not const
     ReverseEnergyRescaler<FP> reverse_rescaler_;
 };
+
+}  // namespace rescale
 
 }  // namespace interact
