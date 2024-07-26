@@ -134,4 +134,30 @@ constexpr auto box_cutoff_distance_squared(const BoxSides<FP, NDIM>& box) noexce
     return dist * dist;
 }
 
+template <std::floating_point FP, std::size_t NDIM>
+constexpr auto is_point_inside_box_around_origin(const Cartesian<FP, NDIM>& point, const BoxSides<FP, NDIM>& box) noexcept -> bool
+{
+    const auto is_between = [](FP value, FP side_length) {
+        const auto left = - side_length / FP{2.0};
+        const auto right = side_length / FP{2.0};
+
+        return left <= value && value < right;
+    };
+
+    for (std::size_t i {0}; i < NDIM; ++i) {
+        if (!is_between(point[i], box[i])) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+template <std::floating_point FP, std::size_t NDIM>
+constexpr auto is_point_inside_box(const Cartesian<FP, NDIM>& point, const Cartesian<FP, NDIM>& origin, const BoxSides<FP, NDIM>& box) noexcept -> bool
+{
+    return is_point_inside_box_around_origin(point - origin, box);
+}
+
+
 }  // namespace coord

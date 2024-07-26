@@ -2,10 +2,13 @@
 
 #include <algorithm>
 #include <array>
+#include <stdexcept>
 #include <tuple>
+#include <utility>
 
 #include <torch/script.h>
 
+#include <coordinates/attard.hpp>
 #include <interactions/four_body/constants.hpp>
 #include <interactions/four_body/interaction_ranges.hpp>
 #include <interactions/four_body/long_range.hpp>
@@ -15,10 +18,6 @@
 
 namespace interact
 {
-
-/*
-TODO: finish the proper porting; this almost certainly does not compile yet
-*/
 
 template <std::floating_point FP>
 class ExtrapolatedPotential
@@ -249,6 +248,73 @@ private:
             sample = sample.view({sample_size});
             transformer_(sample);
         }
+    }
+};
+
+
+template <std::floating_point FP>
+class BufferedExtrapolatedPotential {
+public:
+    explicit BufferedExtrapolatedPotential(ExtrapolatedPotential<FP> extrap_pot, long int buffer_size)
+        : extrap_pot_ {std::move(extrap_pot)}
+        , buffer_size_ {buffer_size}
+        , number_of_samples_ {0}
+        , total_energy_ {FP{0.0}}
+    {
+        ctr_check_buffer_size_positive_(buffer_size);
+        sample_buffer_ = torch::empty({buffer_size, 6});
+    }
+
+    constexpr auto add_sample(const coord::FourBodyAttardSideLengths<FP>& side_lengths) -> void
+    {
+        if (number_of_samples_ == buffer_size_) {
+            total_energy_ += evaluate_buffer_(number_of_samples_);
+            number_of_samples_ = 0;
+        }
+
+        sample_buffer_[number_of_samples_][0] = side_lengths.dist01;
+        sample_buffer_[number_of_samples_][1] = side_lengths.dist02;
+        sample_buffer_[number_of_samples_][2] = side_lengths.dist03;
+        sample_buffer_[number_of_samples_][3] = side_lengths.dist12;
+        sample_buffer_[number_of_samples_][4] = side_lengths.dist13;
+        sample_buffer_[number_of_samples_][5] = side_lengths.dist23;
+
+        ++number_of_samples_;
+    }
+
+    constexpr auto extract_energy() -> FP {
+        if (number_of_samples_ != 0) {
+            total_energy_ += evaluate_buffer_(number_of_samples_);
+        }
+
+        const auto energy_to_return = total_energy_;
+        total_energy_ = FP{0.0};
+        number_of_samples_ = 0;
+
+        return energy_to_return;
+    }
+
+private:
+    ExtrapolatedPotential<FP> extrap_pot_;
+    long int buffer_size_;
+    long int number_of_samples_;
+    FP total_energy_;
+    torch::Tensor sample_buffer_;
+
+    constexpr auto ctr_check_buffer_size_positive_(long int buffer_size) const -> void {
+        if (buffer_size <= 0) {
+            throw std::runtime_error("The buffer cannot hold a non-positive number of samples.");
+        }
+    }
+
+    constexpr auto evaluate_buffer_(long int number_of_samples) const -> FP {
+        using namespace torch::indexing;
+
+        const auto energies = extrap_pot_.evaluate_batch(
+            sample_buffer_.index({Slice(None, number_of_samples)})
+        );
+
+        return torch::sum(energies).template item<FP>();
     }
 };
 
