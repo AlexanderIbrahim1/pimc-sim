@@ -51,7 +51,7 @@ function(add_test_target)
     target_include_directories(
         ${add_test_target_TARGET}
         ${warning_guard}
-        PUBLIC "${TORCH_INCLUDE_DIRS}"
+        SYSTEM PRIVATE "${TORCH_INCLUDE_DIRS}"
         PRIVATE "${SOURCE_FILES_DIR}"
         PRIVATE "test_utils"
     )
