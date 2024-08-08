@@ -84,47 +84,46 @@ public:
             const auto mid_side_length = torch::min(sample).template item<FP>();
 
             const auto fraction_mid = common_utils::smooth_01_transition(min_side_length, lower, upper);
-            const auto fraction_short = FP{1.0} - fraction_mid;
+            const auto fraction_short = FP {1.0} - fraction_mid;
 
             return fraction_short * short_range_energy + fraction_mid * mid_range_energy;
         };
 
-        const auto calculate_mixed_range_energy = [&i_batch](FP abinitio_energy, const torch::Tensor& sample) {
-            return long_range_corrector_.mixed(abinitio_energy, sample);
-        };
+        const auto calculate_mixed_range_energy = [&i_batch](FP abinitio_energy, const torch::Tensor& sample)
+        { return long_range_corrector_.mixed(abinitio_energy, sample); };
 
-        const auto calculate_long_range_energy = [](const torch::Tensor& sample) {
-            long_range_corrector_.dispersion(sample);
-        };
+        const auto calculate_long_range_energy = [](const torch::Tensor& sample)
+        { long_range_corrector_.dispersion(sample); };
 
         for (long int i_sample {}; i_sample < samples.size(0); ++i_sample) {
             const auto irange = interaction_ranges[static_cast<std::size_t>(i_sample)];
 
             if (irange == IR::ABINITIO_SHORT) {
                 output_energies[i_sample] = calculate_short_range_energy();
-            } else
-            if (irange == IR::ABINITIO_SHORTMID) {
+            }
+            else if (irange == IR::ABINITIO_SHORTMID) {
                 const auto sample = samples[i_sample];
                 output_energies[i_sample] = calculate_shortmid_range_energy(sample);
-            } else
-            if (irange == IR::ABINITIO_MID) {
+            }
+            else if (irange == IR::ABINITIO_MID) {
                 output_energies[i_sample] = calculate_mid_range_energy();
-            } else
-            if (irange == IR::MIXED_SHORT) {
+            }
+            else if (irange == IR::MIXED_SHORT) {
                 const auto sample = samples[i_sample];
                 const abinitio_energy = calculate_short_range_energy();
                 output_energies[i_sample] = calculate_mixed_range_energy(abinitio_energy, sample);
-            } else
-            if (irange == IR::MIXED_SHORTMID) {
+            }
+            else if (irange == IR::MIXED_SHORTMID) {
                 const auto sample = samples[i_sample];
                 const abinitio_energy = calculate_shortmid_range_energy(sample);
                 output_energies[i_sample] = calculate_mixed_range_energy(abinitio_energy, sample);
-            } else
-            if (irange == IR::MIXED_MID) {
+            }
+            else if (irange == IR::MIXED_MID) {
                 const auto sample = samples[i_sample];
                 const abinitio_energy = calculate_mid_range_energy();
                 output_energies[i_sample] = calculate_mixed_range_energy(abinitio_energy, sample);
-            } else {
+            }
+            else {
                 const auto sample = samples[i_sample];
                 output_energies[i_sample] = calculate_long_range_energy(sample)
             }
@@ -251,15 +250,15 @@ private:
     }
 };
 
-
 template <std::floating_point FP>
-class BufferedExtrapolatedPotential {
+class BufferedExtrapolatedPotential
+{
 public:
     explicit BufferedExtrapolatedPotential(ExtrapolatedPotential<FP> extrap_pot, long int buffer_size)
         : extrap_pot_ {std::move(extrap_pot)}
         , buffer_size_ {buffer_size}
         , number_of_samples_ {0}
-        , total_energy_ {FP{0.0}}
+        , total_energy_ {FP {0.0}}
     {
         ctr_check_buffer_size_positive_(buffer_size);
         sample_buffer_ = torch::empty({buffer_size, 6});
@@ -282,13 +281,14 @@ public:
         ++number_of_samples_;
     }
 
-    constexpr auto extract_energy() -> FP {
+    constexpr auto extract_energy() -> FP
+    {
         if (number_of_samples_ != 0) {
             total_energy_ += evaluate_buffer_(number_of_samples_);
         }
 
         const auto energy_to_return = total_energy_;
-        total_energy_ = FP{0.0};
+        total_energy_ = FP {0.0};
         number_of_samples_ = 0;
 
         return energy_to_return;
@@ -301,18 +301,18 @@ private:
     FP total_energy_;
     torch::Tensor sample_buffer_;
 
-    constexpr auto ctr_check_buffer_size_positive_(long int buffer_size) const -> void {
+    constexpr auto ctr_check_buffer_size_positive_(long int buffer_size) const -> void
+    {
         if (buffer_size <= 0) {
             throw std::runtime_error("The buffer cannot hold a non-positive number of samples.");
         }
     }
 
-    constexpr auto evaluate_buffer_(long int number_of_samples) const -> FP {
+    constexpr auto evaluate_buffer_(long int number_of_samples) const -> FP
+    {
         using namespace torch::indexing;
 
-        const auto energies = extrap_pot_.evaluate_batch(
-            sample_buffer_.index({Slice(None, number_of_samples)})
-        );
+        const auto energies = extrap_pot_.evaluate_batch(sample_buffer_.index({Slice(None, number_of_samples)}));
 
         return torch::sum(energies).template item<FP>();
     }
