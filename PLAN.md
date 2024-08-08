@@ -171,3 +171,4 @@ To make this nicer, we could create classes that wrap together:
   + this is because the 3B potential estimator is actually much slower than the 3B potential sampler
     + the time complexity makes a difference!
     + I might want to skip calling the estimator so I can go through more states in a simulation
+- come up with ideas for unit tests for the four-body PES

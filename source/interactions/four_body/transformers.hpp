@@ -181,6 +181,29 @@ class SampleTransformer
 public:
     explicit SampleTransformer(
         ReciprocalFactorTransformer<FP> reciprocal_factor_transformer,
+        MinimumPermutationTransformer<FP> permutation_transformer
+    )
+        : reciprocal_factor_transformer_ {reciprocal_factor_transformer}
+        , permutation_transformer_ {permutation_transformer}
+    {}
+
+    constexpr auto operator()(torch::Tensor& values) const
+    {
+        reciprocal_factor_transformer_(values);
+        permutation_transformer_(values);
+    }
+
+private:
+    ReciprocalFactorTransformer<FP> reciprocal_factor_transformer_;
+    MinimumPermutationTransformer<FP> permutation_transformer_;
+};
+
+template <std::floating_point FP>
+class ApproximateSampleTransformer
+{
+public:
+    explicit SampleTransformer(
+        ReciprocalFactorTransformer<FP> reciprocal_factor_transformer,
         ApproximateMinimumPermutationTransformer<FP> permutation_transformer
     )
         : reciprocal_factor_transformer_ {reciprocal_factor_transformer}
