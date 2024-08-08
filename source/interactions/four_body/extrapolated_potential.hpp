@@ -19,14 +19,14 @@
 namespace interact
 {
 
-template <std::floating_point FP>
+template <std::floating_point FP, std::size_t NDIM>
 class ExtrapolatedPotential
 {
 public:
     using IR = interact_ranges::InteractionRange;
     using RescalingModel = typename rescale::RescalingEnergyModel<FP>;
     using SampleTransformer = typename trans::SampleTransformer<FP>;
-    using LongRangeEnergyCorrector = typename long_range::LongRangeEnergyCorrector<FP>;
+    using LongRangeEnergyCorrector = typename long_range::LongRangeEnergyCorrector<FP, NDIM>;
     using ShortRangeDataPreparer = typename short_range::ShortRangeDataPreparer<FP>;
     using ShortRangeEnergyCorrector = typename short_range::ShortRangeEnergyCorrector<FP>;
     using DistanceInfo = typename short_range::ExtrapolationDistanceInfo<FP>;
@@ -250,11 +250,11 @@ private:
     }
 };
 
-template <std::floating_point FP>
+template <std::floating_point FP, std::size_t NDIM>
 class BufferedExtrapolatedPotential
 {
 public:
-    explicit BufferedExtrapolatedPotential(ExtrapolatedPotential<FP> extrap_pot, long int buffer_size)
+    explicit BufferedExtrapolatedPotential(ExtrapolatedPotential<FP, NDIM> extrap_pot, long int buffer_size)
         : extrap_pot_ {std::move(extrap_pot)}
         , buffer_size_ {buffer_size}
         , number_of_samples_ {0}
@@ -295,7 +295,7 @@ public:
     }
 
 private:
-    ExtrapolatedPotential<FP> extrap_pot_;
+    ExtrapolatedPotential<FP, NDIM> extrap_pot_;
     long int buffer_size_;
     long int number_of_samples_;
     FP total_energy_;

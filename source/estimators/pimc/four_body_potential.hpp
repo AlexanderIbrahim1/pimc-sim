@@ -6,13 +6,11 @@
 #include <vector>
 
 #include <coordinates/attard.hpp>
+#include <coordinates/box_sides.hpp>
 #include <coordinates/cartesian.hpp>
 #include <coordinates/measure.hpp>
 #include <coordinates/periodic_shift.hpp>
 #include <interactions/four_body/extrapolated_potential.hpp>
-#include <worldline/worldline.hpp>
-
-#include "periodic_shift.hpp"
 
 namespace estim
 {
@@ -21,39 +19,39 @@ namespace estim
 template <std::floating_point FP, std::size_t NDIM>
 auto calculate_four_body_potential_energy_preshift_inner_loops(
     std::size_t i0,
-    interact::BufferedExtrapolatedPotential<FP>& buffered_extrap_pot,
-    const worldline::Worldline<FP, NDIM>& worldline,
+    interact::BufferedExtrapolatedPotential<FP, NDIM>& buffered_extrap_pot,
+    const std::vector<coord::Cartesian<FP, NDIM>>& particles,
     FP cutoff_distance_sq
 ) -> void
 {
-    std::size_t i1_final = worldline.size() - 2;
-    std::size_t i2_final = worldline.size() - 1;
-    std::size_t i3_final = worldline.size();
+    const auto i1_final = particles.size() - 2;
+    const auto i2_final = particles.size() - 1;
+    const auto i3_final = particles.size();
 
     for (std::size_t i1 {i0 + 1}; i1 < i1_final; ++i1) {
-        const auto dist01_sq = coord::distance_squared(worldline[i0], worldline[i1]);
+        const auto dist01_sq = coord::distance_squared(particles[i0], particles[i1]);
         if (dist01_sq > cutoff_distance_sq)
             continue;
 
         for (std::size_t i2 {i1 + 1}; i2 < i2_final; ++i2) {
-            const auto dist02_sq = coord::distance_squared(worldline[i0], worldline[i2]);
+            const auto dist02_sq = coord::distance_squared(particles[i0], particles[i2]);
             if (dist02_sq > cutoff_distance_sq)
                 continue;
 
-            const auto dist12_sq = coord::distance_squared(worldline[i1], worldline[i2]);
+            const auto dist12_sq = coord::distance_squared(particles[i1], particles[i2]);
             if (dist12_sq > cutoff_distance_sq)
                 continue;
 
             for (std::size_t i3 {i2 + 1}; i3 < i3_final; ++i3) {
-                const auto dist03_sq = coord::distance_squared(worldline[i0], worldline[i3]);
+                const auto dist03_sq = coord::distance_squared(particles[i0], particles[i3]);
                 if (dist03_sq > cutoff_distance_sq)
                     continue;
 
-                const auto dist13_sq = coord::distance_squared(worldline[i1], worldline[i3]);
+                const auto dist13_sq = coord::distance_squared(particles[i1], particles[i3]);
                 if (dist13_sq > cutoff_distance_sq)
                     continue;
 
-                const auto dist23_sq = coord::distance_squared(worldline[i2], worldline[i3]);
+                const auto dist23_sq = coord::distance_squared(particles[i2], particles[i3]);
                 if (dist23_sq > cutoff_distance_sq)
                     continue;
 
@@ -70,22 +68,25 @@ auto calculate_four_body_potential_energy_preshift_inner_loops(
     }
 }
 
-template <std::floating_ppint FP, std::size_t NDIM>
+// MODIFIED
+template <std::floating_point FP, std::size_t NDIM>
 auto calculate_total_four_body_potential_energy_preshift(
-    interact::BufferedExtrapolatedPotential<FP>& buffered_extrap_pot,
-    const worldline::WorldLine<FloatingType>& particles,
-    const coord::Cartesian3D<FloatingType>& periodic_box,
-    FloatingType cutoff_distance
-) -> FloatingType
+    interact::BufferedExtrapolatedPotential<FP, NDIM>& buffered_extrap_pot,
+    const std::vector<coord::Cartesian<FP, NDIM>>& particles,
+    const coord::BoxSides<FP, NDIM>& periodix_box,
+    FP cutoff_distance
+) -> FP
 {
     if (particles.size() < 4) {
         return FloatingType {0.0};
     }
 
-    std::size_t i0_final = particles.size() - 3;
+    const auto i0_final = particles.size() - 3;
     const auto cutoff_distance_sq = cutoff_distance * cutoff_distance;
 
     for (std::size_t i0 {}; i0 < i0_final; ++i0) {
+        // NOTE: possible optimization here by reusing the same vector memory each time we
+        //       calculate `shifted_particles`; revisit if performance becomes an issue
         const auto shifted_particles = coord::shift_points_together(i0, periodic_box, particles);
         calculate_four_body_potential_energy_preshift_inner_loops(
             i0, buffered_extrap_pot, shifted_particles, cutoff_distance_sq
@@ -95,14 +96,15 @@ auto calculate_total_four_body_potential_energy_preshift(
     return buffered_extrap_pot.extract_energy();
 }
 
-template <typename FloatingType>
+// MODIFIED
+template <std::floating_point FP, std::size_t NDIM>
 auto calculate_four_body_potential_energy_preshift_felt_by(
     std::size_t i0,
-    interact::BufferedExtrapolatedPotential<FloatingType>& buffered_extrap_pot,
-    const worldline::WorldLine<FloatingType>& particles,
-    const coord::Cartesian3D<FloatingType>& periodic_box,
-    FloatingType cutoff_distance
-) -> FloatingType
+    interact::BufferedExtrapolatedPotential<FP, NDIM>& buffered_extrap_pot,
+    const std::vector<coord::Cartesian<FP, NDIM>>& particles,
+    const coord::BoxSides<FP, NDIM>& periodic_box,
+    FP cutoff_distance
+) -> FP
 {
     if (particles.size() < 4) {
         return FloatingType {0.0};
@@ -123,13 +125,14 @@ auto calculate_four_body_potential_energy_preshift_felt_by(
     return four_body_energy;
 }
 
-template <typename FloatingType>
+// MODIFIED
+template <std::floating_point FP, std::size_t NDIM>
 auto calculate_total_four_body_potential_energy_fast(
-    interact::BufferedExtrapolatedPotential<FloatingType>& buffered_extrap_pot,
-    const worldline::WorldLine<FloatingType>& particles,
-    const coord::Cartesian3D<FloatingType>& periodic_box,
-    FloatingType cutoff_distance
-) -> FloatingType
+    interact::BufferedExtrapolatedPotential<FP, NDIM>& buffered_extrap_pot,
+    const std::vector<coord::Cartesian<FP, NDIM>>& particles,
+    const coord::BoxSides<FP, NDIM>& periodic_box,
+    FP cutoff_distance
+) -> FP
 {
     using ERT = attard::EarlyResultType;
 
