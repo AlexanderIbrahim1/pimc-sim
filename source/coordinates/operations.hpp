@@ -23,7 +23,7 @@ constexpr auto dot_product(const Cartesian<FP, NDIM>& point0, const Cartesian<FP
     return result;
 }
 
-template <std::floating_point FP>
+template <std::floating_point FP, std::size_t NDIM>
 constexpr auto six_side_lengths_to_cartesian(FP r01, FP r02, FP r03, FP r12, FP r13, FP r23, FP tolerance)
 {
     /*

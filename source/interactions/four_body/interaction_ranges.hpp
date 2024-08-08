@@ -49,17 +49,26 @@ constexpr auto classify_interaction_range(const FP* begin, const FP* end) noexce
         return IR::LONG;
     }
 
-    const auto is_abinitio = [&](FP x) { return x < constants4b::LOWER_MIXED_DISTANCE<FP>; };
-    const auto is_short = [&](const FP* begin_, const FP* end_)
-    { return std::any_of(begin_, end_, [](FP x) { return x < constants4b::LOWER_SHORT_DISTANCE<FP>; }) };
+    // clang-format off
+    const auto is_abinitio = [&](FP x) {
+        return x < constants4b::LOWER_MIXED_DISTANCE<FP>;
+    };
+
+    const auto is_short = [&](const FP* begin_, const FP* end_) {
+        return std::any_of(begin_, end_, [](FP x) {
+            return x < constants4b::LOWER_SHORT_DISTANCE<FP>;
+        });
+    };
+
     const auto is_shortmid = [&](const FP* begin_, const FP* end_)
     {
         return std::any_of(
             begin_,
             end_,
             [](FP x) { return constants4b::LOWER_SHORT_DISTANCE<FP> <= x && x < constants4b::UPPER_SHORT_DISTANCE<FP>; }
-        )
+        );
     };
+    // clang-format on
 
     if (is_abinitio(average_side_length)) {
         if (is_short(begin, end)) {

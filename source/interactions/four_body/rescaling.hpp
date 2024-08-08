@@ -212,7 +212,7 @@ public:
         {
             rescaled_module_.eval();
             torch::NoGradGuard no_grad;
-            return m_rescaled_module.forward({x_data}).toTensor();
+            return rescaled_module_.forward({x_data}).toTensor();
         }();
 
         for (long int i {}; i < n_samples; ++i) {

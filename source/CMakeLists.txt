@@ -33,9 +33,9 @@ target_compile_features(
 target_include_directories(
     pimc-sim_exe
     ${warning_guard}
+    PUBLIC "${TORCH_INCLUDE_DIRS}"
     PUBLIC "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/source>"
     PUBLIC "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/extern>"
-    PUBLIC "${TORCH_INCLUDE_DIRS}"
 )
 
 target_link_libraries(

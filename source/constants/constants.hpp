@@ -26,13 +26,4 @@ constexpr double BOLTZMANN_CONSTANT_IN_JOULES_PER_KELVIN<double> = 1.380'649e-23
 template <>
 constexpr float BOLTZMANN_CONSTANT_IN_JOULES_PER_KELVIN<float> = 1.380'649e-23f;
 
-template <std::floating_point FP>
-static constexpr FP PI_CONST;
-
-template <>
-constexpr double PI_VALUE<double> = static_cast<double>(M_PI);
-
-template <>
-constexpr float PI_VALUE<float> = static_cast<float>(M_PI);
-
 }  // namespace constants

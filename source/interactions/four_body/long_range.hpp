@@ -23,7 +23,7 @@ class LongRangeEnergyCorrector
 {
 public:
     using Point3D = typename coord::Cartesian<FP, NDIM>;
-    using DispersionPot = typename interact::disp::FourBodyDispersionPotential<FP, NDIM>;
+    using DispersionPot = typename disp::FourBodyDispersionPotential<FP, NDIM>;
 
     explicit LongRangeEnergyCorrector(
         DispersionPot dispersion_potential,
@@ -51,7 +51,7 @@ public:
     template <typename Container>
     constexpr auto mixed(FP abinitio_energy, const Container& pair_distances) const -> FP
     {
-        const auto& [r01, r02, r03, r12, r13, r23] = unpack_six_side_lengths_<FP>(pair_distances);
+        const auto& [r01, r02, r03, r12, r13, r23] = unpack_six_side_lengths_<Container>(pair_distances);
         const auto& [p0, p1, p2, p3] = coord::six_side_lengths_to_cartesian(r01, r02, r03, r12, r13, r23);
         const auto average_sidelength = common_utils::calculate_mean(r01, r02, r03, r12, r13, r23);
 
@@ -95,7 +95,7 @@ private:
         return common_utils::smooth_01_transition(average_sidelength, long_range_cutoff_begin_, long_range_cutoff_end_);
     }
 
-    template <std::floating_point FP, typename Container>
+    template <typename Container>
     constexpr auto unpack_six_side_lengths_(const Container& pair_distances)
     {
         if constexpr (std::is_same_v<Container, torch::Tensor>) {

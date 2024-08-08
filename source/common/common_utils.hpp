@@ -3,6 +3,7 @@
 #include <cmath>
 #include <concepts>
 #include <iterator>
+#include <numbers>
 #include <tuple>
 
 namespace common_utils
@@ -28,7 +29,7 @@ constexpr auto smooth_01_transition(FP x, FP x_min, FP x_max) -> FP
     }
     else {
         FP k = (x - x_min) / (x_max - x_min);
-        FP inner = FP {1.0} - std::cos(PI_CONST<FP> * k);
+        FP inner = FP {1.0} - std::cos(std::numbers::pi_v<FP> * k);
         return FP {0.5} * inner;
     }
 }

@@ -19,13 +19,13 @@
 namespace interact
 {
 
-template <std::floating_point FP, std::size_t NDIM>
+template <std::floating_point FP, std::size_t NDIM, typename InputSampleTransformer>
 class ExtrapolatedPotential
 {
 public:
     using IR = interact_ranges::InteractionRange;
     using RescalingModel = typename rescale::RescalingEnergyModel<FP>;
-    using SampleTransformer = typename trans::SampleTransformer<FP>;
+    using SampleTransformer = typename InputSampleTransformer;
     using LongRangeEnergyCorrector = typename long_range::LongRangeEnergyCorrector<FP, NDIM>;
     using ShortRangeDataPreparer = typename short_range::ShortRangeDataPreparer<FP>;
     using ShortRangeEnergyCorrector = typename short_range::ShortRangeEnergyCorrector<FP>;
@@ -34,7 +34,7 @@ public:
 
     ExtrapolatedPotential(
         RescalingModel rescaling_model,
-        SampleTransformer transformer,
+        InputSampleTransformer transformer,
         LongRangeEnergyCorrector long_range_corrector,
         ShortRangeDataPreparer short_range_preparer,
         ShortRangeEnergyCorrector short_range_corrector
@@ -134,7 +134,7 @@ public:
 
 private:
     RescalingModel rescaling_model_;
-    SampleTransformer transformer_;
+    InputSampleTransformer transformer_;
     LongRangeEnergyCorrector long_range_corrector_;
     ShortRangeDataPreparer short_range_preparer_;
     ShortRangeEnergyCorrector short_range_corrector_;

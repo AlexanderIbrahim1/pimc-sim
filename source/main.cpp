@@ -189,17 +189,17 @@ auto create_histogram(
 
 auto main() -> int
 {
-    // const auto rescaling_limits = interact::RescalingLimits {1.0, 2.0, 3.0, 4.0};
-    // const auto rescaling_function = interact::RescalingFunction {1.0, 1.0, 1.0};
-    // const auto forward_rescaler = interact::ForwardEnergyRescaler {rescaling_function, rescaling_limits};
+    const auto rescaling_limits = interact::rescale::RescalingLimits {1.0, 2.0, 3.0, 4.0};
+    const auto rescaling_function = interact::rescale::RescalingFunction {1.0, 1.0, 1.0};
+    const auto forward_rescaler = interact::rescale::ForwardEnergyRescaler {rescaling_function, rescaling_limits};
 
-    // const auto side_length_groups = torch::tensor({{1.0, 2.0, 3.0, 4.0, 5.0, 6.0}}, torch::dtype(torch::kFloat64));
-    // auto energies_to_rescale = torch::tensor({{6.0}}, torch::dtype(torch::kFloat64));
+    const auto side_length_groups = torch::tensor({{1.0, 2.0, 3.0, 4.0, 5.0, 6.0}}, torch::dtype(torch::kFloat64));
+    auto energies_to_rescale = torch::tensor({{6.0}}, torch::dtype(torch::kFloat64));
 
-    // interact::forward_rescale_energies(forward_rescaler, side_length_groups, energies_to_rescale);
+    interact::rescale::forward_rescale_energies(forward_rescaler, side_length_groups, energies_to_rescale);
 
-    // std::cout << "RESULT: " << energies_to_rescale[0].item<double>() << '\n';
-    // std::exit(EXIT_SUCCESS);
+    std::cout << "RESULT: " << energies_to_rescale[0].item<double>() << '\n';
+    std::exit(EXIT_SUCCESS);
 
     namespace fs = std::filesystem;
 

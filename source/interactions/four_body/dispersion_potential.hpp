@@ -14,7 +14,7 @@ namespace impl_interact_dispersion
 template <std::floating_point FP, std::size_t NDIM>
 struct MagnitudeAndDirection
 {
-    coord::Cartesian3D<FP, NDIM> direction;
+    coord::Cartesian<FP, NDIM> direction;
     FP magnitude;
 };
 
@@ -70,7 +70,7 @@ constexpr auto quadruplet_contribution(
 namespace interact
 {
 
-namespace dict
+namespace disp
 {
 
 template <std::floating_point FP, std::size_t NDIM>

@@ -16,9 +16,7 @@
 #include <interactions/four_body/rescaling.hpp>
 #include <interactions/four_body/short_range.hpp>
 #include <interactions/four_body/transformers.hpp>
-
-// TODO: add a compile-time switch to determine which of the input transformers to use in the
-// final published model
+#include <interactions/four_body/extrapolated_potential.hpp>
 
 namespace interact
 {
@@ -81,4 +79,52 @@ auto get_transformer()
     }
 }
 
+template <std::size_t NDIM>
+auto get_long_range_energy_corrector() {
+    return interact::long_range::LongRangeEnergyCorrector<float, NDIM> {
+        interact::disp::FourBodyDispersionPotential<float, NDIM> {interact::constants4b::BADE_COEFF_AVTZ<float>},
+        interact::constants4b::LOWER_MIXED_DISTANCE<float>,
+        interact::constants4b::UPPER_MIXED_DISTANCE<float>
+    };
+}
+
+inline auto get_short_range_data_preparer() {
+    // NOTE: the second parameter is UPPER_SHORT_DISTANCE in the python code, but I think that
+    // might be a mistake? I'll take a closer look at it later
+    return interact::short_range::ShortRangeDataPreparer<float> {
+        interact::constants4b::SHORT_RANGE_SCALING_STEP<float>,
+        interact::constants4b::LOWER_SHORT_DISTANCE<float>
+    };
+}
+
+inline auto get_short_range_energy_corrector() {
+    return interact::short_range::ShortRangeEnergyCorrector<float> {
+        interact::constants4b::SHORT_RANGE_CORRECT_SLOPE_MIN<float>,
+        interact::constants4b::SHORT_RANGE_CORRECT_SLOPE_MAX<float>
+    };
+}
+
 }  // namespace impl_interact_published_model
+
+namespace interact
+{
+
+template <std::size_t NDIM, interact::PermutationTransformerFlag Flag>
+auto get_published_four_body_potential(const std::filesystem::path& rescaled_module_path)
+{
+    auto rescaling_energy_model = impl_interact_published_model::get_rescaling_energy_model(rescaled_module_path);
+    auto transformer = impl_interact_published_model::get_transformer<Flag>();
+    auto long_range_energy_corrector = impl_interact_published_model::get_long_range_energy_corrector<NDIM>();
+    auto short_range_data_preparer = impl_interact_published_model::get_short_range_data_preparer();
+    auto short_range_energy_corrector = impl_interact_published_model::get_short_range_energy_corrector();
+
+    return interact::ExtrapolatedPotential<float, NDIM, decltype(transformer)> {
+        std::move(rescaling_energy_model),
+        std::move(transformer),
+        std::move(long_range_energy_corrector),
+        std::move(short_range_data_preparer),
+        std::move(short_range_energy_corrector)
+    };
+}
+
+}  // namespace interact

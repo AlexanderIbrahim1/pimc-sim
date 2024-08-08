@@ -17,6 +17,12 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 include(Catch)
 
+# ---- Get Torch ----
+
+find_package(Torch REQUIRED)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
+
 # ---- Get access to multiple argument parser ----
 include(CMakeParseArguments)
 
@@ -36,7 +42,6 @@ function(add_test_target)
         ${add_test_target_TARGET}
         ${add_test_target_SOURCES}
     )
-    # "test_utils/filesearch.cpp"
 
     target_compile_features(
         ${add_test_target_TARGET}
@@ -46,6 +51,7 @@ function(add_test_target)
     target_include_directories(
         ${add_test_target_TARGET}
         ${warning_guard}
+        PUBLIC "${TORCH_INCLUDE_DIRS}"
         PRIVATE "${SOURCE_FILES_DIR}"
         PRIVATE "test_utils"
     )
@@ -67,6 +73,7 @@ add_test_target(TARGET unit_cell_translations_test SOURCES "source/unit_cell_tra
 add_test_target(TARGET lattce_test SOURCES "source/lattice_test.cpp")
 add_test_target(TARGET linear_interp_test SOURCES "source/linear_interp_test.cpp")
 add_test_target(TARGET fsh_potential_test SOURCES "source/fsh_potential_test.cpp" "test_utils/test_utils.cpp")
+add_test_target(TARGET four_body_test SOURCES "source/four_body_test.cpp" "test_utils/test_utils.cpp")
 add_test_target(TARGET grid2d_test SOURCES "source/grid2d_test.cpp")
 add_test_target(TARGET bisection_level_manager_test SOURCES "source/bisection_level_manager_test.cpp")
 add_test_target(TARGET square_adjacency_matrix_test SOURCES "source/square_adjacency_matrix_test.cpp")
