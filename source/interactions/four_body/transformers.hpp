@@ -140,17 +140,17 @@ public:
 private:
     constexpr auto argmin_over_(const torch::Tensor& values, std::size_t i_second) const -> std::size_t
     {
-        const auto offset = N_SECOND_INDICES * i_second;
-        const auto it_start = SECOND_INDICES.cbegin() + offset;
+        const auto offset = g_n_second_indices * i_second;
+        const auto it_start = g_second_indices.cbegin() + offset;
 
         const auto idx_start = static_cast<long>(*it_start);
-        auto min_value = values[idx_start].item<FP>();
+        auto min_value = values[idx_start].template item<FP>();
 
         auto i_enum_min = std::size_t {};
-        for (std::size_t i_enum {1}; i_enum < N_SECOND_INDICES; ++i_enum) {
+        for (std::size_t i_enum {1}; i_enum < g_n_second_indices; ++i_enum) {
             const auto it = it_start + i_enum;
             const auto idx = static_cast<long>(*it);
-            const auto new_value = values[idx].item<FP>();
+            const auto new_value = values[idx].template item<FP>();
 
             if (new_value < min_value) {
                 min_value = new_value;
@@ -202,7 +202,7 @@ template <std::floating_point FP>
 class ApproximateSampleTransformer
 {
 public:
-    explicit SampleTransformer(
+    explicit ApproximateSampleTransformer(
         ReciprocalFactorTransformer<FP> reciprocal_factor_transformer,
         ApproximateMinimumPermutationTransformer<FP> permutation_transformer
     )

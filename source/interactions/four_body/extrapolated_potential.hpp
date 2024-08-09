@@ -25,7 +25,6 @@ class ExtrapolatedPotential
 public:
     using IR = interact_ranges::InteractionRange;
     using RescalingModel = typename rescale::RescalingEnergyModel<FP>;
-    using SampleTransformer = typename InputSampleTransformer;
     using LongRangeEnergyCorrector = typename long_range::LongRangeEnergyCorrector<FP, NDIM>;
     using ShortRangeDataPreparer = typename short_range::ShortRangeDataPreparer<FP>;
     using ShortRangeEnergyCorrector = typename short_range::ShortRangeEnergyCorrector<FP>;
@@ -62,7 +61,8 @@ public:
         long int i_batch {};
         std::size_t i_dist_info {};
 
-        const auto calculate_short_range_energy = [&i_dist_info, &i_batch]()
+        // clang-format off
+        const auto calculate_short_range_energy = [&]()
         {
             const auto dist_info = distance_infos[i_dist_info++];
             const auto lower_energy = batch_energies[i_batch++].template item<FP>();
@@ -72,16 +72,19 @@ public:
             return short_range_corrector_(extrap_energies, dist_info);
         };
 
-        const auto calculate_mid_range_energy = [&i_batch]() { return batch_energies[i_batch++].template item<FP>(); };
+        const auto calculate_mid_range_energy = [&]()
+        {
+            return batch_energies[i_batch++].template item<FP>();
+        };
 
-        const auto calculate_shortmid_range_energy = [&i_dist_info, &i_batch](const torch::Tensor& sample)
+        const auto calculate_shortmid_range_energy = [&](const torch::Tensor& sample)
         {
             constexpr auto lower = constants4b::LOWER_SHORT_DISTANCE<FP>;
             constexpr auto upper = constants4b::UPPER_SHORT_DISTANCE<FP>;
             const auto short_range_energy = calculate_short_range_energy();
             const auto mid_range_energy = calculate_mid_range_energy();
 
-            const auto mid_side_length = torch::min(sample).template item<FP>();
+            const auto min_side_length = torch::min(sample).template item<FP>();
 
             const auto fraction_mid = common_utils::smooth_01_transition(min_side_length, lower, upper);
             const auto fraction_short = FP {1.0} - fraction_mid;
@@ -89,11 +92,16 @@ public:
             return fraction_short * short_range_energy + fraction_mid * mid_range_energy;
         };
 
-        const auto calculate_mixed_range_energy = [&i_batch](FP abinitio_energy, const torch::Tensor& sample)
-        { return long_range_corrector_.mixed(abinitio_energy, sample); };
+        const auto calculate_mixed_range_energy = [&](FP abinitio_energy, const torch::Tensor& sample)
+        {
+            return long_range_corrector_.mixed(abinitio_energy, sample);
+        };
 
-        const auto calculate_long_range_energy = [](const torch::Tensor& sample)
-        { long_range_corrector_.dispersion(sample); };
+        const auto calculate_long_range_energy = [&](const torch::Tensor& sample)
+        {
+            return long_range_corrector_.dispersion(sample);
+        };
+        // clang-format on
 
         for (long int i_sample {}; i_sample < samples.size(0); ++i_sample) {
             const auto irange = interaction_ranges[static_cast<std::size_t>(i_sample)];
@@ -110,22 +118,22 @@ public:
             }
             else if (irange == IR::MIXED_SHORT) {
                 const auto sample = samples[i_sample];
-                const abinitio_energy = calculate_short_range_energy();
+                const auto abinitio_energy = calculate_short_range_energy();
                 output_energies[i_sample] = calculate_mixed_range_energy(abinitio_energy, sample);
             }
             else if (irange == IR::MIXED_SHORTMID) {
                 const auto sample = samples[i_sample];
-                const abinitio_energy = calculate_shortmid_range_energy(sample);
+                const auto abinitio_energy = calculate_shortmid_range_energy(sample);
                 output_energies[i_sample] = calculate_mixed_range_energy(abinitio_energy, sample);
             }
             else if (irange == IR::MIXED_MID) {
                 const auto sample = samples[i_sample];
-                const abinitio_energy = calculate_mid_range_energy();
+                const auto abinitio_energy = calculate_mid_range_energy();
                 output_energies[i_sample] = calculate_mixed_range_energy(abinitio_energy, sample);
             }
             else {
                 const auto sample = samples[i_sample];
-                output_energies[i_sample] = calculate_long_range_energy(sample)
+                output_energies[i_sample] = calculate_long_range_energy(sample);
             }
         }
 
@@ -144,14 +152,14 @@ private:
         const long int n_samples = samples.size(0);
         const long int sample_size = samples.size(1);
 
-        auto interaction_ranges = std::vector<interact::InteractionRange> {};
+        auto interaction_ranges = std::vector<IR> {};
         interaction_ranges.reserve(static_cast<std::size_t>(n_samples));
 
         for (long int i = 0; i < n_samples; ++i) {
             const auto* sample_begin = samples.data_ptr<FP>() + i * sample_size;
             const auto* sample_end = sample_begin + sample_size;
 
-            const auto irange = interact_range::classify_interaction_range(sample_begin, sample_end);
+            const auto irange = interact_ranges::classify_interaction_range(sample_begin, sample_end);
             interaction_ranges.push_back(irange);
         }
 
@@ -196,7 +204,8 @@ private:
 
         long int i_batch {};
 
-        const auto push_short_sample = [&batch_sidelengths, &i_batch](const torch::Tensor& sample)
+        // clang-format off
+        const auto push_short_sample = [&](const torch::Tensor& sample)
         {
             const auto* begin = sample.data_ptr<FP>();
             const auto* end = begin + sample.numel();
@@ -212,17 +221,20 @@ private:
             ++i_batch;
         };
 
-        const auto push_unmodified_sample = [&batch_sidelengths, &i_batch](const torch::Tensor& sample)
-        { batch_sidelengths[i_batch++] = torch::from_blob(sample.template data_ptr<FP>(), {6}); };
+        const auto push_unmodified_sample = [&](const torch::Tensor& sample)
+        {
+            batch_sidelengths[i_batch++] = torch::from_blob(sample.template data_ptr<FP>(), {6});
+        };
+        // clang-format on
 
         for (std::size_t i_sample {}; i_sample < interaction_ranges.size(); ++i_sample) {
             const auto irange = interaction_ranges[i_sample];
             const auto sample = input_sidelengths[static_cast<long int>(i_sample)];
 
-            if (irange == IR::ABINITIO_SHORT || ir == IR::MIXED_SHORT) {
+            if (irange == IR::ABINITIO_SHORT || irange == IR::MIXED_SHORT) {
                 push_short_sample(sample);
             }
-            else if (irange == IR::ABINITIO_SHORTMID || ir == IR::MIXED_SHORTMID) {
+            else if (irange == IR::ABINITIO_SHORTMID || irange == IR::MIXED_SHORTMID) {
                 push_short_sample(sample);
                 push_unmodified_sample(sample);
             }
@@ -250,11 +262,13 @@ private:
     }
 };
 
-template <std::floating_point FP, std::size_t NDIM>
+template <std::floating_point FP, std::size_t NDIM, typename InputSampleTransformer>
 class BufferedExtrapolatedPotential
 {
 public:
-    explicit BufferedExtrapolatedPotential(ExtrapolatedPotential<FP, NDIM> extrap_pot, long int buffer_size)
+    using ExtrapPotential = ExtrapolatedPotential<FP, NDIM, InputSampleTransformer>;
+
+    explicit BufferedExtrapolatedPotential(ExtrapPotential extrap_pot, long int buffer_size)
         : extrap_pot_ {std::move(extrap_pot)}
         , buffer_size_ {buffer_size}
         , number_of_samples_ {0}
@@ -295,7 +309,7 @@ public:
     }
 
 private:
-    ExtrapolatedPotential<FP, NDIM> extrap_pot_;
+    ExtrapPotential extrap_pot_;
     long int buffer_size_;
     long int number_of_samples_;
     FP total_energy_;

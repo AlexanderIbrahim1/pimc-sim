@@ -14,10 +14,10 @@ namespace interact_ranges
 {
 
 template <std::floating_point FP>
-constexpr auto mean_of_six(FP const* const begin, FP const* const end) -> FP
+constexpr auto mean_of_six(const FP* begin, const FP* end) -> FP
 {
     const auto add = [](FP x, FP y) { return x + y; };
-    auto total = std::accumulate(begin, end, add, FP {});
+    const auto total = std::accumulate(begin, end, FP {}, add);
     return total / FP {6.0};
 }
 

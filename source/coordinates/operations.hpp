@@ -5,6 +5,7 @@
 #include <tuple>
 
 #include <coordinates/cartesian.hpp>
+#include <coordinates/constants.hpp>
 #include <coordinates/measure.hpp>
 
 namespace coord

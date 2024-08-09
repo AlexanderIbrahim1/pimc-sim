@@ -64,6 +64,38 @@ function(add_test_target)
     catch_discover_tests(${add_test_target_TARGET})
 endfunction()
 
+function(add_test_target_with_torch)
+    set(ONE_VALUE_ARGS TARGET)
+    set(MULTI_VALUE_ARGS SOURCES)
+    cmake_parse_arguments(add_test_target "" "${ONE_VALUE_ARGS}" "${MULTI_VALUE_ARGS}" "${ARGN}")
+
+    add_executable(
+        ${add_test_target_TARGET}
+        ${add_test_target_SOURCES}
+    )
+
+    target_compile_features(
+        ${add_test_target_TARGET}
+        PRIVATE cxx_std_20
+    )
+
+    target_include_directories(
+        ${add_test_target_TARGET}
+        ${warning_guard}
+        SYSTEM PRIVATE "${TORCH_INCLUDE_DIRS}"
+        PRIVATE "${SOURCE_FILES_DIR}"
+        PRIVATE "test_utils"
+    )
+
+    target_link_libraries(
+        ${add_test_target_TARGET}
+        PRIVATE Catch2::Catch2WithMain
+        PRIVATE "${TORCH_LIBRARIES}"
+    )
+
+    catch_discover_tests(${add_test_target_TARGET})
+endfunction()
+
 add_test_target(TARGET cartesian_test SOURCES "source/cartesian_test.cpp")
 add_test_target(TARGET measure_test SOURCES "source/measure_test.cpp")
 add_test_target(TARGET worldline_test SOURCES "source/worldline_test.cpp")
@@ -73,7 +105,6 @@ add_test_target(TARGET unit_cell_translations_test SOURCES "source/unit_cell_tra
 add_test_target(TARGET lattce_test SOURCES "source/lattice_test.cpp")
 add_test_target(TARGET linear_interp_test SOURCES "source/linear_interp_test.cpp")
 add_test_target(TARGET fsh_potential_test SOURCES "source/fsh_potential_test.cpp" "test_utils/test_utils.cpp")
-add_test_target(TARGET four_body_test SOURCES "source/four_body_test.cpp" "test_utils/test_utils.cpp")
 add_test_target(TARGET grid2d_test SOURCES "source/grid2d_test.cpp")
 add_test_target(TARGET bisection_level_manager_test SOURCES "source/bisection_level_manager_test.cpp")
 add_test_target(TARGET square_adjacency_matrix_test SOURCES "source/square_adjacency_matrix_test.cpp")
@@ -83,6 +114,7 @@ add_test_target(TARGET continue_test SOURCES "source/continue_test.cpp")
 add_test_target(TARGET trilinear_interp_test SOURCES "source/trilinear_interp_test.cpp")
 add_test_target(TARGET attard_test SOURCES "source/attard_test.cpp")
 add_test_target(TARGET composite_handler_test SOURCES "source/composite_handler_test.cpp")
+add_test_target_with_torch(TARGET four_body_test SOURCES "source/four_body_test.cpp" "test_utils/test_utils.cpp")
 
 # ---- End-of-file commands ----
 

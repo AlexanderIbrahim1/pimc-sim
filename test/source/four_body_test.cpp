@@ -7,7 +7,7 @@
 #include "interactions/four_body/published_potential.hpp"
 #include "../test_utils/test_utils.hpp"
 
-TEST_CASE("basic FSH interaction check")
+TEST_CASE("basic four-body interaction check")
 {
     namespace fs = std::filesystem;
 
@@ -22,7 +22,7 @@ TEST_CASE("basic FSH interaction check")
         torch::dtype(torch::kFloat32)).reshape({1, 6}
     );
 
-    const auto expected = float {4.20351362};
+    const auto expected = 4.20351362f;
     const auto actual = potential.evaluate_batch(input).item<float>();
 
     REQUIRE_THAT(expected, Catch::Matchers::WithinRel(actual));
