@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #include <algorithm>
 #include <array>
 #include <stdexcept>
@@ -52,10 +54,49 @@ public:
         const auto& [batch_sidelengths, distance_infos] =
             fill_batch_sidelengths_and_distance_infos_(interaction_ranges, samples);
 
+        // THE DEBUGGER DOESN'T SHOW THE ELEMENTS OF THE TENSOR!!!
+        //         std::cout << '\n';
+        //         std::cout << "batch_sidelengths.size()" << batch_sidelengths.sizes() << '\n';
+        //         std::cout << "elements:\n";
+        //         for (int i = 0; i < batch_sidelengths.size(0); ++i) {
+        //             for (int j = 0; j < batch_sidelengths.size(1); ++j) {
+        //                 std::cout << batch_sidelengths[i][j].template item<FP>() << ' ';
+        //             }
+        //             std::cout << '\n';
+        //         }
+        //
+        //         std::cout << '\n';
+        //         std::cout << "Distance infos\n";
+        //         std::cout << "distance_infos.size()" << distance_infos.size() << '\n';
+        //         for (const auto& dinfo : distance_infos) {
+        //             std::cout << "(r_short_range, r_lower, r_upper) = (";
+        //             std::cout << dinfo.r_short_range << ", " << dinfo.r_lower << ", " << dinfo.r_upper << '\n';
+        //         }
+
         auto transformed_batch_sidelengths = batch_sidelengths.clone();
         transform_batch_sidelengths_(transformed_batch_sidelengths);
 
+        //         std::cout << '\n';
+        //         std::cout << "transformed_batch_sidelengths.size()" << transformed_batch_sidelengths.sizes() << '\n';
+        //         std::cout << "elements:\n";
+        //         for (int i = 0; i < transformed_batch_sidelengths.size(0); ++i) {
+        //             for (int j = 0; j < transformed_batch_sidelengths.size(1); ++j) {
+        //                 std::cout << transformed_batch_sidelengths[i][j].template item<FP>() << ' ';
+        //             }
+        //             std::cout << '\n';
+        //         }
+
         const auto batch_energies = rescaling_model_(transformed_batch_sidelengths, batch_sidelengths);
+
+        //         std::cout << '\n';
+        //         std::cout << "batch_energies.size()" << batch_energies.sizes() << '\n';
+        //         std::cout << "elements:\n";
+        //         for (int i = 0; i < batch_energies.size(0); ++i) {
+        //             for (int j = 0; j < batch_energies.size(1); ++j) {
+        //                 std::cout << batch_energies[i][j].template item<FP>() << ' ';
+        //             }
+        //             std::cout << '\n';
+        //         }
 
         auto output_energies = torch::empty({samples.size(0), 1});
         long int i_batch {};
@@ -219,6 +260,8 @@ private:
             const auto upper_batch_ptr = batch_sidelengths[i_batch].template data_ptr<FP>();
             std::copy(upper.begin(), upper.end(), upper_batch_ptr);
             ++i_batch;
+
+            distance_infos.emplace_back(dist_info);
         };
 
         const auto push_unmodified_sample = [&](const torch::Tensor& sample)

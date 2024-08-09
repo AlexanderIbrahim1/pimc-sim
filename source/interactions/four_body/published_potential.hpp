@@ -90,10 +90,8 @@ auto get_long_range_energy_corrector()
 
 inline auto get_short_range_data_preparer()
 {
-    // NOTE: the second parameter is UPPER_SHORT_DISTANCE in the python code, but I think that
-    // might be a mistake? I'll take a closer look at it later
     return interact::short_range::ShortRangeDataPreparer<float> {
-        interact::constants4b::SHORT_RANGE_SCALING_STEP<float>, interact::constants4b::LOWER_SHORT_DISTANCE<float>};
+        interact::constants4b::SHORT_RANGE_SCALING_STEP<float>, interact::constants4b::UPPER_SHORT_DISTANCE<float>};
 }
 
 inline auto get_short_range_energy_corrector()
