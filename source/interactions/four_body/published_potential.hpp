@@ -11,12 +11,12 @@
 
 #include <coordinates/attard.hpp>
 #include <interactions/four_body/constants.hpp>
+#include <interactions/four_body/extrapolated_potential.hpp>
 #include <interactions/four_body/interaction_ranges.hpp>
 #include <interactions/four_body/long_range.hpp>
 #include <interactions/four_body/rescaling.hpp>
 #include <interactions/four_body/short_range.hpp>
 #include <interactions/four_body/transformers.hpp>
-#include <interactions/four_body/extrapolated_potential.hpp>
 
 namespace interact
 {
@@ -80,28 +80,27 @@ auto get_transformer()
 }
 
 template <std::size_t NDIM>
-auto get_long_range_energy_corrector() {
+auto get_long_range_energy_corrector()
+{
     return interact::long_range::LongRangeEnergyCorrector<float, NDIM> {
         interact::disp::FourBodyDispersionPotential<float, NDIM> {interact::constants4b::BADE_COEFF_AVTZ<float>},
         interact::constants4b::LOWER_MIXED_DISTANCE<float>,
-        interact::constants4b::UPPER_MIXED_DISTANCE<float>
-    };
+        interact::constants4b::UPPER_MIXED_DISTANCE<float>};
 }
 
-inline auto get_short_range_data_preparer() {
+inline auto get_short_range_data_preparer()
+{
     // NOTE: the second parameter is UPPER_SHORT_DISTANCE in the python code, but I think that
     // might be a mistake? I'll take a closer look at it later
     return interact::short_range::ShortRangeDataPreparer<float> {
-        interact::constants4b::SHORT_RANGE_SCALING_STEP<float>,
-        interact::constants4b::LOWER_SHORT_DISTANCE<float>
-    };
+        interact::constants4b::SHORT_RANGE_SCALING_STEP<float>, interact::constants4b::LOWER_SHORT_DISTANCE<float>};
 }
 
-inline auto get_short_range_energy_corrector() {
+inline auto get_short_range_energy_corrector()
+{
     return interact::short_range::ShortRangeEnergyCorrector<float> {
         interact::constants4b::SHORT_RANGE_CORRECT_SLOPE_MIN<float>,
-        interact::constants4b::SHORT_RANGE_CORRECT_SLOPE_MAX<float>
-    };
+        interact::constants4b::SHORT_RANGE_CORRECT_SLOPE_MAX<float>};
 }
 
 }  // namespace impl_interact_published_model
@@ -123,8 +122,7 @@ auto get_published_four_body_potential(const std::filesystem::path& rescaled_mod
         std::move(transformer),
         std::move(long_range_energy_corrector),
         std::move(short_range_data_preparer),
-        std::move(short_range_energy_corrector)
-    };
+        std::move(short_range_energy_corrector)};
 }
 
 }  // namespace interact

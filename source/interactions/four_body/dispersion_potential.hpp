@@ -118,6 +118,6 @@ private:
     }
 };
 
-}  // namespace dict
+}  // namespace disp
 
 }  // namespace interact

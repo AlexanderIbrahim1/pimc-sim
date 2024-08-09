@@ -46,7 +46,8 @@ public:
     {
         const auto tolerance = coord::SIX_SIDE_LENGTHS_TO_CARTESIAN_EPSILON_TOLERANCE<FP>;
         const auto& [r01, r02, r03, r12, r13, r23] = unpack_six_side_lengths_<Container>(pair_distances);
-        const auto& [p0, p1, p2, p3] = coord::six_side_lengths_to_cartesian<FP, NDIM>(r01, r02, r03, r12, r13, r23, tolerance);
+        const auto& [p0, p1, p2, p3] =
+            coord::six_side_lengths_to_cartesian<FP, NDIM>(r01, r02, r03, r12, r13, r23, tolerance);
         return dispersion(p0, p1, p2, p3);
     }
 
@@ -55,7 +56,8 @@ public:
     {
         const auto tolerance = coord::SIX_SIDE_LENGTHS_TO_CARTESIAN_EPSILON_TOLERANCE<FP>;
         const auto& [r01, r02, r03, r12, r13, r23] = unpack_six_side_lengths_<Container>(pair_distances);
-        const auto& [p0, p1, p2, p3] = coord::six_side_lengths_to_cartesian<FP, NDIM>(r01, r02, r03, r12, r13, r23, tolerance);
+        const auto& [p0, p1, p2, p3] =
+            coord::six_side_lengths_to_cartesian<FP, NDIM>(r01, r02, r03, r12, r13, r23, tolerance);
         const auto average_sidelength = common_utils::calculate_mean(r01, r02, r03, r12, r13, r23);
 
         return mixed_energy_(p0, p1, p2, p3, abinitio_energy, average_sidelength);
