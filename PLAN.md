@@ -172,9 +172,11 @@ To make this nicer, we could create classes that wrap together:
     + the time complexity makes a difference!
     + I might want to skip calling the estimator so I can go through more states in a simulation
 - come up with ideas for unit tests for the four-body PES
-- solve a suspected bug with the dispersion potential
-  - I suspect that there are underflow errors with the dispersion potential when using 32-bit floats
+- [IN-PROGRESS:2024-08-10]: solve a suspected bug with the dispersion potential
+  - [NOT-TRUE] I suspect that there are underflow errors with the dispersion potential when using 32-bit floats
     - this is because we take a number to the power of 12
     - for example, for a distance of 5 Angstroms, we get `4.096e-09 ANG^{-12}`
-  - I might be able to solve this by rescaling all the distances by the 12th root of the Bade coefficient
+  - [NOT-TRUE] I might be able to solve this by rescaling all the distances by the 12th root of the Bade coefficient
     before perform all the math operations on it
+    - [DONE] I attempted this solution, and both the original and rescaled dispersion potentials give the same result
+      even for a tetrahedron of side length 14.0f

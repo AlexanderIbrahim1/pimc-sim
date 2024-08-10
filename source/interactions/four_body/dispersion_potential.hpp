@@ -118,6 +118,56 @@ private:
     }
 };
 
+template <std::floating_point FP, std::size_t NDIM>
+class RescalingFourBodyDispersionPotential
+{
+public:
+    RescalingFourBodyDispersionPotential(FP bade_coefficient)
+    {
+        m_check_coefficient_is_positive(bade_coefficient);
+        bade_coefficient_root12_ = static_cast<FP>(std::pow(bade_coefficient, 1.0 / 12.0));
+    }
+
+    constexpr auto operator()(
+        const coord::Cartesian<FP, NDIM>& original_point0,
+        const coord::Cartesian<FP, NDIM>& original_point1,
+        const coord::Cartesian<FP, NDIM>& original_point2,
+        const coord::Cartesian<FP, NDIM>& original_point3
+    ) const -> FP
+    {
+        const auto point0 = original_point0 / bade_coefficient_root12_;
+        const auto point1 = original_point1 / bade_coefficient_root12_;
+        const auto point2 = original_point2 / bade_coefficient_root12_;
+        const auto point3 = original_point3 / bade_coefficient_root12_;
+
+        const auto vec10 = impl_interact_dispersion::convert_to_magnitude_and_direction(point1 - point0);
+        const auto vec20 = impl_interact_dispersion::convert_to_magnitude_and_direction(point2 - point0);
+        const auto vec30 = impl_interact_dispersion::convert_to_magnitude_and_direction(point3 - point0);
+        const auto vec21 = impl_interact_dispersion::convert_to_magnitude_and_direction(point2 - point1);
+        const auto vec31 = impl_interact_dispersion::convert_to_magnitude_and_direction(point3 - point1);
+        const auto vec32 = impl_interact_dispersion::convert_to_magnitude_and_direction(point3 - point2);
+
+        // clang-format off
+        const auto total_energy =
+              impl_interact_dispersion::quadruplet_contribution(vec30, vec32, vec21, vec10)
+            + impl_interact_dispersion::quadruplet_contribution(vec20, vec32, vec31, vec10)
+            + impl_interact_dispersion::quadruplet_contribution(vec20, vec21, vec31, vec30);
+        // clang-format on
+
+        return -total_energy;
+    }
+
+private:
+    FP bade_coefficient_root12_;
+
+    void m_check_coefficient_is_positive(FP bade_coefficient) const
+    {
+        if (bade_coefficient < FP {0.0}) {
+            throw std::runtime_error("The bade coefficient must be positive. Found a non-positive value.");
+        }
+    }
+};
+
 }  // namespace disp
 
 }  // namespace interact

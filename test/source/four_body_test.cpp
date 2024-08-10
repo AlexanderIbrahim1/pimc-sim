@@ -37,8 +37,10 @@ TEST_CASE("multiple four-body interaction check")
 {
     const auto potential = load_published_ssp_four_body_potential();
 
-    const auto rel_side_lengths_filepath = std::filesystem::path {"playground"} / "fourbody_examples" / "sample_side_lengths.dat";
-    const auto rel_energies_filepath = std::filesystem::path {"playground"} / "fourbody_examples" / "sample_energies_ssp_64_128_128_64.dat";
+    const auto rel_side_lengths_filepath =
+        std::filesystem::path {"playground"} / "fourbody_examples" / "sample_side_lengths.dat";
+    const auto rel_energies_filepath =
+        std::filesystem::path {"playground"} / "fourbody_examples" / "sample_energies_ssp_64_128_128_64.dat";
     const auto abs_side_lengths_filepath = test_utils::resolve_project_path(rel_side_lengths_filepath);
     const auto abs_energies_filepath = test_utils::resolve_project_path(rel_energies_filepath);
 
@@ -48,7 +50,7 @@ TEST_CASE("multiple four-body interaction check")
 
     const auto energies_shape = torch::IntArrayRef {3400, 1};
     const auto python_energies = test_utils::read_file_to_tensor_f32(abs_energies_filepath, energies_shape);
-    
+
     auto cpp_energies = potential.evaluate_batch(side_lengths).reshape(energies_shape);
 
     // NOTE: the python and C++ energies differ slightly; this could be due to a lot of reasons, but one
