@@ -147,6 +147,10 @@ public:
         for (long int i_sample {}; i_sample < samples.size(0); ++i_sample) {
             const auto irange = interaction_ranges[static_cast<std::size_t>(i_sample)];
 
+            if (i_sample == 8) {
+                std::cout << "irange of sample 8 = " << static_cast<int>(irange) << '\n';
+            }
+
             if (irange == IR::ABINITIO_SHORT) {
                 output_energies[i_sample] = calculate_short_range_energy();
             }

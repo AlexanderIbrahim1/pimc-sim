@@ -17,4 +17,5 @@ playground/scripts/
 **/__pycache__/
 
 playground/fourbodypes/
+playground/fourbody_examples/
 compilation_output.txt
