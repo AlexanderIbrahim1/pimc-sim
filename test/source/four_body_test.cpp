@@ -13,7 +13,7 @@ auto load_published_ssp_four_body_potential()
     namespace fs = std::filesystem;
     using PTF = interact::PermutationTransformerFlag;
 
-    const auto rel_filepath = fs::path {"playground"} / "scripts" / "models" / "fourbodypara_ssp_64_128_128_64.pt";
+    const auto rel_filepath = fs::path {"playground"} / "scripts" / "models" / "fourbodypara_ssp_64_128_128_64_cpu_eval.pt";
     const auto abs_filepath = test_utils::resolve_project_path(rel_filepath);
 
     return interact::get_published_four_body_potential<3, PTF::EXACT>(abs_filepath);
@@ -58,11 +58,11 @@ TEST_CASE("multiple four-body interaction check")
     // whereas the C++ version does not
 
     for (std::int64_t i {0}; i < 3400; ++i) {
-        const auto pyt_energy = python_energies[i].item<double>();
-        const auto cpp_energy = cpp_energies[i].item<double>();
+        const auto pyt_energy = python_energies[i].item<float>();
+        const auto cpp_energy = cpp_energies[i].item<float>();
 
         INFO("i = " << i << ": pyt_energy = " << pyt_energy << ": cpp_energy = " << cpp_energy);
-        REQUIRE_THAT(cpp_energy, Catch::Matchers::WithinRel(pyt_energy, 5.0e-4));
+        REQUIRE_THAT(cpp_energy, Catch::Matchers::WithinRel(pyt_energy, 5.0e-4f));
     }
 
     // REQUIRE(test_utils::almost_equal_relative(python_energies, cpp_energies));

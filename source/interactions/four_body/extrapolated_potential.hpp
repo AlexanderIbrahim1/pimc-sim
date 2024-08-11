@@ -103,11 +103,28 @@ public:
         std::size_t i_dist_info {};
 
         // clang-format off
-        const auto calculate_short_range_energy = [&]()
+        const auto calculate_short_range_energy = [&](long int idx_sample)
         {
             const auto dist_info = distance_infos[i_dist_info++];
-            const auto lower_energy = batch_energies[i_batch++].template item<FP>();
-            const auto upper_energy = batch_energies[i_batch++].template item<FP>();
+            auto lower_energy = batch_energies[i_batch++].template item<FP>();
+            auto upper_energy = batch_energies[i_batch++].template item<FP>();
+
+//            if (idx_sample == 8) {
+//                lower_energy = 0.0005280036712065339f;
+//                upper_energy = 0.0005344150704331696f;
+//            }
+//
+            if (idx_sample == 8) {
+                std::cout << "dist_info.r_short_range = " << dist_info.r_short_range << '\n';
+                std::cout << "dist_info.r_lower = " << dist_info.r_lower << '\n';
+                std::cout << "dist_info.r_upper = " << dist_info.r_upper << '\n';
+                std::cout << "lower_energy = " << lower_energy << '\n';
+                std::cout << "upper_energy = " << upper_energy << '\n';
+//
+//                lower_energy = 0.0731562003493309f;
+//                upper_energy = 0.06680583953857422f;
+            }
+
             const auto extrap_energies = ExtrapolationEnergies {lower_energy, upper_energy};
 
             return short_range_corrector_(extrap_energies, dist_info);
@@ -122,7 +139,7 @@ public:
         {
             constexpr auto lower = constants4b::LOWER_SHORT_DISTANCE<FP>;
             constexpr auto upper = constants4b::UPPER_SHORT_DISTANCE<FP>;
-            const auto short_range_energy = calculate_short_range_energy();
+            const auto short_range_energy = calculate_short_range_energy(0);
             const auto mid_range_energy = calculate_mid_range_energy();
 
             const auto min_side_length = torch::min(sample).template item<FP>();
@@ -152,7 +169,7 @@ public:
             }
 
             if (irange == IR::ABINITIO_SHORT) {
-                output_energies[i_sample] = calculate_short_range_energy();
+                output_energies[i_sample] = calculate_short_range_energy(i_sample);
             }
             else if (irange == IR::ABINITIO_SHORTMID) {
                 const auto sample = samples[i_sample];
@@ -163,8 +180,13 @@ public:
             }
             else if (irange == IR::MIXED_SHORT) {
                 const auto sample = samples[i_sample];
-                const auto abinitio_energy = calculate_short_range_energy();
-                output_energies[i_sample] = calculate_mixed_range_energy(abinitio_energy, sample);
+                const auto abinitio_energy = calculate_short_range_energy(i_sample);
+                const auto mixed_energy = calculate_mixed_range_energy(abinitio_energy, sample);
+                if (i_sample == 8) {
+                    std::cout << "abinitio_energy = " << abinitio_energy << '\n';
+                    std::cout << "mixed_energy = " << mixed_energy << '\n';
+                }
+                output_energies[i_sample] = mixed_energy;
             }
             else if (irange == IR::MIXED_SHORTMID) {
                 const auto sample = samples[i_sample];
@@ -291,6 +313,11 @@ private:
             else {
                 // IR::LONG (do nothing)
             }
+        }
+
+        if (batch_sidelengths.size(0) > 13) {
+            std::cout << "batch_sidelengths[12] = " << batch_sidelengths[12] << '\n';
+            std::cout << "batch_sidelengths[13] = " << batch_sidelengths[13] << '\n';
         }
 
         return {batch_sidelengths, distance_infos};
