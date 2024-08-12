@@ -66,7 +66,9 @@ auto get_transformer()
         interact::trans::ReciprocalFactorTransformer<float> {interact::constants4b::MIN_SIDELENGTH<float>};
 
     if constexpr (Flag == PTF::EXACT) {
-        const auto permutation_transformer = interact::trans::MinimumPermutationTransformer<float> {};
+        const auto epsilon = interact::constants4b::LESS_THAN_EPSILON_VALUE<float>;
+        auto comparator = impl_interact_trans::LessThanEpsilon<float> {epsilon};
+        const auto permutation_transformer = interact::trans::MinimumPermutationTransformer<float> {std::move(comparator)};
 
         return interact::trans::SampleTransformer<float> {
             std::move(reciprocal_factor_transformer), std::move(permutation_transformer)};

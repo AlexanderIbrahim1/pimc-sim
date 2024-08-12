@@ -2,8 +2,11 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <concepts>
+#include <stdexcept>
 #include <tuple>
+#include <utility>
 
 #include <torch/script.h>
 
@@ -13,6 +16,46 @@
 
     But I just need to get it working for now
 */
+
+namespace impl_interact_trans
+{
+
+/*
+Perform a lexicographic comparison of two `std::array<FP, 6>` instances, but only consider an element
+in the left instance to be less than its corresponding element on the right instance if the absolute
+difference between the two is great enough.
+*/
+template <std::floating_point FP>
+class LessThanEpsilon
+{
+public:
+    explicit LessThanEpsilon(FP epsilon)
+        : epsilon_ {epsilon}
+    {
+        if (epsilon_ <= FP {0.0}) {
+            throw std::runtime_error("The value of `epsilon` provided to LessThanEpsilon must be positive.");
+        }
+    }
+
+    constexpr auto operator()(const std::array<FP, 6>& left, const std::array<FP, 6>& right) const noexcept -> bool
+    {
+        for (std::size_t i {0}; i < 6; ++i) {
+            const auto left_val = left[i];
+            const auto right_val = right[i];
+
+            if (std::abs(left_val - right_val) > epsilon_) {
+                return left_val < right_val;
+            }
+        }
+
+        return false;
+    }
+
+private:
+    FP epsilon_;
+};
+
+}  // namespace impl_interact_trans
 
 namespace interact
 {
@@ -78,6 +121,10 @@ template <std::floating_point FP>
 class MinimumPermutationTransformer
 {
 public:
+    explicit MinimumPermutationTransformer(impl_interact_trans::LessThanEpsilon<FP> comparator)
+        : comparator_ {std::move(comparator)}
+    {}
+
     constexpr void operator()(torch::Tensor& values) const
     {
         std::array<FP, 6> original_permutation;
@@ -89,13 +136,15 @@ public:
 
         for (std::size_t i_perm {1}; i_perm < g_n_permutations; ++i_perm) {
             const auto permuted = permute_six_side_lengths_(i_perm, original_permutation);
-            minimum_permuted = std::min(minimum_permuted, permuted);
+            minimum_permuted = std::min(minimum_permuted, permuted, comparator_);
         }
 
         std::copy(minimum_permuted.begin(), minimum_permuted.end(), values.data_ptr<FP>());
     }
 
 private:
+    impl_interact_trans::LessThanEpsilon<FP> comparator_;
+
     constexpr auto permute_six_side_lengths_(std::size_t i_permutation, const std::array<FP, 6>& side_lengths) const
         -> std::array<FP, 6>
     {

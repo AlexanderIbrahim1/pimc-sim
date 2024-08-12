@@ -86,6 +86,9 @@ constexpr FP LOWER_MIXED_DISTANCE = FP {4.0};
 template <std::floating_point FP>
 constexpr FP UPPER_MIXED_DISTANCE = FP {4.5};
 
+template <std::floating_point FP>
+constexpr FP LESS_THAN_EPSILON_VALUE = FP {1.0e-4};
+
 }  // namespace constants4b
 
 }  // namespace interact
