@@ -89,14 +89,14 @@ private:
     FP expon_;
     FP dispersion_coeff_;
 
-//     constexpr auto calculate_dispersion_contrib_(FP average_pairdist) const noexcept -> FP
-//     {
-//         const auto pairdist2 = average_pairdist * average_pairdist;
-//         const auto pairdist4 = pairdist2 * pairdist2;
-//         const auto pairdist12 = pairdist4 * pairdist4 * pairdist4;
-// 
-//         return dispersion_coeff_ / pairdist12;
-//     }
+    //     constexpr auto calculate_dispersion_contrib_(FP average_pairdist) const noexcept -> FP
+    //     {
+    //         const auto pairdist2 = average_pairdist * average_pairdist;
+    //         const auto pairdist4 = pairdist2 * pairdist2;
+    //         const auto pairdist12 = pairdist4 * pairdist4 * pairdist4;
+    //
+    //         return dispersion_coeff_ / pairdist12;
+    //     }
 };
 
 template <std::floating_point FP>

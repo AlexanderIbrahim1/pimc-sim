@@ -4,7 +4,6 @@
 
 #include "interactions/four_body/transformers.hpp"
 
-
 TEST_CASE("transformers LessThanEpsilon", "[transformers]")
 {
     const auto epsilon = 1.0e-4f;
