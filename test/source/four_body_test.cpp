@@ -1,5 +1,6 @@
 #include <cmath>
 #include <filesystem>
+#include <tuple>
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
@@ -18,6 +19,17 @@ auto load_published_ssp_four_body_potential()
     const auto abs_filepath = test_utils::resolve_project_path(rel_filepath);
 
     return interact::get_published_four_body_potential<3, PTF::EXACT>(abs_filepath);
+}
+
+auto load_published_ssp_buffered_four_body_potential(long int buffer_size)
+{
+    namespace fs = std::filesystem;
+    using PTF = interact::PermutationTransformerFlag;
+
+    const auto rel_filepath = fs::path {"playground"} / "scripts" / "models" / "fourbodypara_ssp_64_128_128_64_cpu_eval.pt";
+    const auto abs_filepath = test_utils::resolve_project_path(rel_filepath);
+
+    return interact::get_published_buffered_four_body_potential<3, PTF::EXACT>(abs_filepath, buffer_size);
 }
 
 TEST_CASE("basic four-body interaction check")
@@ -80,4 +92,44 @@ TEST_CASE("multiple four-body interaction check")
     }
 
     // REQUIRE(test_utils::almost_equal_relative(python_energies, cpp_energies));
+}
+
+TEST_CASE("buffered potential interaction check")
+{
+    // get the individual outputs from the potential
+    const auto [output0, output1, output2] = []() {
+        const auto potential = load_published_ssp_four_body_potential();
+
+        const auto input0 =
+            torch::tensor({2.2000000, 2.2000000, 2.2000000, 3.1112699, 3.1112699, 3.5925850}, torch::dtype(torch::kFloat32))
+                .reshape({1, 6});
+    
+        const auto output0 = potential.evaluate_batch(input0).item<float>();
+
+        const auto input1 =
+            torch::tensor({2.5000000, 2.1000000, 3.2000000, 4.3112699, 2.7112699, 3.1925850}, torch::dtype(torch::kFloat32))
+                .reshape({1, 6});
+    
+        const auto output1 = potential.evaluate_batch(input1).item<float>();
+
+        const auto input2 =
+            torch::tensor({2.3000000, 2.7000000, 3.3000000, 4.0112699, 2.2112699, 3.4925850}, torch::dtype(torch::kFloat32))
+                .reshape({1, 6});
+    
+        const auto output2 = potential.evaluate_batch(input2).item<float>();
+
+        return std::make_tuple(output0, output1, output2);
+    }();
+
+    // get the three outputs from the buffered potential
+    const auto total_energy = []() {
+        auto potential = load_published_ssp_buffered_four_body_potential(5);
+        potential.add_sample({2.2000000f, 2.2000000f, 2.2000000f, 3.1112699f, 3.1112699f, 3.5925850f});
+        potential.add_sample({2.5000000f, 2.1000000f, 3.2000000f, 4.3112699f, 2.7112699f, 3.1925850f});
+        potential.add_sample({2.3000000f, 2.7000000f, 3.3000000f, 4.0112699f, 2.2112699f, 3.4925850f});
+
+        return potential.extract_energy();
+    }();
+
+    REQUIRE_THAT(output0 + output1 + output2, Catch::Matchers::WithinRel(total_energy));
 }

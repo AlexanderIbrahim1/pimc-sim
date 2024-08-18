@@ -114,8 +114,11 @@ add_test_target(TARGET trilinear_interp_test SOURCES "source/trilinear_interp_te
 add_test_target(TARGET attard_test SOURCES "source/attard_test.cpp")
 add_test_target(TARGET composite_handler_test SOURCES "source/composite_handler_test.cpp")
 add_test_target(TARGET dispersion_test SOURCES "source/dispersion_potential_test.cpp")
-add_test_target_with_torch(TARGET four_body_test SOURCES "source/four_body_test.cpp" "test_utils/test_utils.cpp" "test_utils/test_tensor_utils.cpp")
-add_test_target_with_torch(TARGET transformer_test SOURCES "source/transformer_test.cpp")
+
+# compiling the transformer and four_body tests requires torch, which bloats the compile times;
+# as a result, I try to run these tests only every once in a while
+#   add_test_target_with_torch(TARGET four_body_test SOURCES "source/four_body_test.cpp" "test_utils/test_utils.cpp" "test_utils/test_tensor_utils.cpp")
+#   add_test_target_with_torch(TARGET transformer_test SOURCES "source/transformer_test.cpp")
 
 # ---- End-of-file commands ----
 

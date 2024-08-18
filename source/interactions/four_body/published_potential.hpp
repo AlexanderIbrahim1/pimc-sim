@@ -125,4 +125,12 @@ auto get_published_four_body_potential(const std::filesystem::path& rescaled_mod
         std::move(short_range_energy_corrector)};
 }
 
+template <std::size_t NDIM, interact::PermutationTransformerFlag Flag>
+auto get_published_buffered_four_body_potential(const std::filesystem::path& rescaled_module_path, long int buffer_size)
+{
+    auto extrap_pot = get_published_four_body_potential<NDIM, Flag>(rescaled_module_path);
+
+    return interact::BufferedExtrapolatedPotential(std::move(extrap_pot), buffer_size);
+}
+
 }  // namespace interact
