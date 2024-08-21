@@ -1,7 +1,5 @@
 #pragma once
 
-#include <iostream>
-
 #include <algorithm>
 #include <array>
 #include <stdexcept>
@@ -11,6 +9,7 @@
 #include <torch/script.h>
 
 #include <coordinates/attard.hpp>
+#include <coordinates/cartesian.hpp>
 #include <interactions/four_body/constants.hpp>
 #include <interactions/four_body/interaction_ranges.hpp>
 #include <interactions/four_body/long_range.hpp>
@@ -54,49 +53,10 @@ public:
         const auto& [batch_sidelengths, distance_infos] =
             fill_batch_sidelengths_and_distance_infos_(interaction_ranges, samples);
 
-        // THE DEBUGGER DOESN'T SHOW THE ELEMENTS OF THE TENSOR!!!
-        //         std::cout << '\n';
-        //         std::cout << "batch_sidelengths.size()" << batch_sidelengths.sizes() << '\n';
-        //         std::cout << "elements:\n";
-        //         for (int i = 0; i < batch_sidelengths.size(0); ++i) {
-        //             for (int j = 0; j < batch_sidelengths.size(1); ++j) {
-        //                 std::cout << batch_sidelengths[i][j].template item<FP>() << ' ';
-        //             }
-        //             std::cout << '\n';
-        //         }
-        //
-        //         std::cout << '\n';
-        //         std::cout << "Distance infos\n";
-        //         std::cout << "distance_infos.size()" << distance_infos.size() << '\n';
-        //         for (const auto& dinfo : distance_infos) {
-        //             std::cout << "(r_short_range, r_lower, r_upper) = (";
-        //             std::cout << dinfo.r_short_range << ", " << dinfo.r_lower << ", " << dinfo.r_upper << '\n';
-        //         }
-
         auto transformed_batch_sidelengths = batch_sidelengths.clone();
         transform_batch_sidelengths_(transformed_batch_sidelengths);
 
-        //         std::cout << '\n';
-        //         std::cout << "transformed_batch_sidelengths.size()" << transformed_batch_sidelengths.sizes() << '\n';
-        //         std::cout << "elements:\n";
-        //         for (int i = 0; i < transformed_batch_sidelengths.size(0); ++i) {
-        //             for (int j = 0; j < transformed_batch_sidelengths.size(1); ++j) {
-        //                 std::cout << transformed_batch_sidelengths[i][j].template item<FP>() << ' ';
-        //             }
-        //             std::cout << '\n';
-        //         }
-
         const auto batch_energies = rescaling_model_(transformed_batch_sidelengths, batch_sidelengths);
-
-        //         std::cout << '\n';
-        //         std::cout << "batch_energies.size()" << batch_energies.sizes() << '\n';
-        //         std::cout << "elements:\n";
-        //         for (int i = 0; i < batch_energies.size(0); ++i) {
-        //             for (int j = 0; j < batch_energies.size(1); ++j) {
-        //                 std::cout << batch_energies[i][j].template item<FP>() << ' ';
-        //             }
-        //             std::cout << '\n';
-        //         }
 
         auto output_energies = torch::empty({samples.size(0), 1});
         long int i_batch {};
@@ -108,23 +68,6 @@ public:
             const auto dist_info = distance_infos[i_dist_info++];
             auto lower_energy = batch_energies[i_batch++].template item<FP>();
             auto upper_energy = batch_energies[i_batch++].template item<FP>();
-
-//            if (idx_sample == 8) {
-//                lower_energy = 0.0005280036712065339f;
-//                upper_energy = 0.0005344150704331696f;
-//            }
-//
-            if (idx_sample == 8) {
-                std::cout << "dist_info.r_short_range = " << dist_info.r_short_range << '\n';
-                std::cout << "dist_info.r_lower = " << dist_info.r_lower << '\n';
-                std::cout << "dist_info.r_upper = " << dist_info.r_upper << '\n';
-                std::cout << "lower_energy = " << lower_energy << '\n';
-                std::cout << "upper_energy = " << upper_energy << '\n';
-//
-//                lower_energy = 0.0731562003493309f;
-//                upper_energy = 0.06680583953857422f;
-            }
-
             const auto extrap_energies = ExtrapolationEnergies {lower_energy, upper_energy};
 
             return short_range_corrector_(extrap_energies, dist_info);
@@ -164,10 +107,6 @@ public:
         for (long int i_sample {}; i_sample < samples.size(0); ++i_sample) {
             const auto irange = interaction_ranges[static_cast<std::size_t>(i_sample)];
 
-            if (i_sample == 8) {
-                std::cout << "irange of sample 8 = " << static_cast<int>(irange) << '\n';
-            }
-
             if (irange == IR::ABINITIO_SHORT) {
                 output_energies[i_sample] = calculate_short_range_energy(i_sample);
             }
@@ -182,10 +121,6 @@ public:
                 const auto sample = samples[i_sample];
                 const auto abinitio_energy = calculate_short_range_energy(i_sample);
                 const auto mixed_energy = calculate_mixed_range_energy(abinitio_energy, sample);
-                if (i_sample == 8) {
-                    std::cout << "abinitio_energy = " << abinitio_energy << '\n';
-                    std::cout << "mixed_energy = " << mixed_energy << '\n';
-                }
                 output_energies[i_sample] = mixed_energy;
             }
             else if (irange == IR::MIXED_SHORTMID) {
@@ -315,11 +250,6 @@ private:
             }
         }
 
-        if (batch_sidelengths.size(0) > 13) {
-            std::cout << "batch_sidelengths[12] = " << batch_sidelengths[12] << '\n';
-            std::cout << "batch_sidelengths[13] = " << batch_sidelengths[13] << '\n';
-        }
-
         return {batch_sidelengths, distance_infos};
     }
 
@@ -352,7 +282,7 @@ public:
         sample_buffer_ = torch::empty({buffer_size, 6});
     }
 
-    constexpr auto add_sample(const coord::FourBodyAttardSideLengths<FP>& side_lengths) -> void
+    constexpr auto add_sample(const coord::FourBodySideLengths<FP>& side_lengths) -> void
     {
         if (number_of_samples_ == buffer_size_) {
             total_energy_ += evaluate_buffer_(number_of_samples_);

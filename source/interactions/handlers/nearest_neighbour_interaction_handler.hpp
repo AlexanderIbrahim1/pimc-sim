@@ -6,12 +6,14 @@
 #include <utility>
 #include <vector>
 
+#include <coordinates/attard.hpp>
 #include <coordinates/box_sides.hpp>
 #include <coordinates/cartesian.hpp>
 #include <coordinates/measure.hpp>
 #include <environment/environment.hpp>
-#include <interactions/three_body/potential_concepts.hpp>
 #include <interactions/two_body/potential_concepts.hpp>
+#include <interactions/three_body/potential_concepts.hpp>
+#include <interactions/four_body/potential_concepts.hpp>
 #include <mathtools/grid/grid2d.hpp>
 #include <mathtools/grid/square_adjacency_matrix.hpp>
 #include <worldline/worldline.hpp>
@@ -162,6 +164,61 @@ public:
 
 private:
     PointPotential pot_;
+    mathtools::SquareAdjacencyMatrix centroid_adjmat_;
+};
+
+template <typename Potential, std::floating_point FP, std::size_t NDIM>
+requires BufferedQuadrupletPotential<Potential, FP>
+class NearestNeighbourQuadrupletInteractionHandler
+{
+    using Worldline = worldline::Worldline<FP, NDIM>;
+
+public:
+    explicit NearestNeighbourQuadrupletInteractionHandler(Potential pot, std::size_t n_particles)
+        : pot_ {std::move(pot)}
+        , centroid_adjmat_ {n_particles}
+    {}
+
+    constexpr auto operator()(std::size_t i_particle, const Worldline& worldline) const noexcept -> FP
+    {
+        // NOTE
+        // this member function doesn't actually take periodicity into account; so the Attard
+        //   nearest-neighbour correction won't be called;
+        // instead, it assumes that the centroid adjacency matrix is tight enough that the nearest
+        //   neighbours being considered in the interaction won't break the Attard convention;
+        // for the simulations that I currently run, the box is large enough that this is always true
+        auto pot_energy = FP {};
+
+        const auto& points = worldline.points();
+        const auto neighbours = centroid_adjmat_.neighbours(i_particle);
+
+        for (std::size_t idx_neigh0 {0}; idx_neigh0 < neighbours.size() - 2; ++idx_neigh0) {
+            for (std::size_t idx_neigh1 {idx_neigh0 + 1}; idx_neigh1 < neighbours.size() - 1; ++idx_neigh1) {
+                for (std::size_t idx_neigh2 {idx_neigh1 + 1}; idx_neigh2 < neighbours.size(); ++idx_neigh2) {
+                    const auto i_neigh0 = neighbours[idx_neigh0];
+                    const auto i_neigh1 = neighbours[idx_neigh1];
+                    const auto i_neigh2 = neighbours[idx_neigh2];
+                    pot_energy += pot_(points[i_particle], points[i_neigh0], points[i_neigh1], points[i_neigh2]);
+                }
+            }
+        }
+
+        return pot_energy;
+    }
+
+    constexpr auto adjacency_matrix() noexcept -> mathtools::SquareAdjacencyMatrix&
+    {
+        // mutable reference to the underlying adjacency matrix so an external function can update it
+        return centroid_adjmat_;
+    }
+
+    constexpr auto point_potential() const -> const PointPotential&
+    {
+        return pot_;
+    }
+
+private:
+    Potential pot_;
     mathtools::SquareAdjacencyMatrix centroid_adjmat_;
 };
 

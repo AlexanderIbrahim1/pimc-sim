@@ -4,6 +4,7 @@
 #include <concepts>
 
 #include <coordinates/cartesian.hpp>
+#include <coordinates/box_sides.hpp>
 #include <coordinates/measure.hpp>
 
 namespace coord
@@ -21,7 +22,7 @@ struct SixAxisCoordinates
 };
 
 template <std::floating_point FP>
-struct FourBodyAttardSideLengths
+struct FourBodySideLengths
 {
     FP dist01;
     FP dist02;
@@ -32,7 +33,7 @@ struct FourBodyAttardSideLengths
 };
 
 template <std::floating_point FP>
-constexpr auto failed_attard_sidelengths() -> FourBodyAttardSideLengths<FP>
+constexpr auto failed_attard_sidelengths() -> FourBodySideLengths<FP>
 {
     const auto n1 = FP {-1.0};
     return {n1, n1, n1, n1, n1, n1};
@@ -90,7 +91,7 @@ template <std::floating_point FP>
 struct EarlyFourBodyAttardResult
 {
     EarlyResultType type;
-    FourBodyAttardSideLengths<FP> sides;
+    FourBodySideLengths<FP> sides;
 };
 
 template <std::floating_point FP, std::size_t NDIM>
@@ -150,7 +151,7 @@ auto four_body_attard_side_lengths_early(
     const Cartesian<FP, NDIM>& point1,
     const Cartesian<FP, NDIM>& point2,
     const Cartesian<FP, NDIM>& point3,
-    const Cartesian<FP, NDIM>& periodic_box,
+    const BoxSides<FP, NDIM>& periodic_box,
     FP cutoff_distance_sq
 ) -> EarlyFourBodyAttardResult<FP>
 {

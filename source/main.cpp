@@ -279,29 +279,21 @@ auto main() -> int
 
     // using PairInteractionHandler = interact::FullPairInteractionHandler<decltype(pot), double, NDIM>;
     // using TripletInteractionHandler = interact::FullTripletInteractionHandler<decltype(pot3b), double, NDIM>;
-    // using InteractionHandler = interact::CompositeFullInteractionHandler<double, NDIM, PairInteractionHandler,
-    // TripletInteractionHandler>;
+    // using InteractionHandler = interact::CompositeFullInteractionHandler<double, NDIM, PairInteractionHandler, TripletInteractionHandler>;
 
+    // clang-format off
     using PairInteractionHandler = interact::NearestNeighbourPairInteractionHandler<decltype(pot), double, NDIM>;
-    using TripletInteractionHandler =
-        interact::NearestNeighbourTripletInteractionHandler<decltype(pot3b), double, NDIM>;
-    using InteractionHandler = interact::
-        CompositeNearestNeighbourInteractionHandler<double, NDIM, PairInteractionHandler, TripletInteractionHandler>;
+    using TripletInteractionHandler = interact::NearestNeighbourTripletInteractionHandler<decltype(pot3b), double, NDIM>;
+    using InteractionHandler = interact::CompositeNearestNeighbourInteractionHandler<double, NDIM, PairInteractionHandler, TripletInteractionHandler>;
+
+    auto pair_interaction_handler = PairInteractionHandler {pot, n_particles};
+    auto triplet_interaction_handler = TripletInteractionHandler {std::move(pot3b), n_particles};
+    auto interaction_handler = InteractionHandler {std::move(pair_interaction_handler), std::move(triplet_interaction_handler)};
+    // clang-format on
 
     const auto lattice_constant = geom::density_to_lattice_constant(parser.density, geom::LatticeType::HCP);
     const auto pair_cutoff_distance = 2.2 * lattice_constant;
     const auto triplet_cutoff_distance = 1.1 * lattice_constant;
-
-    // using InteractionHandler = interact::NearestNeighbourPairInteractionHandler<decltype(pot), double, NDIM>;
-    // auto interaction_handler = InteractionHandler {pot, n_particles};
-    // interact::update_centroid_adjacency_matrix<double, NDIM>(
-    //     worldlines, minimage_box, environment, interaction_handler.adjacency_matrix(), pair_cutoff_distance
-    // );
-
-    auto pair_interaction_handler = PairInteractionHandler {pot, n_particles};
-    auto triplet_interaction_handler = TripletInteractionHandler {std::move(pot3b), n_particles};
-    auto interaction_handler =
-        InteractionHandler {std::move(pair_interaction_handler), std::move(triplet_interaction_handler)};
 
     interact::update_centroid_adjacency_matrix<double, NDIM>(
         worldlines, minimage_box, environment, interaction_handler.adjacency_matrix<0>(), pair_cutoff_distance
@@ -324,8 +316,7 @@ auto main() -> int
     const auto bisect_move_adjuster = create_bisect_move_adjuster(0.4, 0.5);
 
     auto com_step_size_writer = pimc::default_centre_of_mass_position_move_step_size_writer<double>(output_dirpath);
-    auto multi_bead_move_info_writer =
-        pimc::default_bisection_multibead_position_move_info_writer<double>(output_dirpath);
+    auto multi_bead_move_info_writer = pimc::default_bisection_multibead_position_move_info_writer<double>(output_dirpath);
 
     /* create the move acceptance rate trackers for the move performers */
     auto com_tracker = pimc::MoveSuccessTracker {};
@@ -381,16 +372,15 @@ auto main() -> int
         //     worldlines, minimage_box, environment, interaction_handler.adjacency_matrix(), cutoff_distance
         // );
 
+        // clang-format off
         if (i_block >= parser.n_equilibrium_blocks) {
             const auto& threebody_pot = interaction_handler.get<1>();
 
             /* run estimators */
             const auto total_kinetic_energy = estim::total_primitive_kinetic_energy(worldlines, environment);
-            const auto total_pair_potential_energy =
-                estim::total_pair_potential_energy_periodic(worldlines, pot, environment);
-            const auto total_triplet_potential_energy = estim::total_triplet_potential_energy_periodic(
-                worldlines, threebody_pot.point_potential(), environment
-            );
+            const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic(worldlines, pot, environment);
+            const auto total_triplet_potential_energy = estim::total_triplet_potential_energy_periodic(worldlines, threebody_pot.point_potential(), environment);
+            // const auto total_quadruplet_potential_energy = estim::total_quadruplet_potential_energy_periodic(worldlines, fourbody_pot, environment);
             const auto rms_centroid_dist = estim::rms_centroid_distance(worldlines, environment);
             const auto abs_centroid_dist = estim::absolute_centroid_distance(worldlines, environment);
 
@@ -402,14 +392,10 @@ auto main() -> int
             abs_centroid_writer.write(i_block, abs_centroid_dist);
 
             /* save radial distribution function histogram */
-            estim::update_radial_distribution_function_histogram(
-                radial_dist_histo, periodic_distance_calculator, worldlines
-            );
+            estim::update_radial_distribution_function_histogram(radial_dist_histo, periodic_distance_calculator, worldlines);
             mathtools::io::write_histogram(radial_dist_histo_filepath, radial_dist_histo);
 
-            estim::update_centroid_radial_distribution_function_histogram(
-                centroid_dist_histo, environment, periodic_distance_calculator, worldlines
-            );
+            estim::update_centroid_radial_distribution_function_histogram(centroid_dist_histo, environment, periodic_distance_calculator, worldlines);
             mathtools::io::write_histogram(centroid_dist_histo_filepath, centroid_dist_histo);
 
             /* save move acceptance rates */
@@ -438,14 +424,12 @@ auto main() -> int
             com_step_size_writer.write(i_block, new_com_step_size);
 
             const auto curr_bisect_move_info = multi_bead_mover.bisection_level_move_info();
-            const auto new_bisect_move_info =
-                bisect_move_adjuster.adjust_step(curr_bisect_move_info, multi_bead_tracker);
+            const auto new_bisect_move_info = bisect_move_adjuster.adjust_step(curr_bisect_move_info, multi_bead_tracker);
             multi_bead_mover.update_bisection_level_move_info(new_bisect_move_info);
 
-            multi_bead_move_info_writer.write(
-                i_block, new_bisect_move_info.upper_level_frac, new_bisect_move_info.lower_level
-            );
+            multi_bead_move_info_writer.write(i_block, new_bisect_move_info.upper_level_frac, new_bisect_move_info.lower_level);
         }
+        // clang-format on
 
         com_tracker.reset();
         single_bead_tracker.reset();

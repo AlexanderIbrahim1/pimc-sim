@@ -151,7 +151,7 @@ auto calculate_total_four_body_potential_energy_fast(
         for (std::size_t i1 {i0 + 1}; i1 < i1_final; ++i1)
             for (std::size_t i2 {i1 + 1}; i2 < i2_final; ++i2)
                 for (std::size_t i3 {i2 + 1}; i3 < i3_final; ++i3) {
-                    const auto attard_result = attard::four_body_attard_side_lengths_early(
+                    const auto attard_result = coord::four_body_attard_side_lengths_early(
                         particles[i0], particles[i1], particles[i2], particles[i3], periodic_box, cutoff_distance_sq
                     );
 
@@ -178,6 +178,14 @@ auto calculate_total_four_body_potential_energy_fast(
                 }
 
     return buffered_extrap_pot.extract_energy();
+}
+
+template <std::floating_point FP, std::size_t NDIM>
+auto total_quadruplet_potential_energy_periodic(
+
+) -> FP
+{
+
 }
 
 }  // namespace estim
