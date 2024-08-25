@@ -9,6 +9,7 @@
 
 #include <coordinates/box_sides.hpp>
 #include <coordinates/cartesian.hpp>
+#include <common/common_utils.hpp>
 
 namespace coord
 {
@@ -20,12 +21,12 @@ constexpr auto number_of_box_shifts(FP pair_separation, FP side_length) -> FP
 
     const auto shifted_gap = (abs_pair_sep / side_length) - FP {0.5};
     if (shifted_gap > FP {0.0}) {
-        const auto sign = utils::sign(pair_separation);
+        const auto sign = common_utils::sign(pair_separation);
         const auto n_shifts = std::ceil(shifted_gap);
         return sign * n_shifts;
     }
     else {
-        return 0;
+        return FP{0.0};
     }
 }
 
@@ -46,7 +47,7 @@ constexpr auto translate_point_near_origin(const Cartesian<FP, NDIM>& point, con
 template <std::floating_point FP, std::size_t NDIM>
 constexpr auto shift_points_together(
     std::size_t i_origin,
-    const Cartesian<FP, NDIM>& box,
+    const BoxSides<FP, NDIM>& box,
     const std::vector<Cartesian<FP, NDIM>>& particles
 ) -> std::vector<Cartesian<FP, NDIM>>
 {

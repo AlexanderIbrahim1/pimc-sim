@@ -74,7 +74,7 @@ public:
         std::size_t i_timeslice,
         std::vector<Worldline>& worldlines,
         rng::PRNGWrapper auto& prngw,
-        const interact::InteractionHandler auto& interact_handler,
+        interact::InteractionHandler auto& interact_handler,
         const envir::Environment<FP>& environment,
         MoveSuccessTracker* move_tracker = nullptr
     )

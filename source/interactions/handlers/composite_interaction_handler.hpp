@@ -65,7 +65,7 @@ public:
         static_assert(std::conjunction<std::bool_constant<NearestNeighbourInteractionHandler<Handlers>>...>::value, "");
     }
 
-    constexpr auto operator()(std::size_t i_particle, const Worldline& worldline) const noexcept -> FP
+    constexpr auto operator()(std::size_t i_particle, const Worldline& worldline) noexcept -> FP
     {
         auto pot_energy = FP {};
         const auto handler_looper = [&](auto&&... handler) { ((pot_energy += handler(i_particle, worldline)), ...); };
@@ -83,7 +83,7 @@ public:
     }
 
     template <std::size_t Index>
-    constexpr auto get() noexcept -> const NearestNeighbourInteractionHandler auto&
+    constexpr auto get() noexcept -> NearestNeighbourInteractionHandler auto&
     {
         return std::get<Index>(handlers_);
     }

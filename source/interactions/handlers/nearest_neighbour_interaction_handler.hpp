@@ -87,7 +87,7 @@ public:
         , centroid_adjmat_ {n_particles}
     {}
 
-    constexpr auto operator()(std::size_t i_particle, const Worldline& worldline) const noexcept -> FP
+    constexpr auto operator()(std::size_t i_particle, const Worldline& worldline) noexcept -> FP
     {
         auto pot_energy = FP {};
 
@@ -127,7 +127,7 @@ public:
         , centroid_adjmat_ {n_particles}
     {}
 
-    constexpr auto operator()(std::size_t i_particle, const Worldline& worldline) const noexcept -> FP
+    constexpr auto operator()(std::size_t i_particle, const Worldline& worldline) noexcept -> FP
     {
         // NOTE
         // this member function doesn't actually take periodicity into account; so the Attard
@@ -179,7 +179,7 @@ public:
         , centroid_adjmat_ {n_particles}
     {}
 
-    constexpr auto operator()(std::size_t i_particle, const Worldline& worldline) const noexcept -> FP
+    constexpr auto operator()(std::size_t i_particle, const Worldline& worldline) noexcept -> FP
     {
         // NOTE
         // this member function doesn't actually take periodicity into account; so the Attard
@@ -226,7 +226,7 @@ public:
         return centroid_adjmat_;
     }
 
-    constexpr auto point_potential() const -> const Potential&
+    constexpr auto point_potential() -> Potential&
     {
         return pot_;
     }
