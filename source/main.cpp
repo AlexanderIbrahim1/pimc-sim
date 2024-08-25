@@ -257,7 +257,7 @@ auto main() -> int
 
     const auto abs_pot4b_filepath = std::filesystem::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/scripts/models/fourbodypara_ssp_64_128_128_64_cpu_eval.pt"};
     const long int buffer_size = 1024;
-    auto pot4b = interact::get_published_buffered_four_body_point_potential<NDIM, interact::PermutationTransformerFlag::EXACT>(abs_pot4b_filepath, buffer_size);
+    auto pot4b = interact::get_published_buffered_four_body_potential<NDIM, interact::PermutationTransformerFlag::EXACT>(abs_pot4b_filepath, buffer_size);
     // clang-format on
 
     /* create the environment object */

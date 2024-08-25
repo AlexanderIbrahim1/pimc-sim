@@ -168,7 +168,7 @@ private:
 };
 
 template <typename Potential, std::floating_point FP, std::size_t NDIM>
-requires BufferedQuadrupletPointPotential<Potential, FP, NDIM>
+requires BufferedQuadrupletPotential<Potential, FP>
 class NearestNeighbourQuadrupletInteractionHandler
 {
     using Worldline = worldline::Worldline<FP, NDIM>;
@@ -190,13 +190,27 @@ public:
         const auto& points = worldline.points();
         const auto neighbours = centroid_adjmat_.neighbours(i_particle);
 
-        for (std::size_t idx_neigh0 {0}; idx_neigh0 < neighbours.size() - 2; ++idx_neigh0) {
-            for (std::size_t idx_neigh1 {idx_neigh0 + 1}; idx_neigh1 < neighbours.size() - 1; ++idx_neigh1) {
-                for (std::size_t idx_neigh2 {idx_neigh1 + 1}; idx_neigh2 < neighbours.size(); ++idx_neigh2) {
-                    const auto i_neigh0 = neighbours[idx_neigh0];
-                    const auto i_neigh1 = neighbours[idx_neigh1];
-                    const auto i_neigh2 = neighbours[idx_neigh2];
-                    pot_.add_sample(points[i_particle], points[i_neigh0], points[i_neigh1], points[i_neigh2]);
+        const auto point0 = points[i_particle];
+
+        for (std::size_t idx_neigh1 {0}; idx_neigh1 < neighbours.size() - 2; ++idx_neigh1) {
+            const auto i_neigh1 = neighbours[idx_neigh1];
+            const auto point1 = points[i_neigh1];
+            const auto dist01 = coord::distance(point0, point1);
+
+            for (std::size_t idx_neigh2 {idx_neigh1 + 1}; idx_neigh2 < neighbours.size() - 1; ++idx_neigh2) {
+                const auto i_neigh2 = neighbours[idx_neigh2];
+                const auto point2 = points[i_neigh2];
+                const auto dist02 = coord::distance(point0, point2);
+                const auto dist12 = coord::distance(point1, point2);
+
+                for (std::size_t idx_neigh3 {idx_neigh2 + 1}; idx_neigh3 < neighbours.size(); ++idx_neigh3) {
+                    const auto i_neigh3 = neighbours[idx_neigh3];
+                    const auto point3 = points[i_neigh3];
+                    const auto dist03 = coord::distance(point0, point3);
+                    const auto dist13 = coord::distance(point1, point3);
+                    const auto dist23 = coord::distance(point2, point3);
+
+                    pot_.add_sample(coord::FourBodySideLengths<FP> {dist01, dist02, dist03, dist12, dist13, dist23});
                 }
             }
         }
