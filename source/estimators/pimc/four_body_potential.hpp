@@ -184,8 +184,6 @@ template <std::floating_point FP, std::size_t NDIM>
 auto total_quadruplet_potential_energy_periodic(
 
 ) -> FP
-{
-
-}
+{}
 
 }  // namespace estim

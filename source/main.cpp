@@ -25,7 +25,7 @@
 #include <geometries/lattice.hpp>
 #include <geometries/lattice_type.hpp>
 #include <geometries/unit_cell_translations.hpp>
-#include <interactions/four_body/rescaling.hpp>
+#include <interactions/four_body/published_potential.hpp>
 #include <interactions/handlers/composite_interaction_handler.hpp>
 #include <interactions/handlers/full_interaction_handler.hpp>
 #include <interactions/handlers/interaction_handler_concepts.hpp>
@@ -189,23 +189,6 @@ auto create_histogram(
 
 auto main() -> int
 {
-    const auto rescaling_limits = interact::rescale::RescalingLimits {1.0, 2.0, 3.0, 4.0};
-    const auto rescaling_function = interact::rescale::RescalingFunction {1.0, 1.0, 1.0};
-    const auto forward_rescaler = interact::rescale::ForwardEnergyRescaler {rescaling_function, rescaling_limits};
-
-    const auto side_length_groups = torch::tensor(
-        {
-            {1.0, 2.0, 3.0, 4.0, 5.0, 6.0}
-    },
-        torch::dtype(torch::kFloat64)
-    );
-    auto energies_to_rescale = torch::tensor({{6.0}}, torch::dtype(torch::kFloat64));
-
-    interact::rescale::forward_rescale_energies(forward_rescaler, side_length_groups, energies_to_rescale);
-
-    std::cout << "RESULT: " << energies_to_rescale[0].item<double>() << '\n';
-    std::exit(EXIT_SUCCESS);
-
     namespace fs = std::filesystem;
 
     const auto output_dirpath = fs::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/ignore"};
@@ -268,8 +251,14 @@ auto main() -> int
 
     sim::write_box_sides(output_dirpath / "box_sides.dat", minimage_box);
 
+    // clang-format off
     const auto pot = fsh_potential(minimage_box);
     const auto pot3b = threebodyparah2_potential(minimage_box);
+
+    const auto abs_pot4b_filepath = std::filesystem::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/scripts/models/fourbodypara_ssp_64_128_128_64_cpu_eval.pt"};
+    const long int buffer_size = 1024;
+    auto pot4b = interact::get_published_buffered_four_body_point_potential<NDIM, interact::PermutationTransformerFlag::EXACT>(abs_pot4b_filepath, buffer_size);
+    // clang-format on
 
     /* create the environment object */
     const auto h2_mass = constants::H2_MASS_IN_AMU<double>;
@@ -279,11 +268,13 @@ auto main() -> int
 
     // using PairInteractionHandler = interact::FullPairInteractionHandler<decltype(pot), double, NDIM>;
     // using TripletInteractionHandler = interact::FullTripletInteractionHandler<decltype(pot3b), double, NDIM>;
-    // using InteractionHandler = interact::CompositeFullInteractionHandler<double, NDIM, PairInteractionHandler, TripletInteractionHandler>;
+    // using InteractionHandler = interact::CompositeFullInteractionHandler<double, NDIM, PairInteractionHandler,
+    // TripletInteractionHandler>;
 
     // clang-format off
     using PairInteractionHandler = interact::NearestNeighbourPairInteractionHandler<decltype(pot), double, NDIM>;
     using TripletInteractionHandler = interact::NearestNeighbourTripletInteractionHandler<decltype(pot3b), double, NDIM>;
+    // using QuadrupletInteractionHandler = interact::
     using InteractionHandler = interact::CompositeNearestNeighbourInteractionHandler<double, NDIM, PairInteractionHandler, TripletInteractionHandler>;
 
     auto pair_interaction_handler = PairInteractionHandler {pot, n_particles};
@@ -316,7 +307,8 @@ auto main() -> int
     const auto bisect_move_adjuster = create_bisect_move_adjuster(0.4, 0.5);
 
     auto com_step_size_writer = pimc::default_centre_of_mass_position_move_step_size_writer<double>(output_dirpath);
-    auto multi_bead_move_info_writer = pimc::default_bisection_multibead_position_move_info_writer<double>(output_dirpath);
+    auto multi_bead_move_info_writer =
+        pimc::default_bisection_multibead_position_move_info_writer<double>(output_dirpath);
 
     /* create the move acceptance rate trackers for the move performers */
     auto com_tracker = pimc::MoveSuccessTracker {};

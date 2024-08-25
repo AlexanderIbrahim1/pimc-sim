@@ -180,3 +180,19 @@ To make this nicer, we could create classes that wrap together:
     before perform all the math operations on it
     - [DONE] I attempted this solution, and both the original and rescaled dispersion potentials give the same result
       even for a tetrahedron of side length 14.0f
+
+
+### IDEAS
+
+#### Making the InteractionHandler instances account for buffering
+Notice that the `operator()` member functions for InteractionHandler instances only take the particle index and the worldine
+  - the user doesn't need to care how the potential itself it called
+    - it can call each one individually, or perform buffered calls, etc.
+
+I want the user to not have to care about the specific interface of the interaction potential itself
+  - (as long as it satisfies one of a few categories, otherwise they need to write their own)
+
+I should:
+  - create more concepts to cover more ways to call the interaction potential
+  - modify the InteractionHandler instances with `constexpr if` to evaluate the potential
+    differently, depending on which concept is satisfied

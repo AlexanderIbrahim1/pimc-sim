@@ -10,6 +10,7 @@
 
 #include <coordinates/attard.hpp>
 #include <coordinates/cartesian.hpp>
+#include <coordinates/measure.hpp>
 #include <interactions/four_body/constants.hpp>
 #include <interactions/four_body/interaction_ranges.hpp>
 #include <interactions/four_body/long_range.hpp>
@@ -25,12 +26,12 @@ class ExtrapolatedPotential
 {
 public:
     using IR = interact_ranges::InteractionRange;
-    using RescalingModel = typename rescale::RescalingEnergyModel<FP>;
-    using LongRangeEnergyCorrector = typename long_range::LongRangeEnergyCorrector<FP, NDIM>;
-    using ShortRangeDataPreparer = typename short_range::ShortRangeDataPreparer<FP>;
-    using ShortRangeEnergyCorrector = typename short_range::ShortRangeEnergyCorrector<FP>;
-    using DistanceInfo = typename short_range::ExtrapolationDistanceInfo<FP>;
-    using ExtrapolationEnergies = typename short_range::ExtrapolationEnergies<FP>;
+    using RescalingModel = rescale::RescalingEnergyModel<FP>;
+    using LongRangeEnergyCorrector = long_range::LongRangeEnergyCorrector<FP, NDIM>;
+    using ShortRangeDataPreparer = short_range::ShortRangeDataPreparer<FP>;
+    using ShortRangeEnergyCorrector = short_range::ShortRangeEnergyCorrector<FP>;
+    using DistanceInfo = short_range::ExtrapolationDistanceInfo<FP>;
+    using ExtrapolationEnergies = short_range::ExtrapolationEnergies<FP>;
 
     ExtrapolatedPotential(
         RescalingModel rescaling_model,
@@ -282,7 +283,7 @@ public:
         sample_buffer_ = torch::empty({buffer_size, 6});
     }
 
-    constexpr auto add_sample(const coord::FourBodySideLengths<FP>& side_lengths) -> void
+    constexpr void add_sample(const coord::FourBodySideLengths<FP>& side_lengths)
     {
         if (number_of_samples_ == buffer_size_) {
             total_energy_ += evaluate_buffer_(number_of_samples_);
@@ -334,6 +335,38 @@ private:
 
         return torch::sum(energies).template item<FP>();
     }
+};
+
+template <std::floating_point FP, std::size_t NDIM, typename InputSampleTransformer>
+class BufferedExtrapolatedPointPotential
+{
+public:
+    using BufferedExtrapPotential = BufferedExtrapolatedPotential<FP, NDIM, InputSampleTransformer>;
+    using Point = coord::Cartesian<FP, NDIM>;
+
+    explicit BufferedExtrapolatedPointPotential(BufferedExtrapPotential extrap_pot)
+        : extrap_pot_ {std::move(extrap_pot)}
+    {}
+
+    constexpr void add_sample(const Point& p0, const Point& p1, const Point& p2, const Point& p3)
+    {
+        const auto dist01 = coord::distance(p0, p1);
+        const auto dist02 = coord::distance(p0, p2);
+        const auto dist03 = coord::distance(p0, p3);
+        const auto dist12 = coord::distance(p1, p2);
+        const auto dist13 = coord::distance(p1, p3);
+        const auto dist23 = coord::distance(p2, p3);
+
+        extrap_pot_.add_sample(coord::FourBodySideLengths<FP> {dist01, dist02, dist03, dist12, dist13, dist23});
+    }
+
+    constexpr auto extract_energy() -> FP
+    {
+        return extrap_pot_.extract_energy();
+    }
+
+private:
+    BufferedExtrapPotential extrap_pot_;
 };
 
 }  // namespace interact

@@ -3,8 +3,8 @@
 #include <cmath>
 #include <concepts>
 
-#include <coordinates/cartesian.hpp>
 #include <coordinates/box_sides.hpp>
+#include <coordinates/cartesian.hpp>
 #include <coordinates/measure.hpp>
 
 namespace coord

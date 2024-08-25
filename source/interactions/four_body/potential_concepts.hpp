@@ -20,4 +20,21 @@ concept BufferedQuadrupletPotential = requires(Potential pot) {
     } -> std::same_as<FP>;
 };
 
+template <typename Potential, typename FP, std::size_t NDIM>
+concept BufferedQuadrupletPointPotential = requires(Potential pot) {
+    requires std::is_floating_point_v<FP>;
+    {
+        pot.add_sample(
+            coord::Cartesian<FP, NDIM> {},
+            coord::Cartesian<FP, NDIM> {},
+            coord::Cartesian<FP, NDIM> {},
+            coord::Cartesian<FP, NDIM> {}
+        )
+    } -> std::same_as<void>;
+
+    {
+        pot.extract_energy()
+    } -> std::same_as<FP>;
+};
+
 }  // namespace interact

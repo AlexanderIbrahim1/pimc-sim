@@ -11,9 +11,9 @@
 #include <coordinates/cartesian.hpp>
 #include <coordinates/measure.hpp>
 #include <environment/environment.hpp>
-#include <interactions/two_body/potential_concepts.hpp>
-#include <interactions/three_body/potential_concepts.hpp>
 #include <interactions/four_body/potential_concepts.hpp>
+#include <interactions/three_body/potential_concepts.hpp>
+#include <interactions/two_body/potential_concepts.hpp>
 #include <mathtools/grid/grid2d.hpp>
 #include <mathtools/grid/square_adjacency_matrix.hpp>
 #include <worldline/worldline.hpp>
@@ -168,7 +168,7 @@ private:
 };
 
 template <typename Potential, std::floating_point FP, std::size_t NDIM>
-requires BufferedQuadrupletPotential<Potential, FP>
+requires BufferedQuadrupletPointPotential<Potential, FP, NDIM>
 class NearestNeighbourQuadrupletInteractionHandler
 {
     using Worldline = worldline::Worldline<FP, NDIM>;
@@ -187,8 +187,6 @@ public:
         // instead, it assumes that the centroid adjacency matrix is tight enough that the nearest
         //   neighbours being considered in the interaction won't break the Attard convention;
         // for the simulations that I currently run, the box is large enough that this is always true
-        auto pot_energy = FP {};
-
         const auto& points = worldline.points();
         const auto neighbours = centroid_adjmat_.neighbours(i_particle);
 
@@ -198,10 +196,12 @@ public:
                     const auto i_neigh0 = neighbours[idx_neigh0];
                     const auto i_neigh1 = neighbours[idx_neigh1];
                     const auto i_neigh2 = neighbours[idx_neigh2];
-                    pot_energy += pot_(points[i_particle], points[i_neigh0], points[i_neigh1], points[i_neigh2]);
+                    pot_.add_sample(points[i_particle], points[i_neigh0], points[i_neigh1], points[i_neigh2]);
                 }
             }
         }
+
+        const auto pot_energy = pot_.extract_energy();
 
         return pot_energy;
     }

@@ -131,7 +131,18 @@ auto get_published_buffered_four_body_potential(const std::filesystem::path& res
 {
     auto extrap_pot = get_published_four_body_potential<NDIM, Flag>(rescaled_module_path);
 
-    return interact::BufferedExtrapolatedPotential(std::move(extrap_pot), buffer_size);
+    return interact::BufferedExtrapolatedPotential {std::move(extrap_pot), buffer_size};
+}
+
+template <std::size_t NDIM, interact::PermutationTransformerFlag Flag>
+auto get_published_buffered_four_body_point_potential(
+    const std::filesystem::path& rescaled_module_path,
+    long int buffer_size
+)
+{
+    auto extrap_pot = get_published_buffered_four_body_potential<NDIM, Flag>(rescaled_module_path, buffer_size);
+
+    return interact::BufferedExtrapolatedPointPotential {std::move(extrap_pot)};
 }
 
 }  // namespace interact
