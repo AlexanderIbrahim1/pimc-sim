@@ -115,7 +115,7 @@ private:
         const auto bead_before = worldlines[it_before][i_particle];
         const auto bead_after = worldlines[it_after][i_particle];
 
-        return 0.5 * (bead_before + bead_after);
+        return FP {0.5} * (bead_before + bead_after);
     }
 };
 

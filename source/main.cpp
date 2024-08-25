@@ -80,7 +80,7 @@ constexpr auto lennard_jones_parah2_potential(auto minimage_box)
         converted to wavenumbers and angstroms.
     */
 
-    const auto distance_pot = interact::LennardJonesPotential {23.77, 2.96};
+    const auto distance_pot = interact::LennardJonesPotential {23.77f, 2.96f};
     const auto pot = interact::PeriodicTwoBodyPointPotential {distance_pot, minimage_box};
 
     return pot;
@@ -90,7 +90,7 @@ auto fsh_potential(auto minimage_box)
 {
     const auto fsh_dirpath = std::filesystem::path {"/home/a68ibrah/research/simulations/pimc-sim/potentials"};
     const auto fsh_filename = "fsh_potential_angstroms_wavenumbers.potext_sq";
-    auto distance_pot = interact::create_fsh_pair_potential<double>(fsh_dirpath / fsh_filename);
+    auto distance_pot = interact::create_fsh_pair_potential<float>(fsh_dirpath / fsh_filename);
     const auto pot = interact::PeriodicTwoBodySquaredPointPotential {std::move(distance_pot), minimage_box};
 
     return pot;
@@ -113,7 +113,7 @@ auto load_trilinear_interpolator(const std::filesystem::path& data_filepath)
     instream >> s_size;
     instream >> u_size;
 
-    double r_min, r_max, s_min, s_max, u_min, u_max;
+    float r_min, r_max, s_min, s_max, u_min, u_max;
     instream >> r_min;
     instream >> r_max;
     instream >> s_min;
@@ -128,10 +128,10 @@ auto load_trilinear_interpolator(const std::filesystem::path& data_filepath)
 
     // read in all the energies into a vector
     const auto n_elements = r_size * s_size * u_size;
-    auto energies = std::vector<double> {};
+    auto energies = std::vector<float> {};
     energies.reserve(n_elements);
 
-    double energy;
+    float energy;
     for (std::size_t i {0}; i < n_elements; ++i) {
         instream >> energy;
         energies.push_back(energy);
@@ -140,14 +140,14 @@ auto load_trilinear_interpolator(const std::filesystem::path& data_filepath)
     // create the 3D grid of energies to perform trilinear interpolation on
     auto grid = mathtools::Grid3D {std::move(energies), shape};
 
-    return mathtools::TrilinearInterpolator<double> {std::move(grid), r_limits, s_limits, u_limits};
+    return mathtools::TrilinearInterpolator<float> {std::move(grid), r_limits, s_limits, u_limits};
 }
 
 auto threebodyparah2_potential(auto minimage_box)
 {
     const auto pot_dirpath = std::filesystem::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/scripts"};
     const auto pot_filename = "threebody_126_101_51.dat";
-    const auto c9_coefficient = 34336.2;  // [cm]^[-1] * [Angstrom]^[9]
+    const auto c9_coefficient = 34336.2f;  // [cm]^[-1] * [Angstrom]^[9]
 
     auto interpolator = load_trilinear_interpolator(pot_dirpath / pot_filename);
     auto distance_pot = interact::ThreeBodyParaH2Potential {std::move(interpolator), c9_coefficient};
@@ -155,35 +155,35 @@ auto threebodyparah2_potential(auto minimage_box)
     return interact::PeriodicThreeBodyPointPotential {std::move(distance_pot), minimage_box};
 }
 
-auto create_com_move_adjuster(double lower_range_limit, double upper_range_limit) noexcept
-    -> pimc::SingleValueMoveAdjuster<double>
+auto create_com_move_adjuster(float lower_range_limit, float upper_range_limit) noexcept
+    -> pimc::SingleValueMoveAdjuster<float>
 {
-    const auto com_accept_range = pimc::AcceptPercentageRange<double> {lower_range_limit, upper_range_limit};
-    const auto com_adjust_step = double {0.01};
+    const auto com_accept_range = pimc::AcceptPercentageRange<float> {lower_range_limit, upper_range_limit};
+    const auto com_adjust_step = 0.01f;
     const auto com_direction = pimc::DirectionIfAcceptTooLow::NEGATIVE;
-    const auto com_limits = pimc::MoveLimits<double> {0.0, std::nullopt};
-    return pimc::SingleValueMoveAdjuster<double> {com_accept_range, com_adjust_step, com_direction, com_limits};
+    const auto com_limits = pimc::MoveLimits<float> {0.0, std::nullopt};
+    return pimc::SingleValueMoveAdjuster<float> {com_accept_range, com_adjust_step, com_direction, com_limits};
 }
 
-auto create_bisect_move_adjuster(double lower_range_limit, double upper_range_limit) noexcept
-    -> pimc::BisectionLevelMoveAdjuster<double>
+auto create_bisect_move_adjuster(float lower_range_limit, float upper_range_limit) noexcept
+    -> pimc::BisectionLevelMoveAdjuster<float>
 {
-    const auto com_accept_range = pimc::AcceptPercentageRange<double> {lower_range_limit, upper_range_limit};
-    const auto com_adjust_step = double {0.1};
-    return pimc::BisectionLevelMoveAdjuster<double> {com_accept_range, com_adjust_step};
+    const auto com_accept_range = pimc::AcceptPercentageRange<float> {lower_range_limit, upper_range_limit};
+    const auto com_adjust_step = 0.1f;
+    return pimc::BisectionLevelMoveAdjuster<float> {com_accept_range, com_adjust_step};
 }
 
 auto create_histogram(
     const std::filesystem::path& histogram_filepath,
     const sim::ContinueFileManager& manager,
-    const coord::BoxSides<double, NDIM>& minimage_box
+    const coord::BoxSides<float, NDIM>& minimage_box
 )
 {
     if (manager.is_continued()) {
-        return mathtools::io::read_histogram<double>(histogram_filepath);
+        return mathtools::io::read_histogram<float>(histogram_filepath);
     }
     else {
-        return mathtools::Histogram<double> {0.0, coord::box_cutoff_distance(minimage_box), 1024};
+        return mathtools::Histogram<float> {0.0, coord::box_cutoff_distance(minimage_box), 1024};
     }
 }
 
@@ -211,7 +211,7 @@ auto main() -> int
     const auto continue_file_manager = sim::ContinueFileManager {output_dirpath};
     auto toml_stream = std::stringstream {std::string {toml_input}};
 
-    const auto parser = argparse::ArgParser {toml_stream};
+    const auto parser = argparse::ArgParser<float> {toml_stream};
     if (!parser.is_valid()) {
         std::cout << "PARSER DID NOT PARSE PROPERLY\n";
         std::exit(EXIT_FAILURE);
@@ -236,16 +236,16 @@ auto main() -> int
     const auto [n_particles, minimage_box, lattice_site_positions] = build_hcp_lattice_structure(parser.density);
 
     /* create the worldlines and worldline writer*/
-    auto worldline_writer = worldline::WorldlineWriter<double, NDIM> {output_dirpath};
+    auto worldline_writer = worldline::WorldlineWriter<float, NDIM> {output_dirpath};
 
     auto worldlines = [&]()
     {
         if (continue_file_manager.is_continued()) {
             const auto worldline_filepath = worldline_writer.output_filepath(first_block_index);
-            return worldline::read_worldlines<double, NDIM>(worldline_filepath);
+            return worldline::read_worldlines<float, NDIM>(worldline_filepath);
         }
         else {
-            return worldline::worldlines_from_positions<double, NDIM>(lattice_site_positions, n_timeslices);
+            return worldline::worldlines_from_positions<float, NDIM>(lattice_site_positions, n_timeslices);
         }
     }();
 
@@ -261,21 +261,21 @@ auto main() -> int
     // clang-format on
 
     /* create the environment object */
-    const auto h2_mass = constants::H2_MASS_IN_AMU<double>;
+    const auto h2_mass = constants::H2_MASS_IN_AMU<float>;
     const auto environment = envir::create_environment(temperature, h2_mass, n_timeslices, n_particles);
 
     /* create the interaction handler */
 
-    // using PairInteractionHandler = interact::FullPairInteractionHandler<decltype(pot), double, NDIM>;
-    // using TripletInteractionHandler = interact::FullTripletInteractionHandler<decltype(pot3b), double, NDIM>;
-    // using InteractionHandler = interact::CompositeFullInteractionHandler<double, NDIM, PairInteractionHandler,
+    // using PairInteractionHandler = interact::FullPairInteractionHandler<decltype(pot), float, NDIM>;
+    // using TripletInteractionHandler = interact::FullTripletInteractionHandler<decltype(pot3b), float, NDIM>;
+    // using InteractionHandler = interact::CompositeFullInteractionHandler<float, NDIM, PairInteractionHandler,
     // TripletInteractionHandler>;
 
     // clang-format off
-    using PairInteractionHandler = interact::NearestNeighbourPairInteractionHandler<decltype(pot), double, NDIM>;
-    using TripletInteractionHandler = interact::NearestNeighbourTripletInteractionHandler<decltype(pot3b), double, NDIM>;
-    // using QuadrupletInteractionHandler = interact::
-    using InteractionHandler = interact::CompositeNearestNeighbourInteractionHandler<double, NDIM, PairInteractionHandler, TripletInteractionHandler>;
+    using PairInteractionHandler = interact::NearestNeighbourPairInteractionHandler<decltype(pot), float, NDIM>;
+    using TripletInteractionHandler = interact::NearestNeighbourTripletInteractionHandler<decltype(pot3b), float, NDIM>;
+    // using QuadrupletInteractionHandler = interact::NearestNeighbourQuadrupletInteractionHandler<decltype(pot4b), float, NDIM>;
+    using InteractionHandler = interact::CompositeNearestNeighbourInteractionHandler<float, NDIM, PairInteractionHandler, TripletInteractionHandler>;
 
     auto pair_interaction_handler = PairInteractionHandler {pot, n_particles};
     auto triplet_interaction_handler = TripletInteractionHandler {std::move(pot3b), n_particles};
@@ -283,14 +283,14 @@ auto main() -> int
     // clang-format on
 
     const auto lattice_constant = geom::density_to_lattice_constant(parser.density, geom::LatticeType::HCP);
-    const auto pair_cutoff_distance = 2.2 * lattice_constant;
-    const auto triplet_cutoff_distance = 1.1 * lattice_constant;
+    const auto pair_cutoff_distance = static_cast<float>(2.2 * lattice_constant);
+    const auto triplet_cutoff_distance = static_cast<float>(1.1 * lattice_constant);
 
-    interact::update_centroid_adjacency_matrix<double, NDIM>(
+    interact::update_centroid_adjacency_matrix<float, NDIM>(
         worldlines, minimage_box, environment, interaction_handler.adjacency_matrix<0>(), pair_cutoff_distance
     );
 
-    interact::update_centroid_adjacency_matrix<double, NDIM>(
+    interact::update_centroid_adjacency_matrix<float, NDIM>(
         worldlines, minimage_box, environment, interaction_handler.adjacency_matrix<1>(), triplet_cutoff_distance
     );
 
@@ -298,17 +298,17 @@ auto main() -> int
     auto prngw = rng::RandomNumberGeneratorWrapper<std::mt19937>::from_random_uint64();
 
     /* create the move performers */
-    auto com_mover = pimc::CentreOfMassMovePerformer<double, NDIM> {n_timeslices, com_step_size};
-    auto single_bead_mover = pimc::SingleBeadPositionMovePerformer<double, NDIM> {n_timeslices};
-    auto multi_bead_mover = pimc::BisectionMultibeadPositionMovePerformer<double, NDIM> {bisect_move_info};
+    auto com_mover = pimc::CentreOfMassMovePerformer<float, NDIM> {n_timeslices, com_step_size};
+    auto single_bead_mover = pimc::SingleBeadPositionMovePerformer<float, NDIM> {n_timeslices};
+    auto multi_bead_mover = pimc::BisectionMultibeadPositionMovePerformer<float, NDIM> {bisect_move_info};
 
     /* create the move adjusters */
-    const auto com_move_adjuster = create_com_move_adjuster(0.4, 0.5);
-    const auto bisect_move_adjuster = create_bisect_move_adjuster(0.4, 0.5);
+    const auto com_move_adjuster = create_com_move_adjuster(0.4f, 0.5f);
+    const auto bisect_move_adjuster = create_bisect_move_adjuster(0.4f, 0.5f);
 
-    auto com_step_size_writer = pimc::default_centre_of_mass_position_move_step_size_writer<double>(output_dirpath);
+    auto com_step_size_writer = pimc::default_centre_of_mass_position_move_step_size_writer<float>(output_dirpath);
     auto multi_bead_move_info_writer =
-        pimc::default_bisection_multibead_position_move_info_writer<double>(output_dirpath);
+        pimc::default_bisection_multibead_position_move_info_writer<float>(output_dirpath);
 
     /* create the move acceptance rate trackers for the move performers */
     auto com_tracker = pimc::MoveSuccessTracker {};
@@ -320,11 +320,11 @@ auto main() -> int
     auto multi_bead_move_writer = pimc::default_bisection_multibead_position_move_success_writer(output_dirpath);
 
     /* create the file writers for the estimators */
-    auto kinetic_writer = estim::default_kinetic_writer<double>(output_dirpath);
-    auto pair_potential_writer = estim::default_pair_potential_writer<double>(output_dirpath);
-    auto triplet_potential_writer = estim::default_triplet_potential_writer<double>(output_dirpath);
-    auto rms_centroid_writer = estim::default_rms_centroid_distance_writer<double>(output_dirpath);
-    auto abs_centroid_writer = estim::default_absolute_centroid_distance_writer<double>(output_dirpath);
+    auto kinetic_writer = estim::default_kinetic_writer<float>(output_dirpath);
+    auto pair_potential_writer = estim::default_pair_potential_writer<float>(output_dirpath);
+    auto triplet_potential_writer = estim::default_triplet_potential_writer<float>(output_dirpath);
+    auto rms_centroid_writer = estim::default_rms_centroid_distance_writer<float>(output_dirpath);
+    auto abs_centroid_writer = estim::default_absolute_centroid_distance_writer<float>(output_dirpath);
 
     /* create the histogram and the histogram writers */
     const auto radial_dist_histo_filepath = output_dirpath / "radial_dist_histo.dat";
@@ -333,7 +333,7 @@ auto main() -> int
     const auto centroid_dist_histo_filepath = output_dirpath / "centroid_radial_dist_histo.dat";
     auto centroid_dist_histo = create_histogram(centroid_dist_histo_filepath, continue_file_manager, minimage_box);
 
-    const auto periodic_distance_calculator = coord::PeriodicDistanceMeasureWrapper<double, NDIM> {minimage_box};
+    const auto periodic_distance_calculator = coord::PeriodicDistanceMeasureWrapper<float, NDIM> {minimage_box};
 
     /* perform the simulation loop */
     for (std::size_t i_block {first_block_index}; i_block < last_block_index; ++i_block) {
@@ -360,7 +360,7 @@ auto main() -> int
             }
         }
 
-        // interact::update_centroid_adjacency_matrix<double, 3>(
+        // interact::update_centroid_adjacency_matrix<float, 3>(
         //     worldlines, minimage_box, environment, interaction_handler.adjacency_matrix(), cutoff_distance
         // );
 
@@ -427,7 +427,7 @@ auto main() -> int
         single_bead_tracker.reset();
         multi_bead_tracker.reset();
 
-        worldline::delete_worldlines_file<double, NDIM>(worldline_writer, i_block, n_most_recent_worldlines_to_save);
+        worldline::delete_worldlines_file<float, NDIM>(worldline_writer, i_block, n_most_recent_worldlines_to_save);
     }
 
     return 0;

@@ -212,7 +212,7 @@ public:
         return centroid_adjmat_;
     }
 
-    constexpr auto point_potential() const -> const PointPotential&
+    constexpr auto point_potential() const -> const Potential&
     {
         return pot_;
     }

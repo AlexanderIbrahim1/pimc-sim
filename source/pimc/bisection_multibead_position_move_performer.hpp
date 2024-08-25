@@ -98,7 +98,7 @@ public:
                 const auto left = worldlines[bisect_trip.left][i_particle];
                 const auto right = worldlines[bisect_trip.right][i_particle];
                 const auto step = generate_step_(prngw, step_stddev);
-                const auto proposed = 0.5 * (left + right) + step;
+                const auto proposed = FP {0.5} * (left + right) + step;
 
                 worldlines[bisect_trip.mid][i_particle] = proposed;
             }

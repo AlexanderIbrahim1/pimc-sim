@@ -1,5 +1,6 @@
 #pragma once
 
+#include <concepts>
 #include <sstream>
 #include <stdexcept>
 #include <string_view>
@@ -22,6 +23,7 @@ constexpr auto cast_toml_to(const toml::table& table, std::string_view name) -> 
     return *maybe_value;
 }
 
+template <std::floating_point FP>
 class ArgParser
 {
 public:
@@ -35,11 +37,11 @@ public:
             n_equilibrium_blocks = cast_toml_to<std::size_t>(table, "n_equilibrium_blocks");
             n_passes = cast_toml_to<std::size_t>(table, "n_passes");
             n_timeslices = cast_toml_to<std::size_t>(table, "n_timeslices");
-            centre_of_mass_step_size = cast_toml_to<double>(table, "centre_of_mass_step_size");
+            centre_of_mass_step_size = cast_toml_to<FP>(table, "centre_of_mass_step_size");
             bisection_level = cast_toml_to<std::size_t>(table, "bisection_level");
-            bisection_ratio = cast_toml_to<double>(table, "bisection_ratio");
-            density = cast_toml_to<double>(table, "density");
-            temperature = cast_toml_to<double>(table, "temperature");
+            bisection_ratio = cast_toml_to<FP>(table, "bisection_ratio");
+            density = cast_toml_to<FP>(table, "density");
+            temperature = cast_toml_to<FP>(table, "temperature");
 
             parse_success_flag_ = true;
         }
@@ -61,11 +63,11 @@ public:
     std::size_t n_equilibrium_blocks {};
     std::size_t n_passes {};
     std::size_t n_timeslices {};
-    double centre_of_mass_step_size {};
+    FP centre_of_mass_step_size {};
     std::size_t bisection_level {};
-    double bisection_ratio {};
-    double density {};
-    double temperature {};
+    FP bisection_ratio {};
+    FP density {};
+    FP temperature {};
 
 private:
     bool parse_success_flag_ {};
