@@ -34,7 +34,7 @@
 #include <interactions/three_body/three_body_parah2.hpp>
 #include <interactions/three_body/three_body_pointwise_wrapper.hpp>
 #include <interactions/two_body/two_body_pointwise.hpp>
-#include <interactions/two_body/two_body_pointwise_tabulated.hpp>
+#include <interactions/two_body/published/fsh_potential.hpp>
 #include <interactions/two_body/two_body_pointwise_wrapper.hpp>
 #include <mathtools/grid/grid3d.hpp>
 #include <mathtools/histogram/histogram.hpp>
@@ -71,20 +71,6 @@ constexpr auto build_hcp_lattice_structure(auto density)
     const auto n_particles = lattice_site_positions.size();
 
     return std::tuple(n_particles, minimage_box, lattice_site_positions);
-}
-
-constexpr auto lennard_jones_parah2_potential(auto minimage_box)
-{
-    /*
-        Parameters for the Lennard-Jones potential are taken from paragraph 3 of page 354
-        of `Eur. Phys. J. D 56, 353–358 (2010)`. Original units are in Kelvin and Angstroms,
-        converted to wavenumbers and angstroms.
-    */
-
-    const auto distance_pot = interact::LennardJonesPotential {23.77f, 2.96f};
-    const auto pot = interact::PeriodicTwoBodyPointPotential {distance_pot, minimage_box};
-
-    return pot;
 }
 
 auto fsh_potential(auto minimage_box)

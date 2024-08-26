@@ -187,6 +187,17 @@ To make this nicer, we could create classes that wrap together:
 I've got temporary workarounds for these issues that will work for the current project
   - but if I want this codebase to work for later projects, I need to fix these design issues
 
+#### Making it clearer what the inputs for the different potentials are
+Some of the potentials can take the distance as the argument, other take the distance squared
+  - I want a way to make sure the user does not confuse one for the other!
+  - otherwise, it could ruin their results!
+
+I can *sort of* get away with this by making the distance measure part of the potential
+  - so the potential always takes two points, and the details are internal to the potential
+  - thus the user can never make the mistake
+
+But there's probably a better design choice here
+
 #### Making the InteractionHandler instances account for buffering
 Notice that the `operator()` member functions for InteractionHandler instances only take the particle index and the worldine
   - the user doesn't need to care how the potential itself it called
