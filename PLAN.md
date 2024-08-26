@@ -147,7 +147,7 @@ To make this nicer, we could create classes that wrap together:
   - maybe I only want the most recent n worldlines to be saved, so some might have to be deleted?
   - NOTE: did not implement schemes; just a function to delete the worldline file that is n blocks behind the current one
     - this is much simpler
-- [IN-PROGRESS:2024-04-02] implement the 3BPES
+- [DONE:2024-04-02] implement the 3BPES
   - [DONE] finish creating the smaller three-body PES grid, and verify that it gives the expected energies for specific configurations
     - [DONE] do the verification in Python first, then some unit tests in C++
   - create estimators for the 3BPES
@@ -156,8 +156,16 @@ To make this nicer, we could create classes that wrap together:
 - [DONE:2024-06-12] create interaction handler that allows both 2B and 3B interactions
 - [DONE:2024-06-12] fix the three-body potential estimator
   - the energies are positive, and way too big (about 1/2 the magnitude of the pair energy!)
+- [DONE:2024-08-26] implement the 4BPES
+- [DONE:2024-08-10]: solve a suspected bug with the dispersion potential
+  - [NOT-TRUE] I suspect that there are underflow errors with the dispersion potential when using 32-bit floats
+    - this is because we take a number to the power of 12
+    - for example, for a distance of 5 Angstroms, we get `4.096e-09 ANG^{-12}`
+  - [NOT-TRUE] I might be able to solve this by rescaling all the distances by the 12th root of the Bade coefficient
+    before perform all the math operations on it
+    - [DONE] I attempted this solution, and both the original and rescaled dispersion potentials give the same result
+      even for a tetrahedron of side length 14.0f
 - make saving the histograms atomic
-- implement the 4BPES
 - implement logging
 - implement saving the PRNG state (lower priority? the physics is still the same I guess)
 - simplify the header interface by putting several headers into a single one (too complicated right now)
@@ -172,17 +180,12 @@ To make this nicer, we could create classes that wrap together:
     + the time complexity makes a difference!
     + I might want to skip calling the estimator so I can go through more states in a simulation
 - come up with ideas for unit tests for the four-body PES
-- [IN-PROGRESS:2024-08-10]: solve a suspected bug with the dispersion potential
-  - [NOT-TRUE] I suspect that there are underflow errors with the dispersion potential when using 32-bit floats
-    - this is because we take a number to the power of 12
-    - for example, for a distance of 5 Angstroms, we get `4.096e-09 ANG^{-12}`
-  - [NOT-TRUE] I might be able to solve this by rescaling all the distances by the 12th root of the Bade coefficient
-    before perform all the math operations on it
-    - [DONE] I attempted this solution, and both the original and rescaled dispersion potentials give the same result
-      even for a tetrahedron of side length 14.0f
 
 
-### IDEAS
+### IDEAS (FOR FUTURE, AFTER THIS PUBLICATION)
+
+I've got temporary workarounds for these issues that will work for the current project
+  - but if I want this codebase to work for later projects, I need to fix these design issues
 
 #### Making the InteractionHandler instances account for buffering
 Notice that the `operator()` member functions for InteractionHandler instances only take the particle index and the worldine
@@ -196,3 +199,56 @@ I should:
   - create more concepts to cover more ways to call the interaction potential
   - modify the InteractionHandler instances with `constexpr if` to evaluate the potential
     differently, depending on which concept is satisfied
+
+PROBLEM: mutability of buffered potentials
+  - the non-buffered potentials do not need to mutate for any of their member functions to work
+    - their state does not change after creation
+  - the buffered potentials *DO* hold state
+    - they need to store all their inputs so they can pass them all at once!
+  - this messes with the `const`ness of a lot of other operations
+
+Should I just make them non-const?
+Should I separate the buffer from the buffered potential?
+
+
+### PUBLICATION PLAN
+I want to starting running simulations to get results for the (2 + 3 + 4)-body simulations
+
+- get the project compiling on the correct clusters
+  - the ones that I have rgg priority on
+- make sure I have all the estimators that I want (simulations are expensive, don't want to miss important things)
+  - look at the older publications, and see what estimators I had back them
+  - look at what other estimators I might be able to create
+- get the project working with real TOML files instead of reading from a string
+  - because I need to modify the settings for each type of simulation
+- come up with a way to manage all the simulations with all the different conditions
+  - look up how I did it before
+    - figure out the shortcomings, benefits, etc.
+  - I can use the same strategy with the old `qmc.input` file with the new `.toml` file
+- I might want to make the paths to the PESs absolute, and read from the toml file
+  - so the simulations can work regardless of the directory they are created in
+- I might want to make the code that manages all the simulations, part of the same repo for the publication
+  - the data analysis stuff is already there anyways
+  - there are pros and cons (more localized stuff, mixing things that *might* be better off separate)
+    - but I might as well try
+      - this project is small enough that the consequences won't be too dire
+      - I'll learn whether or not this is a good idea for future simulations
+- perform simulations under conditions that:
+  - give OKAY results, at least good enough to know that the project works at all
+    - maybe a reduced number of beads, a smaller potential?
+  - can be performed very quickly, so I don't have to wait several days/weeks for results
+  - can be *analyzed* very quickly (estimators take a lot of time too)
+
+The simulations I want to run?
+  - set `N = 180, P = 64` with a coarse-grained spread over the usual density range
+
+The initial simulations?
+  - FIRST, perform a few simulations at very different densities (low, medium, high)
+    - make the simulation box smaller than usual, so the simulations are done more quickly
+    - put these into a separate "trial simulations" directory
+    - find the equilibration time
+    - find the ideal MC move sizes
+    - find the autocorrelation times
+    - rerun again to see if the equilibration and autocorrelation times are the same if you
+      fix the MC move sizes to their ideal values from the beginning, instead of letting them
+      adjust during the equilibration phase
