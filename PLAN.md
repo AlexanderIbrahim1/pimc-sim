@@ -214,13 +214,13 @@ Should I separate the buffer from the buffered potential?
 ### PUBLICATION PLAN
 I want to starting running simulations to get results for the (2 + 3 + 4)-body simulations
 
+- [DONE:2024-08-26] get the project working with real TOML files instead of reading from a string
+  - because I need to modify the settings for each type of simulation
 - get the project compiling on the correct clusters
   - the ones that I have rgg priority on
 - make sure I have all the estimators that I want (simulations are expensive, don't want to miss important things)
   - look at the older publications, and see what estimators I had back them
   - look at what other estimators I might be able to create
-- get the project working with real TOML files instead of reading from a string
-  - because I need to modify the settings for each type of simulation
 - come up with a way to manage all the simulations with all the different conditions
   - look up how I did it before
     - figure out the shortcomings, benefits, etc.

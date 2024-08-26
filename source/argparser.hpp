@@ -1,6 +1,7 @@
 #pragma once
 
 #include <concepts>
+#include <filesystem>
 #include <sstream>
 #include <stdexcept>
 #include <string_view>
@@ -23,12 +24,62 @@ constexpr auto cast_toml_to(const toml::table& table, std::string_view name) -> 
     return *maybe_value;
 }
 
+/*
+    There are too many types of exceptions to handle from parsing all the data properly from the toml file,
+    so to simplify things for the user I decided to catch all the choices and allow the user to just check
+    a flag and maybe check the error message.
+*/
 template <std::floating_point FP>
 class ArgParser
 {
 public:
     explicit ArgParser(std::stringstream& toml_stream)
     {
+        parse_helper_(toml_stream);
+    }
+
+    explicit ArgParser(const std::filesystem::path& toml_filepath)
+    {
+        auto toml_stream = std::ifstream {toml_filepath};
+        if (!toml_stream.is_open()) {
+            auto err_msg = std::stringstream {};
+            err_msg << "ERROR: Unable to open the toml file for parsing: '";
+            err_msg << toml_filepath;
+            err_msg << '\n';
+
+            parse_success_flag_ = false;
+            error_message_ = err_msg.str();
+        } else {
+            parse_helper_(toml_stream);
+        }
+    }
+
+    constexpr auto is_valid() const noexcept -> bool
+    {
+        return parse_success_flag_;
+    }
+
+    constexpr auto error_message() const noexcept -> std::string
+    {
+        return error_message_;
+    }
+
+    std::size_t first_block_index {};
+    std::size_t last_block_index {};
+    std::size_t n_equilibrium_blocks {};
+    std::size_t n_passes {};
+    std::size_t n_timeslices {};
+    FP centre_of_mass_step_size {};
+    std::size_t bisection_level {};
+    FP bisection_ratio {};
+    FP density {};
+    FP temperature {};
+
+private:
+    bool parse_success_flag_ {};
+    std::string error_message_ {};
+
+    void parse_helper_(std::istream& toml_stream) {
         try {
             const auto table = toml::parse(toml_stream);
 
@@ -47,30 +98,13 @@ public:
         }
         catch (const toml::parse_error& err) {
             parse_success_flag_ = false;
+            error_message_ = err.what();
         }
         catch (const std::runtime_error& err) {
             parse_success_flag_ = false;
+            error_message_ = err.what();
         }
     }
-
-    constexpr auto is_valid() const noexcept -> bool
-    {
-        return parse_success_flag_;
-    }
-
-    std::size_t first_block_index {};
-    std::size_t last_block_index {};
-    std::size_t n_equilibrium_blocks {};
-    std::size_t n_passes {};
-    std::size_t n_timeslices {};
-    FP centre_of_mass_step_size {};
-    std::size_t bisection_level {};
-    FP bisection_ratio {};
-    FP density {};
-    FP temperature {};
-
-private:
-    bool parse_success_flag_ {};
 };
 
 }  // namespace argparse

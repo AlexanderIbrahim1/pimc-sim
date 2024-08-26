@@ -188,33 +188,26 @@ auto create_histogram(
     }
 }
 
-auto main() -> int
+auto main(int argc, char** argv) -> int
 {
+    if (argc != 2) {
+        std::cout << "ERROR: program incorrectly called from command line.\n";
+        std::cout << "a.out path-to-toml-file\n";
+        std::exit(EXIT_FAILURE);
+    }
+
     namespace fs = std::filesystem;
 
-    const auto output_dirpath = fs::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/ignore"};
-
-    const auto toml_input = std::string_view {R"(
-        first_block_index = 0
-        last_block_index = 200
-        n_equilibrium_blocks = 10
-        n_passes = 2
-        n_timeslices = 32
-        centre_of_mass_step_size = 0.3
-        bisection_level = 3
-        bisection_ratio = 0.5
-        density = 0.026
-        temperature = 4.2
-    )"};
+    const auto output_dirpath = fs::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/ignore2"};
+    const auto continue_file_manager = sim::ContinueFileManager {output_dirpath};
 
     const auto n_most_recent_worldlines_to_save = 5;
 
-    const auto continue_file_manager = sim::ContinueFileManager {output_dirpath};
-    auto toml_stream = std::stringstream {std::string {toml_input}};
-
-    const auto parser = argparse::ArgParser<float> {toml_stream};
+    const auto toml_input_filename = argv[1];
+    const auto parser = argparse::ArgParser<float> {toml_input_filename};
     if (!parser.is_valid()) {
         std::cout << "PARSER DID NOT PARSE PROPERLY\n";
+        std::cout << parser.error_message() << '\n';
         std::exit(EXIT_FAILURE);
     }
 
