@@ -74,22 +74,16 @@ constexpr auto build_hcp_lattice_structure(auto density)
     return std::tuple(n_particles, minimage_box, lattice_site_positions);
 }
 
-auto fsh_potential(auto minimage_box)
+auto fsh_potential(auto minimage_box, auto two_body_filepath)
 {
-    const auto fsh_dirpath = std::filesystem::path {"/home/a68ibrah/research/simulations/pimc-sim/potentials"};
-    const auto fsh_filename = "fsh_potential_angstroms_wavenumbers.potext_sq";
-    auto distance_pot = interact::two_body_schmidt2015<float>(fsh_dirpath / fsh_filename);
-    const auto pot = interact::PeriodicTwoBodySquaredPointPotential {std::move(distance_pot), minimage_box};
+    auto distance_pot = interact::two_body_schmidt2015<float>(two_body_filepath);
 
-    return pot;
+    return interact::PeriodicTwoBodySquaredPointPotential {std::move(distance_pot), minimage_box};
 }
 
-auto threebodyparah2_potential(auto minimage_box)
+auto threebodyparah2_potential(auto minimage_box, auto three_body_filepath)
 {
-    const auto pot_dirpath = std::filesystem::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/scripts"};
-    const auto pot_filename = "threebody_126_101_51.dat";
-
-    auto distance_pot = interact::three_body_ibrahim2022<float>(pot_dirpath / pot_filename);
+    auto distance_pot = interact::three_body_ibrahim2022<float>(three_body_filepath);
 
     return interact::PeriodicThreeBodyPointPotential {std::move(distance_pot), minimage_box};
 }
@@ -164,11 +158,6 @@ auto main(int argc, char** argv) -> int
         std::exit(EXIT_FAILURE);
     }
 
-    namespace fs = std::filesystem;
-
-    const auto output_dirpath = fs::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/ignore2"};
-    const auto continue_file_manager = sim::ContinueFileManager {output_dirpath};
-
     const auto n_most_recent_worldlines_to_save = 5;
 
     const auto toml_input_filename = argv[1];
@@ -178,6 +167,9 @@ auto main(int argc, char** argv) -> int
         std::cout << parser.error_message() << '\n';
         std::exit(EXIT_FAILURE);
     }
+
+    const auto output_dirpath = parser.abs_output_dirpath;
+    const auto continue_file_manager = sim::ContinueFileManager {output_dirpath};
 
     const auto temperature = parser.temperature;
     const auto n_timeslices = parser.n_timeslices;
@@ -197,12 +189,12 @@ auto main(int argc, char** argv) -> int
 
     sim::write_box_sides(output_dirpath / "box_sides.dat", minimage_box);
 
-    const auto pot = fsh_potential(minimage_box);
-    const auto pot3b = threebodyparah2_potential(minimage_box);
+    const auto pot = fsh_potential(minimage_box, parser.abs_two_body_filepath);
+    const auto pot3b = threebodyparah2_potential(minimage_box, parser.abs_three_body_filepath);
 
     // const auto abs_pot4b_filepath = std::filesystem::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/scripts/models/fourbodypara_ssp_64_128_128_64_cpu_eval.pt"};
     // const long int buffer_size = 1024;
-    // auto pot4b = interact::get_published_buffered_four_body_potential<NDIM, interact::PermutationTransformerFlag::EXACT>(abs_pot4b_filepath, buffer_size);
+    // auto pot4b = interact::get_published_buffered_four_body_potential<NDIM, interact::PermutationTransformerFlag::EXACT>(parser.abs_four_body_filepath, buffer_size);
     // clang-format on
 
     /* create the environment object */

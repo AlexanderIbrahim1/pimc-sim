@@ -12,7 +12,7 @@ namespace argparse
 {
 
 template <typename T>
-constexpr auto cast_toml_to(const toml::table& table, std::string_view name) -> T
+auto cast_toml_to(const toml::table& table, std::string_view name) -> T
 {
     const auto maybe_value = table[name].value<T>();
     if (!maybe_value) {
@@ -22,6 +22,19 @@ constexpr auto cast_toml_to(const toml::table& table, std::string_view name) -> 
     }
 
     return *maybe_value;
+}
+
+template <>
+auto cast_toml_to(const toml::table& table, std::string_view name) -> std::filesystem::path
+{
+    const auto maybe_value = table[name].value<std::string>();
+    if (!maybe_value) {
+        auto err_msg = std::stringstream {};
+        err_msg << "Failed to parse '" << name << "' from the toml stream.\n";
+        throw std::runtime_error {err_msg.str()};
+    }
+
+    return std::filesystem::path{*maybe_value};
 }
 
 /*
@@ -64,6 +77,7 @@ public:
         return error_message_;
     }
 
+    std::filesystem::path abs_output_dirpath {};
     std::size_t first_block_index {};
     std::size_t last_block_index {};
     std::size_t n_equilibrium_blocks {};
@@ -74,6 +88,9 @@ public:
     FP bisection_ratio {};
     FP density {};
     FP temperature {};
+    std::filesystem::path abs_two_body_filepath {};
+    std::filesystem::path abs_three_body_filepath {};
+    std::filesystem::path abs_four_body_filepath {};
 
 private:
     bool parse_success_flag_ {};
@@ -83,6 +100,7 @@ private:
         try {
             const auto table = toml::parse(toml_stream);
 
+            abs_output_dirpath = cast_toml_to<std::filesystem::path>(table, "abs_output_dirpath");
             first_block_index = cast_toml_to<std::size_t>(table, "first_block_index");
             last_block_index = cast_toml_to<std::size_t>(table, "last_block_index");
             n_equilibrium_blocks = cast_toml_to<std::size_t>(table, "n_equilibrium_blocks");
@@ -93,6 +111,9 @@ private:
             bisection_ratio = cast_toml_to<FP>(table, "bisection_ratio");
             density = cast_toml_to<FP>(table, "density");
             temperature = cast_toml_to<FP>(table, "temperature");
+            abs_two_body_filepath = cast_toml_to<std::filesystem::path>(table, "abs_two_body_filepath");
+            abs_three_body_filepath = cast_toml_to<std::filesystem::path>(table, "abs_three_body_filepath");
+            abs_four_body_filepath = cast_toml_to<std::filesystem::path>(table, "abs_four_body_filepath");
 
             parse_success_flag_ = true;
         }
