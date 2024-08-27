@@ -227,6 +227,8 @@ I want to starting running simulations to get results for the (2 + 3 + 4)-body s
 
 - [DONE:2024-08-26] get the project working with real TOML files instead of reading from a string
   - because I need to modify the settings for each type of simulation
+- [DONE:2024-08-27] I might want to make the paths to the PESs absolute, and read from the toml file
+  - so the simulations can work regardless of the directory they are created in
 - get the project compiling on the correct clusters
   - the ones that I have rgg priority on
 - make sure I have all the estimators that I want (simulations are expensive, don't want to miss important things)
@@ -236,8 +238,6 @@ I want to starting running simulations to get results for the (2 + 3 + 4)-body s
   - look up how I did it before
     - figure out the shortcomings, benefits, etc.
   - I can use the same strategy with the old `qmc.input` file with the new `.toml` file
-- I might want to make the paths to the PESs absolute, and read from the toml file
-  - so the simulations can work regardless of the directory they are created in
 - maybe make the code that manages all the simulations, part of the same repo for the publication
   - the data analysis stuff is already there anyways
   - there are pros and cons (more localized stuff, mixing things that *might* be better off separate)
