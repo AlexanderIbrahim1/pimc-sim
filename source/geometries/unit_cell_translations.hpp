@@ -4,7 +4,6 @@
 #include <array>
 #include <concepts>
 #include <cstddef>
-#include <format>
 #include <utility>
 
 #include <geometries/geom_utils.hpp>

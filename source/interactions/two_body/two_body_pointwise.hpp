@@ -1,9 +1,12 @@
 #pragma once
 
 #include <concepts>
-#include <format>
+#include <iomanip>
+#include <ios>
+#include <sstream>
 #include <stdexcept>
-#include <string>
+
+#include <common/writers/writer_utils.hpp>
 
 namespace interact
 {
@@ -12,9 +15,12 @@ template <std::floating_point FP>
 void ctr_check_well_depth_positive(FP well_depth)
 {
     if (well_depth <= FP {0.0}) {
-        const std::string msg =
-            std::format("The Lennard-Jones well depth must be positive\nFound: {: .6e}", well_depth);
-        throw std::runtime_error(msg);
+        const auto precision = common_utils::writer_utils::DEFAULT_WRITER_SINGLE_VALUE_PRECISION;
+
+        auto err_msg = std::stringstream {};
+        err_msg << "The Lennard-Jones well depth must be positive\nFound: ";
+        err_msg << std::scientific << std::setprecision(precision) << well_depth << '\n';
+        throw std::runtime_error(err_msg.str());
     }
 }
 
@@ -22,9 +28,12 @@ template <std::floating_point FP>
 void ctr_check_particle_size_positive(FP particle_size)
 {
     if (particle_size <= FP {0.0}) {
-        const std::string msg =
-            std::format("The Lennard-Jones particle size must be positive\nFound: {: .6e}", particle_size);
-        throw std::runtime_error(msg);
+        const auto precision = common_utils::writer_utils::DEFAULT_WRITER_SINGLE_VALUE_PRECISION;
+
+        auto err_msg = std::stringstream {};
+        err_msg << "The Lennard-Jones particle size must be positive\nFound: ";
+        err_msg << std::scientific << std::setprecision(precision) << particle_size << '\n';
+        throw std::runtime_error(err_msg.str());
     }
 }
 

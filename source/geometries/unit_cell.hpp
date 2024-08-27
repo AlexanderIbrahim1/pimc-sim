@@ -5,7 +5,6 @@
 #include <cmath>
 #include <concepts>
 #include <cstddef>
-#include <format>
 #include <numeric>
 #include <utility>
 #include <vector>
@@ -36,9 +35,7 @@ public:
 
         for (const auto& lvec : basis_lattice_vectors_) {
             if (coord::norm_squared(lvec) < EPSILON_MINIMUM_LATTICE_VECTOR_NORM_SQUARED<FP>) {
-                throw std::runtime_error(
-                    std::format("All lattice vectors must have a non-zero length.\nFound: {}", lvec.as_string())
-                );
+                throw std::runtime_error {"All lattice vectors must have a non-zero length when constructing a UnitCell<FP, NDIM>."};
             }
         }
     }
