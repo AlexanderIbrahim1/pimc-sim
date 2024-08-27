@@ -7,7 +7,7 @@
 #include <tuple>
 
 #include <tomlplusplus/toml.hpp>
-#include <torch/script.h>
+// #include <torch/script.h>
 
 #include <argparser.hpp>
 #include <common/writers/writer_utils.hpp>
@@ -20,13 +20,13 @@
 #include <estimators/pimc/radial_distribution_function.hpp>
 #include <estimators/pimc/two_body_potential.hpp>
 #include <estimators/pimc/three_body_potential.hpp>
-#include <estimators/pimc/four_body_potential.hpp>
+// #include <estimators/pimc/four_body_potential.hpp>
 #include <estimators/writers/default_writers.hpp>
 #include <geometries/bravais.hpp>
 #include <geometries/lattice.hpp>
 #include <geometries/lattice_type.hpp>
 #include <geometries/unit_cell_translations.hpp>
-#include <interactions/four_body/published_potential.hpp>
+// #include <interactions/four_body/published_potential.hpp>
 #include <interactions/handlers/composite_interaction_handler.hpp>
 #include <interactions/handlers/full_interaction_handler.hpp>
 #include <interactions/handlers/interaction_handler_concepts.hpp>
@@ -126,6 +126,36 @@ auto create_histogram(
     }
 }
 
+auto read_simulation_worldlines(
+    const sim::ContinueFileManager& continue_file_manager,
+    const worldline::WorldlineWriter<float, NDIM>& worldline_writer,
+    std::size_t first_block_index,
+    std::size_t n_timeslices,
+    const std::vector<coord::Cartesian<float, NDIM>>& lattice_site_positions
+) -> std::vector<worldline::Worldline<float, NDIM>>
+{
+    if (continue_file_manager.is_continued()) {
+        const auto worldline_filepath = worldline_writer.output_filepath(first_block_index);
+        return worldline::read_worldlines<float, NDIM>(worldline_filepath);
+    }
+    else {
+        return worldline::worldlines_from_positions<float, NDIM>(lattice_site_positions, n_timeslices);
+    }
+}
+
+auto read_simulation_first_block_index(
+    const sim::ContinueFileManager& continue_file_manager,
+    const argparse::ArgParser<float>& parser
+) -> std::size_t
+{
+    if (continue_file_manager.file_exists()) {
+        return continue_file_manager.parse_block_index();
+    }
+    else {
+        return parser.first_block_index;
+    }
+}
+
 auto main(int argc, char** argv) -> int
 {
     if (argc != 2) {
@@ -155,41 +185,24 @@ auto main(int argc, char** argv) -> int
     const auto bisect_move_info = pimc::BisectionLevelMoveInfo {parser.bisection_ratio, parser.bisection_level};
 
     const auto last_block_index = parser.last_block_index;
-    const auto first_block_index = [&]()
-    {
-        if (continue_file_manager.file_exists()) {
-            return continue_file_manager.parse_block_index();
-        }
-        else {
-            return parser.first_block_index;
-        }
-    }();
+    const auto first_block_index = read_simulation_first_block_index(continue_file_manager, parser);
 
     const auto [n_particles, minimage_box, lattice_site_positions] = build_hcp_lattice_structure(parser.density);
 
+    // clang-format off
+
     /* create the worldlines and worldline writer*/
     auto worldline_writer = worldline::WorldlineWriter<float, NDIM> {output_dirpath};
-
-    auto worldlines = [&]()
-    {
-        if (continue_file_manager.is_continued()) {
-            const auto worldline_filepath = worldline_writer.output_filepath(first_block_index);
-            return worldline::read_worldlines<float, NDIM>(worldline_filepath);
-        }
-        else {
-            return worldline::worldlines_from_positions<float, NDIM>(lattice_site_positions, n_timeslices);
-        }
-    }();
+    auto worldlines = read_simulation_worldlines(continue_file_manager, worldline_writer, first_block_index, n_timeslices, lattice_site_positions);
 
     sim::write_box_sides(output_dirpath / "box_sides.dat", minimage_box);
 
-    // clang-format off
     const auto pot = fsh_potential(minimage_box);
     const auto pot3b = threebodyparah2_potential(minimage_box);
 
-    const auto abs_pot4b_filepath = std::filesystem::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/scripts/models/fourbodypara_ssp_64_128_128_64_cpu_eval.pt"};
-    const long int buffer_size = 1024;
-    auto pot4b = interact::get_published_buffered_four_body_potential<NDIM, interact::PermutationTransformerFlag::EXACT>(abs_pot4b_filepath, buffer_size);
+    // const auto abs_pot4b_filepath = std::filesystem::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/scripts/models/fourbodypara_ssp_64_128_128_64_cpu_eval.pt"};
+    // const long int buffer_size = 1024;
+    // auto pot4b = interact::get_published_buffered_four_body_potential<NDIM, interact::PermutationTransformerFlag::EXACT>(abs_pot4b_filepath, buffer_size);
     // clang-format on
 
     /* create the environment object */
@@ -262,7 +275,7 @@ auto main(int argc, char** argv) -> int
     auto kinetic_writer = estim::default_kinetic_writer<float>(output_dirpath);
     auto pair_potential_writer = estim::default_pair_potential_writer<float>(output_dirpath);
     auto triplet_potential_writer = estim::default_triplet_potential_writer<float>(output_dirpath);
-    auto quadruplet_potential_writer = estim::default_quadruplet_potential_writer<float>(output_dirpath);
+    // auto quadruplet_potential_writer = estim::default_quadruplet_potential_writer<float>(output_dirpath);
     auto rms_centroid_writer = estim::default_rms_centroid_distance_writer<float>(output_dirpath);
     auto abs_centroid_writer = estim::default_absolute_centroid_distance_writer<float>(output_dirpath);
 
@@ -308,13 +321,13 @@ auto main(int argc, char** argv) -> int
         if (i_block >= parser.n_equilibrium_blocks) {
             const auto& threebody_pot = interaction_handler.get<1>();
             // auto& fourbody_pot = interaction_handler.get<2>();
-            auto& fourbody_pot = pot4b;
+            // auto& fourbody_pot = pot4b;
 
             /* run estimators */
             const auto total_kinetic_energy = estim::total_primitive_kinetic_energy(worldlines, environment);
             const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic(worldlines, pot, environment);
             const auto total_triplet_potential_energy = estim::total_triplet_potential_energy_periodic(worldlines, threebody_pot.point_potential(), environment);
-            const auto total_quadruplet_potential_energy = estim::calculate_total_four_body_potential_energy_via_shifting(worldlines, fourbody_pot, environment, minimage_box, coord::box_cutoff_distance(minimage_box));
+            // const auto total_quadruplet_potential_energy = estim::calculate_total_four_body_potential_energy_via_shifting(worldlines, fourbody_pot, environment, minimage_box, coord::box_cutoff_distance(minimage_box));
             const auto rms_centroid_dist = estim::rms_centroid_distance(worldlines, environment);
             const auto abs_centroid_dist = estim::absolute_centroid_distance(worldlines, environment);
 
@@ -322,7 +335,7 @@ auto main(int argc, char** argv) -> int
             kinetic_writer.write(i_block, total_kinetic_energy);
             pair_potential_writer.write(i_block, total_pair_potential_energy);
             triplet_potential_writer.write(i_block, total_triplet_potential_energy);
-            quadruplet_potential_writer.write(i_block, total_quadruplet_potential_energy);
+            // quadruplet_potential_writer.write(i_block, total_quadruplet_potential_energy);
             rms_centroid_writer.write(i_block, rms_centroid_dist);
             abs_centroid_writer.write(i_block, abs_centroid_dist);
 
