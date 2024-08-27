@@ -4,7 +4,6 @@
 #include <random>
 #include <string>
 #include <string_view>
-#include <tuple>
 
 #include <tomlplusplus/toml.hpp>
 // #include <torch/script.h>
@@ -31,12 +30,6 @@
 #include <interactions/handlers/full_interaction_handler.hpp>
 #include <interactions/handlers/interaction_handler_concepts.hpp>
 #include <interactions/handlers/nearest_neighbour_interaction_handler.hpp>
-#include <interactions/three_body/three_body_parah2.hpp>
-#include <interactions/three_body/published/three_body_ibrahim2022.hpp>
-#include <interactions/three_body/three_body_pointwise_wrapper.hpp>
-#include <interactions/two_body/two_body_pointwise.hpp>
-#include <interactions/two_body/published/two_body_schmidt2015.hpp>
-#include <interactions/two_body/two_body_pointwise_wrapper.hpp>
 #include <mathtools/grid/grid3d.hpp>
 #include <mathtools/histogram/histogram.hpp>
 #include <mathtools/interpolate/trilinear_interp.hpp>
@@ -56,99 +49,9 @@
 #include <worldline/writers/read_worldlines.hpp>
 #include <worldline/writers/worldline_writer.hpp>
 
+#include <helper.cpp>
+
 constexpr auto NDIM = std::size_t {3};
-
-constexpr auto build_hcp_lattice_structure(auto density)
-{
-    /* create the lattice positions and the periodic box */
-    const auto lattice_type = geom::LatticeType::HCP;
-    const auto lattice_constant = geom::density_to_lattice_constant(density, lattice_type);
-    const auto hcp_unit_cell = geom::conventional_hcp_unit_cell(lattice_constant);
-    const auto hcp_unit_cell_box = geom::unit_cell_box_sides(hcp_unit_cell);
-    const auto lattice_box_translations = geom::UnitCellTranslations<NDIM> {3ul, 2ul, 2ul};
-    const auto minimage_box = geom::lattice_box(hcp_unit_cell_box, lattice_box_translations);
-
-    const auto lattice_site_positions = geom::lattice_particle_positions(hcp_unit_cell, lattice_box_translations);
-    const auto n_particles = lattice_site_positions.size();
-
-    return std::tuple(n_particles, minimage_box, lattice_site_positions);
-}
-
-auto fsh_potential(auto minimage_box, auto two_body_filepath)
-{
-    auto distance_pot = interact::two_body_schmidt2015<float>(two_body_filepath);
-
-    return interact::PeriodicTwoBodySquaredPointPotential {std::move(distance_pot), minimage_box};
-}
-
-auto threebodyparah2_potential(auto minimage_box, auto three_body_filepath)
-{
-    auto distance_pot = interact::three_body_ibrahim2022<float>(three_body_filepath);
-
-    return interact::PeriodicThreeBodyPointPotential {std::move(distance_pot), minimage_box};
-}
-
-auto create_com_move_adjuster(float lower_range_limit, float upper_range_limit) noexcept
-    -> pimc::SingleValueMoveAdjuster<float>
-{
-    const auto com_accept_range = pimc::AcceptPercentageRange<float> {lower_range_limit, upper_range_limit};
-    const auto com_adjust_step = 0.01f;
-    const auto com_direction = pimc::DirectionIfAcceptTooLow::NEGATIVE;
-    const auto com_limits = pimc::MoveLimits<float> {0.0, std::nullopt};
-    return pimc::SingleValueMoveAdjuster<float> {com_accept_range, com_adjust_step, com_direction, com_limits};
-}
-
-auto create_bisect_move_adjuster(float lower_range_limit, float upper_range_limit) noexcept
-    -> pimc::BisectionLevelMoveAdjuster<float>
-{
-    const auto com_accept_range = pimc::AcceptPercentageRange<float> {lower_range_limit, upper_range_limit};
-    const auto com_adjust_step = 0.1f;
-    return pimc::BisectionLevelMoveAdjuster<float> {com_accept_range, com_adjust_step};
-}
-
-auto create_histogram(
-    const std::filesystem::path& histogram_filepath,
-    const sim::ContinueFileManager& manager,
-    const coord::BoxSides<float, NDIM>& minimage_box
-)
-{
-    if (manager.is_continued()) {
-        return mathtools::io::read_histogram<float>(histogram_filepath);
-    }
-    else {
-        return mathtools::Histogram<float> {0.0, coord::box_cutoff_distance(minimage_box), 1024};
-    }
-}
-
-auto read_simulation_worldlines(
-    const sim::ContinueFileManager& continue_file_manager,
-    const worldline::WorldlineWriter<float, NDIM>& worldline_writer,
-    std::size_t first_block_index,
-    std::size_t n_timeslices,
-    const std::vector<coord::Cartesian<float, NDIM>>& lattice_site_positions
-) -> std::vector<worldline::Worldline<float, NDIM>>
-{
-    if (continue_file_manager.is_continued()) {
-        const auto worldline_filepath = worldline_writer.output_filepath(first_block_index);
-        return worldline::read_worldlines<float, NDIM>(worldline_filepath);
-    }
-    else {
-        return worldline::worldlines_from_positions<float, NDIM>(lattice_site_positions, n_timeslices);
-    }
-}
-
-auto read_simulation_first_block_index(
-    const sim::ContinueFileManager& continue_file_manager,
-    const argparse::ArgParser<float>& parser
-) -> std::size_t
-{
-    if (continue_file_manager.file_exists()) {
-        return continue_file_manager.parse_block_index();
-    }
-    else {
-        return parser.first_block_index;
-    }
-}
 
 auto main(int argc, char** argv) -> int
 {
@@ -185,7 +88,7 @@ auto main(int argc, char** argv) -> int
 
     /* create the worldlines and worldline writer*/
     auto worldline_writer = worldline::WorldlineWriter<float, NDIM> {output_dirpath};
-    auto worldlines = read_simulation_worldlines(continue_file_manager, worldline_writer, first_block_index, n_timeslices, lattice_site_positions);
+    auto worldlines = read_simulation_worldlines<NDIM>(continue_file_manager, worldline_writer, first_block_index, n_timeslices, lattice_site_positions);
 
     sim::write_box_sides(output_dirpath / "box_sides.dat", minimage_box);
 
@@ -202,11 +105,6 @@ auto main(int argc, char** argv) -> int
     const auto environment = envir::create_environment(temperature, h2_mass, n_timeslices, n_particles);
 
     /* create the interaction handler */
-
-    // using PairInteractionHandler = interact::FullPairInteractionHandler<decltype(pot), float, NDIM>;
-    // using TripletInteractionHandler = interact::FullTripletInteractionHandler<decltype(pot3b), float, NDIM>;
-    // using InteractionHandler = interact::CompositeFullInteractionHandler<float, NDIM, PairInteractionHandler,
-    // TripletInteractionHandler>;
 
     // clang-format off
     using PairInteractionHandler = interact::NearestNeighbourPairInteractionHandler<decltype(pot), float, NDIM>;
@@ -273,7 +171,7 @@ auto main(int argc, char** argv) -> int
 
     /* create the histogram and the histogram writers */
     const auto radial_dist_histo_filepath = output_dirpath / "radial_dist_histo.dat";
-    auto radial_dist_histo = create_histogram(radial_dist_histo_filepath, continue_file_manager, minimage_box);
+    auto radial_dist_histo = create_histogram<NDIM>(radial_dist_histo_filepath, continue_file_manager, minimage_box);
 
     const auto centroid_dist_histo_filepath = output_dirpath / "centroid_radial_dist_histo.dat";
     auto centroid_dist_histo = create_histogram(centroid_dist_histo_filepath, continue_file_manager, minimage_box);
