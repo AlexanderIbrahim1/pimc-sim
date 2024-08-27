@@ -115,8 +115,16 @@ auto read_one_distance_squared_and_energy(std::ifstream& instream) -> std::tuple
 }
 
 template <std::floating_point FP>
-auto create_fsh_pair_potential(const std::filesystem::path& fsh_filepath) -> FSHTwoBodyPotential<FP>
+auto two_body_schmidt2015(const std::filesystem::path& fsh_filepath) -> FSHTwoBodyPotential<FP>
 {
+    /*
+        The two-body pair potential for two parahydrogen molecules. Taken from the paper
+        `J. Phys. Chem. A 199, 12551 (2015).
+
+        The potential takes inputs in the form of the pair distance squared, in units of
+        Angstroms, and returns outputs in the form of the interaction energy, in units of
+        wavenumbers.
+    */
     auto instream = std::ifstream {fsh_filepath, std::ios::in};
 
     if (!instream.is_open()) {

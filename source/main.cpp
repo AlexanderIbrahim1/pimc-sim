@@ -32,9 +32,10 @@
 #include <interactions/handlers/interaction_handler_concepts.hpp>
 #include <interactions/handlers/nearest_neighbour_interaction_handler.hpp>
 #include <interactions/three_body/three_body_parah2.hpp>
+#include <interactions/three_body/published/three_body_ibrahim2022.hpp>
 #include <interactions/three_body/three_body_pointwise_wrapper.hpp>
 #include <interactions/two_body/two_body_pointwise.hpp>
-#include <interactions/two_body/published/fsh_potential.hpp>
+#include <interactions/two_body/published/two_body_schmidt2015.hpp>
 #include <interactions/two_body/two_body_pointwise_wrapper.hpp>
 #include <mathtools/grid/grid3d.hpp>
 #include <mathtools/histogram/histogram.hpp>
@@ -77,67 +78,18 @@ auto fsh_potential(auto minimage_box)
 {
     const auto fsh_dirpath = std::filesystem::path {"/home/a68ibrah/research/simulations/pimc-sim/potentials"};
     const auto fsh_filename = "fsh_potential_angstroms_wavenumbers.potext_sq";
-    auto distance_pot = interact::create_fsh_pair_potential<float>(fsh_dirpath / fsh_filename);
+    auto distance_pot = interact::two_body_schmidt2015<float>(fsh_dirpath / fsh_filename);
     const auto pot = interact::PeriodicTwoBodySquaredPointPotential {std::move(distance_pot), minimage_box};
 
     return pot;
-}
-
-auto load_trilinear_interpolator(const std::filesystem::path& data_filepath)
-{
-    auto instream = std::ifstream(data_filepath, std::ios::in);
-    if (!instream.is_open()) {
-        auto err_msg = std::stringstream {};
-        err_msg << "Error: Unable to open file for trilinear interpolation data: '" << data_filepath << "'\n";
-        throw std::ios_base::failure {err_msg.str()};
-    }
-
-    common_utils::writer_utils::skip_lines_starting_with(instream, '#');
-
-    // arguments (r, s, u) correspond to coordinates (R, s, cos(phi)) in the published paper
-    std::size_t r_size, s_size, u_size;
-    instream >> r_size;
-    instream >> s_size;
-    instream >> u_size;
-
-    float r_min, r_max, s_min, s_max, u_min, u_max;
-    instream >> r_min;
-    instream >> r_max;
-    instream >> s_min;
-    instream >> s_max;
-    instream >> u_min;
-    instream >> u_max;
-
-    const auto shape = mathtools::Shape3D {r_size, s_size, u_size};
-    const auto r_limits = mathtools_utils::AxisLimits {r_min, r_max};
-    const auto s_limits = mathtools_utils::AxisLimits {s_min, s_max};
-    const auto u_limits = mathtools_utils::AxisLimits {u_min, u_max};
-
-    // read in all the energies into a vector
-    const auto n_elements = r_size * s_size * u_size;
-    auto energies = std::vector<float> {};
-    energies.reserve(n_elements);
-
-    float energy;
-    for (std::size_t i {0}; i < n_elements; ++i) {
-        instream >> energy;
-        energies.push_back(energy);
-    }
-
-    // create the 3D grid of energies to perform trilinear interpolation on
-    auto grid = mathtools::Grid3D {std::move(energies), shape};
-
-    return mathtools::TrilinearInterpolator<float> {std::move(grid), r_limits, s_limits, u_limits};
 }
 
 auto threebodyparah2_potential(auto minimage_box)
 {
     const auto pot_dirpath = std::filesystem::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/scripts"};
     const auto pot_filename = "threebody_126_101_51.dat";
-    const auto c9_coefficient = 34336.2f;  // [cm]^[-1] * [Angstrom]^[9]
 
-    auto interpolator = load_trilinear_interpolator(pot_dirpath / pot_filename);
-    auto distance_pot = interact::ThreeBodyParaH2Potential {std::move(interpolator), c9_coefficient};
+    auto distance_pot = interact::three_body_ibrahim2022<float>(pot_dirpath / pot_filename);
 
     return interact::PeriodicThreeBodyPointPotential {std::move(distance_pot), minimage_box};
 }

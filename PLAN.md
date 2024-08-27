@@ -238,17 +238,18 @@ I want to starting running simulations to get results for the (2 + 3 + 4)-body s
   - I can use the same strategy with the old `qmc.input` file with the new `.toml` file
 - I might want to make the paths to the PESs absolute, and read from the toml file
   - so the simulations can work regardless of the directory they are created in
-- I might want to make the code that manages all the simulations, part of the same repo for the publication
+- maybe make the code that manages all the simulations, part of the same repo for the publication
   - the data analysis stuff is already there anyways
   - there are pros and cons (more localized stuff, mixing things that *might* be better off separate)
     - but I might as well try
       - this project is small enough that the consequences won't be too dire
       - I'll learn whether or not this is a good idea for future simulations
-- perform simulations under conditions that:
-  - give OKAY results, at least good enough to know that the project works at all
-    - maybe a reduced number of beads, a smaller potential?
-  - can be performed very quickly, so I don't have to wait several days/weeks for results
-  - can be *analyzed* very quickly (estimators take a lot of time too)
+
+- there are some easy attempts at improving the performance we could try:
+  - switch the default ThreeBodyParaH2Potential with the early rejector potential
+  - switch the four-body neural network from SSP-64-128-128-64 to ReLU-8-16-16-8
+
+- don't forget to run the final simulations in release mode
 
 The simulations I want to run?
   - set `N = 180, P = 64` with a coarse-grained spread over the usual density range
@@ -263,3 +264,8 @@ The initial simulations?
     - rerun again to see if the equilibration and autocorrelation times are the same if you
       fix the MC move sizes to their ideal values from the beginning, instead of letting them
       adjust during the equilibration phase
+  - perform simulations under conditions that:
+    - give OKAY results, at least good enough to know that the project works at all
+      - maybe a reduced number of beads, a smaller potential?
+    - can be performed very quickly, so I don't have to wait several days/weeks for results
+    - can be *analyzed* very quickly (estimators take a lot of time too)

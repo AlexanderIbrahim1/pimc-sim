@@ -5,7 +5,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include "../test_utils/test_utils.hpp"
-#include "interactions/two_body/two_body_pointwise_tabulated.hpp"
+#include "interactions/two_body/published/two_body_schmidt2015.hpp"
 
 TEST_CASE("basic FSH interaction check")
 {
@@ -13,7 +13,7 @@ TEST_CASE("basic FSH interaction check")
 
     const auto rel_filepath = fs::path {"potentials"} / "fsh_potential_angstroms_wavenumbers.potext_sq";
     const auto abs_filepath = test_utils::resolve_project_path(rel_filepath);
-    const auto fsh_potential = interact::create_fsh_pair_potential<double>(abs_filepath);
+    const auto fsh_potential = interact::two_body_schmidt2015<double>(abs_filepath);
 
     // values are taken directly from the file
     struct TestPair
