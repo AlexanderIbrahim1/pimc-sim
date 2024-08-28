@@ -229,8 +229,11 @@ I want to starting running simulations to get results for the (2 + 3 + 4)-body s
   - because I need to modify the settings for each type of simulation
 - [DONE:2024-08-27] I might want to make the paths to the PESs absolute, and read from the toml file
   - so the simulations can work regardless of the directory they are created in
-- get the project compiling on the correct clusters
+- [DONE:2024-08-27] get the project compiling on the correct clusters
   - the ones that I have rgg priority on
+  - NOTE:
+    - Narval is *VERY* slow with the four-body PES, probably because of its use of AMD
+    - Cedar is much faster
 - make sure I have all the estimators that I want (simulations are expensive, don't want to miss important things)
   - look at the older publications, and see what estimators I had back them
   - look at what other estimators I might be able to create
