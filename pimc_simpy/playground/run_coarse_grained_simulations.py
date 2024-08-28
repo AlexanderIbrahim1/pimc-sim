@@ -7,11 +7,30 @@ from pathlib import Path
 
 import numpy as np
 
-# from pimc_simpy.manage.
+from pimc_simpy.manage.replacement_template import ReplacementTemplate
 
 
 def get_toml_template():
-    pass
+    contents = "\n".join(
+        [
+            "abs_output_dirpath = '[[abs_sim_dirname]]/output'",
+            "first_block_index = 0",
+            "last_block_index = 200",
+            "n_equilibrium_blocks = 10",
+            "n_passes = 2",
+            "n_timeslices = 16",
+            "centre_of_mass_step_size = 0.3",
+            "bisection_level = 3",
+            "bisection_ratio = 0.5",
+            "density = 0.026",
+            "temperature = 4.2",
+            "abs_two_body_filepath = '[[abs_pimc_sim_dirname]]/potentials/fsh_potential_angstroms_wavenumbers.potext_sq'",
+            "abs_three_body_filepath = '[[abs_pimc_sim_dirname]]/playground/scripts/threebody_126_101_51.dat'",
+            "abs_four_body_filepath = '[[abs_pimc_sim_dirname]]/playground/scripts/models/fourbodypara_8_16_16_8.pt'",
+        ]
+    )
+
+    return ReplacementTemplate(contents)
 
 
 def get_simulation_directory_template():
@@ -22,7 +41,7 @@ def get_slurm_bash_template():
     pass
 
 
-def main() -> None:
+def example() -> None:
     n_densities = 31
     densities = np.linspace(0.024, 0.1, n_densities)  # ANG^{-3}
 
@@ -62,6 +81,18 @@ def main() -> None:
         slurm_filepath = Path("slurm_files", f"coarse_{i}.sh")
         with open(slurm_filepath, "w") as fout:
             fout.write(slurm_bash_contents)
+
+
+def main() -> None:
+    toml_template = get_toml_template()
+
+    replacement_dict = {
+        "[[abs_sim_dirname]]": "/home/a68ibrah/research/simulations/pimc-sim/playground/ignore3",
+        "[[abs_pimc_sim_dirname]]": "/home/a68ibrah/research/simulations/pimc-sim",
+    }
+
+    toml_file_contents = toml_template.replace(replacement_dict)
+    print(toml_file_contents)
 
 
 if __name__ == "__main__":
