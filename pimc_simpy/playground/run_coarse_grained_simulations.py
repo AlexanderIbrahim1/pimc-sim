@@ -7,13 +7,11 @@ from pathlib import Path
 
 import numpy as np
 
-from pimc_simpy.manage.replacement_template import ReplacementTemplate
-
 
 def get_toml_template():
     contents = "\n".join(
         [
-            "abs_output_dirpath = '[[abs_sim_dirname]]/output'",
+            "abs_output_dirpath = '{abs_sim_dirname}/output'",
             "first_block_index = 0",
             "last_block_index = 200",
             "n_equilibrium_blocks = 10",
@@ -24,13 +22,13 @@ def get_toml_template():
             "bisection_ratio = 0.5",
             "density = 0.026",
             "temperature = 4.2",
-            "abs_two_body_filepath = '[[abs_pimc_sim_dirname]]/potentials/fsh_potential_angstroms_wavenumbers.potext_sq'",
-            "abs_three_body_filepath = '[[abs_pimc_sim_dirname]]/playground/scripts/threebody_126_101_51.dat'",
-            "abs_four_body_filepath = '[[abs_pimc_sim_dirname]]/playground/scripts/models/fourbodypara_8_16_16_8.pt'",
+            "abs_two_body_filepath =   '{abs_pimc_sim_dirname}/potentials/fsh_potential_angstroms_wavenumbers.potext_sq'",
+            "abs_three_body_filepath = '{abs_pimc_sim_dirname}/playground/scripts/threebody_126_101_51.dat'",
+            "abs_four_body_filepath =  '{abs_pimc_sim_dirname}/playground/scripts/models/fourbodypara_8_16_16_8.pt'",
         ]
     )
 
-    return ReplacementTemplate(contents)
+    return contents
 
 
 def get_simulation_directory_template():
@@ -87,11 +85,11 @@ def main() -> None:
     toml_template = get_toml_template()
 
     replacement_dict = {
-        "[[abs_sim_dirname]]": "/home/a68ibrah/research/simulations/pimc-sim/playground/ignore3",
-        "[[abs_pimc_sim_dirname]]": "/home/a68ibrah/research/simulations/pimc-sim",
+        "abs_sim_dirname": "/home/a68ibrah/research/simulations/pimc-sim/playground/ignore3",
+        "abs_pimc_sim_dirname": "/home/a68ibrah/research/simulations/pimc-sim",
     }
 
-    toml_file_contents = toml_template.replace(replacement_dict)
+    toml_file_contents = toml_template.format(**replacement_dict)
     print(toml_file_contents)
 
 
