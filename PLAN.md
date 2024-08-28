@@ -234,19 +234,22 @@ I want to starting running simulations to get results for the (2 + 3 + 4)-body s
   - NOTE:
     - Narval is *VERY* slow with the four-body PES, probably because of its use of AMD
     - Cedar is much faster
-- make sure I have all the estimators that I want (simulations are expensive, don't want to miss important things)
-  - look at the older publications, and see what estimators I had back them
-  - look at what other estimators I might be able to create
-- come up with a way to manage all the simulations with all the different conditions
-  - look up how I did it before
-    - figure out the shortcomings, benefits, etc.
-  - I can use the same strategy with the old `qmc.input` file with the new `.toml` file
-- maybe make the code that manages all the simulations, part of the same repo for the publication
+- [SKIP:2024-08-28] maybe make the code that manages all the simulations, part of the same repo for the publication
   - the data analysis stuff is already there anyways
   - there are pros and cons (more localized stuff, mixing things that *might* be better off separate)
     - but I might as well try
       - this project is small enough that the consequences won't be too dire
       - I'll learn whether or not this is a good idea for future simulations
+  - thought about it more, this is a bad idea
+    - having to manage the simulations from a repo centred on writing tex files is strange
+  - we are better off making the simulation management part of `pimc-simpy`
+- come up with a way to manage all the simulations with all the different conditions
+  - look up how I did it before
+    - figure out the shortcomings, benefits, etc.
+  - I can use the same strategy with the old `qmc.input` file with the new `.toml` file
+- make sure I have all the estimators that I want (simulations are expensive, don't want to miss important things)
+  - look at the older publications, and see what estimators I had back them
+  - look at what other estimators I might be able to create
 
 - there are some easy attempts at improving the performance we could try:
   - switch the default ThreeBodyParaH2Potential with the early rejector potential
