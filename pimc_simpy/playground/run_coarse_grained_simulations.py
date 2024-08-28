@@ -8,6 +8,14 @@ from pathlib import Path
 import numpy as np
 
 
+def format_sim_id(sim_id: int) -> str:
+    """
+    Create a specific function to format the simulation ID since it is used in so many
+    different places in this script.
+    """
+    return f"{sim_id:0>3d}"
+
+
 def get_toml_file_contents(abs_output_dirpath: Path | str, abs_repo_dirpath: Path | str, density: float) -> str:
     contents = "\n".join(
         [
@@ -32,7 +40,9 @@ def get_toml_file_contents(abs_output_dirpath: Path | str, abs_repo_dirpath: Pat
 
 
 def get_simulation_dirpath(abs_sim_root_dirpath: Path | str, sim_id: int) -> Path:
-    return Path(f"{str(abs_sim_root_dirpath)}", "playground", "many_simulations_test", f"simulation_{sim_id:0>3d}")
+    return Path(
+        f"{str(abs_sim_root_dirpath)}", "playground", "many_simulations_test", f"simulation_{format_sim_id(sim_id)}"
+    )
 
 
 def get_simulation_output_dirpath(abs_sim_dirpath: Path | str) -> Path:
@@ -46,7 +56,7 @@ def get_slurm_file_contents(
     sim_id: int,
     memory_gb: int,
 ) -> str:
-    abs_slurm_output_filepath = f"{abs_slurm_prefix}-{sim_id:0>3d}-%j.out"
+    abs_slurm_output_filepath = f"{abs_slurm_prefix}-{format_sim_id(sim_id)}-%j.out"
     contents = "\n".join(
         [
             "#!/bin/bash",
@@ -55,22 +65,17 @@ def get_slurm_file_contents(
             f"#SBATCH --mem={memory_gb}G",
             "#SBATCH --time=0-06:00:00",
             "#SBATCH --cpus-per-task=1",
-            f"#SBATCH --output={abs_slurm_output_filepath}",
+            f"#SBATCH --output={str(abs_slurm_output_filepath)}",
             "",
-            f"{abs_executable_filepath}  {abs_toml_filepath}",
+            f"{str(abs_executable_filepath)}  {str(abs_toml_filepath)}",
         ]
     )
 
     return contents
 
 
-def get_slurm_filepath() -> str:
-    pass
-
-
-# def get_simulation_dirpath(abs_pimc_sim_dirname: Path | str, sim_id: int) -> str:
-# def get_toml_contents(abs_sim_dirname: Path | str, abs_pimc_sim_dirname: Path | str, density: float) -> str:
-# def get_slurm_file_contents(abs_executable_filepath: Path | str, abs_toml_filepath: Path | str, abs_slurm_prefix: Path | str, sim_id: int, memory_gb: int) -> str:
+def get_slurm_bash_filename(sim_id: int) -> str:
+    return f"slurm_{format_sim_id(sim_id)}.sh"
 
 
 def example() -> None:
@@ -79,7 +84,14 @@ def example() -> None:
 
     abs_repo_dirpath = Path("/home/a68ibrah/research/simulations/pimc-sim")
     abs_executable_filepath = abs_repo_dirpath / "build" / "dev" / "source" / "pimc-sim"
+    abs_slurm_bash_dirpath = abs_repo_dirpath / "pimc_simpy" / "playground" / "slurm_files"
+    abs_slurm_output_dirpath = abs_slurm_bash_dirpath / "slurm_output"
+    abs_slurm_output_prefix = str(abs_slurm_output_dirpath / "slurm")
     toml_filename = "sim.toml"  # okay to have it be the same for each simulation; makes commands simpler
+    memory_gb = 4
+
+    abs_slurm_bash_dirpath.mkdir()
+    abs_slurm_output_dirpath.mkdir()
 
     for sim_id, density in enumerate(densities):
         # create the locations for the simulation and the output
@@ -91,61 +103,24 @@ def example() -> None:
 
         # create the toml file
         toml_contents = get_toml_file_contents(abs_output_dirpath, abs_repo_dirpath, density)
-        toml_filepath = abs_sim_dirpath / toml_filename
-        with open(toml_filepath, "w") as fout:
+        abs_toml_filepath = abs_sim_dirpath / toml_filename
+        with open(abs_toml_filepath, "w") as fout:
             fout.write(toml_contents)
 
         # create the slurm file (in a separate directory?)
-        slurm_contents = get_slurm_file_contents(abs_executable_filepath)
-
-    sim_directory_template = get_simulation_directory_template()  # type: ignore
-    sim_dirpaths = [Path(sim_directory_template.format(i)) for i in range(n_densities)]
-
-    toml_template = get_toml_template()  # type: ignore
-
-    # the toml file needs to know about the simulation dirpath, otherwise
-    toml_file_contents = [toml_template.apply(density, simpath) for density, simpath in zip(densities, sim_dirpaths)]
-
-    # create the directories and copying the toml contents to them
-    for simpath, toml_contents in zip(sim_dirpaths, toml_file_contents):
-        simpath.mkdir(parents=True)
-
-        toml_filepath = simpath / toml_filename
-        with open(toml_filepath, "w") as fout:
-            fout.write(toml_contents)
+        slurm_contents = get_slurm_file_contents(
+            abs_executable_filepath, abs_toml_filepath, abs_slurm_output_prefix, sim_id, memory_gb
+        )
+        slurm_filename = get_slurm_bash_filename(sim_id)
+        abs_slurm_filepath = abs_slurm_bash_dirpath / slurm_filename
+        with open(abs_slurm_filepath, "w") as fout:
+            fout.write(slurm_contents)
 
     # perform the simulations
     # - only need one version of the executable, so I don't need to copy it to each directory
     # - the paths in the toml file should be absolute, and unique to the simulation directory
     # - I need to perform the simulations through slurm
 
-    # IDEA:
-    # - use Python to create the bash files
-    #   - the absolute path to the simulation directory is hardcoded into it
-    #   - I can name each slurm file according to the conditions, and actually read their names
-    #     properly in squeue
-    # - based on previous simulations, the chances that I'll have to rerun a slurm file are pretty high
-    #   - so it's not much of a hassle to have to create a separate file to run the bash files
-    slurm_bash_template = get_slurm_bash_template()
-    slurm_bash_contents = [slurm_bash_template.apply(simpath) for simpath in sim_dirpaths]
-
-    for i, simpath in enumerate(sim_dirpaths):
-        slurm_filepath = Path("slurm_files", f"coarse_{i}.sh")
-        with open(slurm_filepath, "w") as fout:
-            fout.write(slurm_bash_contents)
-
-
-def main() -> None:
-    toml_template = get_toml_template()
-
-    replacement_dict = {
-        "abs_sim_dirname": "/home/a68ibrah/research/simulations/pimc-sim/playground/ignore3",
-        "abs_pimc_sim_dirname": "/home/a68ibrah/research/simulations/pimc-sim",
-    }
-
-    toml_file_contents = toml_template.format(**replacement_dict)
-    print(toml_file_contents)
-
 
 if __name__ == "__main__":
-    main()
+    example()
