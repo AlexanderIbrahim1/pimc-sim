@@ -82,7 +82,7 @@ auto main(int argc, char** argv) -> int
     const auto last_block_index = parser.last_block_index;
     const auto first_block_index = read_simulation_first_block_index(continue_file_manager, parser);
 
-    const auto [n_particles, minimage_box, lattice_site_positions] = build_hcp_lattice_structure(parser.density);
+    const auto [n_particles, minimage_box, lattice_site_positions] = build_hcp_lattice_structure(parser.density, parser.n_unit_cells);
 
     // clang-format off
 

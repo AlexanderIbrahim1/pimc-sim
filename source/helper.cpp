@@ -20,14 +20,17 @@
 #include <worldline/worldline.hpp>
 #include <worldline/writers/worldline_writer.hpp>
 
-constexpr auto build_hcp_lattice_structure(auto density)
+constexpr auto build_hcp_lattice_structure(auto density, auto n_unit_cells) //, std::size_t xsize, std::size_t ysize, std::size_t zsize)
 {
     /* create the lattice positions and the periodic box */
     const auto lattice_type = geom::LatticeType::HCP;
     const auto lattice_constant = geom::density_to_lattice_constant(density, lattice_type);
     const auto hcp_unit_cell = geom::conventional_hcp_unit_cell(lattice_constant);
     const auto hcp_unit_cell_box = geom::unit_cell_box_sides(hcp_unit_cell);
-    const auto lattice_box_translations = geom::UnitCellTranslations<3> {3ul, 2ul, 2ul};
+
+    const auto [size0, size1, size2] = n_unit_cells;
+    const auto lattice_box_translations = geom::UnitCellTranslations<3> {size0, size1, size2};
+
     const auto minimage_box = geom::lattice_box(hcp_unit_cell_box, lattice_box_translations);
 
     const auto lattice_site_positions = geom::lattice_particle_positions(hcp_unit_cell, lattice_box_translations);

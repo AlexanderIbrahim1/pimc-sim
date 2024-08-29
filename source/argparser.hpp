@@ -5,6 +5,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string_view>
+#include <tuple>
 
 #include <tomlplusplus/toml.hpp>
 
@@ -88,6 +89,7 @@ public:
     FP bisection_ratio {};
     FP density {};
     FP temperature {};
+    std::tuple<std::size_t, std::size_t, std::size_t> n_unit_cells {};
     std::filesystem::path abs_two_body_filepath {};
     std::filesystem::path abs_three_body_filepath {};
     std::filesystem::path abs_four_body_filepath {};
@@ -111,6 +113,9 @@ private:
             bisection_ratio = cast_toml_to<FP>(table, "bisection_ratio");
             density = cast_toml_to<FP>(table, "density");
             temperature = cast_toml_to<FP>(table, "temperature");
+            std::get<0>(n_unit_cells) = cast_toml_to<std::size_t>(table, "n_cells_dim0");
+            std::get<1>(n_unit_cells) = cast_toml_to<std::size_t>(table, "n_cells_dim1");
+            std::get<2>(n_unit_cells) = cast_toml_to<std::size_t>(table, "n_cells_dim2");
             abs_two_body_filepath = cast_toml_to<std::filesystem::path>(table, "abs_two_body_filepath");
             abs_three_body_filepath = cast_toml_to<std::filesystem::path>(table, "abs_three_body_filepath");
             abs_four_body_filepath = cast_toml_to<std::filesystem::path>(table, "abs_four_body_filepath");
