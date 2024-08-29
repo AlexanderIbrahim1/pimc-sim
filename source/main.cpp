@@ -93,7 +93,7 @@ auto main(int argc, char** argv) -> int
     sim::write_box_sides(output_dirpath / "box_sides.dat", minimage_box);
 
     const auto pot = fsh_potential(minimage_box, parser.abs_two_body_filepath);
-    const auto pot3b = threebodyparah2_potential(minimage_box, parser.abs_three_body_filepath);
+    // const auto pot3b = threebodyparah2_potential(minimage_box, parser.abs_three_body_filepath);
 
     // const auto abs_pot4b_filepath = std::filesystem::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/scripts/models/fourbodypara_ssp_64_128_128_64_cpu_eval.pt"};
     // const long int buffer_size = 1024;
@@ -107,31 +107,33 @@ auto main(int argc, char** argv) -> int
     /* create the interaction handler */
 
     // clang-format off
-    using PairInteractionHandler = interact::NearestNeighbourPairInteractionHandler<decltype(pot), float, NDIM>;
-    using TripletInteractionHandler = interact::NearestNeighbourTripletInteractionHandler<decltype(pot3b), float, NDIM>;
+    using InteractionHandler = interact::NearestNeighbourPairInteractionHandler<decltype(pot), float, NDIM>;
+    // using PairInteractionHandler = interact::NearestNeighbourPairInteractionHandler<decltype(pot), float, NDIM>;
+    // using TripletInteractionHandler = interact::NearestNeighbourTripletInteractionHandler<decltype(pot3b), float, NDIM>;
     // using QuadrupletInteractionHandler = interact::NearestNeighbourQuadrupletInteractionHandler<decltype(pot4b), float, NDIM>;
+    // using InteractionHandler = interact::CompositeNearestNeighbourInteractionHandler<float, NDIM, PairInteractionHandler, TripletInteractionHandler>;
     // using InteractionHandler = interact::CompositeNearestNeighbourInteractionHandler<float, NDIM, PairInteractionHandler, TripletInteractionHandler, QuadrupletInteractionHandler>;
-    using InteractionHandler = interact::CompositeNearestNeighbourInteractionHandler<float, NDIM, PairInteractionHandler, TripletInteractionHandler>;
 
-    auto pair_interaction_handler = PairInteractionHandler {pot, n_particles};
-    auto triplet_interaction_handler = TripletInteractionHandler {std::move(pot3b), n_particles};
+    auto interaction_handler = InteractionHandler {pot, n_particles};
+    // auto pair_interaction_handler = PairInteractionHandler {pot, n_particles};
+    // auto triplet_interaction_handler = TripletInteractionHandler {std::move(pot3b), n_particles};
     // auto quadruplet_interaction_handler = QuadrupletInteractionHandler {std::move(pot4b), n_particles};
     // auto interaction_handler = InteractionHandler {std::move(pair_interaction_handler), std::move(triplet_interaction_handler), std::move(quadruplet_interaction_handler)};
-    auto interaction_handler = InteractionHandler {std::move(pair_interaction_handler), std::move(triplet_interaction_handler)};
+    // auto interaction_handler = InteractionHandler {std::move(pair_interaction_handler), std::move(triplet_interaction_handler)};
     // clang-format on
 
     const auto lattice_constant = geom::density_to_lattice_constant(parser.density, geom::LatticeType::HCP);
     const auto pair_cutoff_distance = static_cast<float>(2.2 * lattice_constant);
-    const auto triplet_cutoff_distance = static_cast<float>(1.1 * lattice_constant);
+    // const auto triplet_cutoff_distance = static_cast<float>(1.1 * lattice_constant);
     // const auto quadruplet_cutoff_distance = static_cast<float>(1.1 * lattice_constant);
 
     interact::update_centroid_adjacency_matrix<float, NDIM>(
-        worldlines, minimage_box, environment, interaction_handler.adjacency_matrix<0>(), pair_cutoff_distance
+        worldlines, minimage_box, environment, interaction_handler.adjacency_matrix(), pair_cutoff_distance
     );
 
-    interact::update_centroid_adjacency_matrix<float, NDIM>(
-        worldlines, minimage_box, environment, interaction_handler.adjacency_matrix<1>(), triplet_cutoff_distance
-    );
+    // interact::update_centroid_adjacency_matrix<float, NDIM>(
+    //     worldlines, minimage_box, environment, interaction_handler.adjacency_matrix<1>(), triplet_cutoff_distance
+    // );
 
     // interact::update_centroid_adjacency_matrix<float, NDIM>(
     //     worldlines, minimage_box, environment, interaction_handler.adjacency_matrix<2>(), quadruplet_cutoff_distance
@@ -146,8 +148,8 @@ auto main(int argc, char** argv) -> int
     auto multi_bead_mover = pimc::BisectionMultibeadPositionMovePerformer<float, NDIM> {bisect_move_info};
 
     /* create the move adjusters */
-    const auto com_move_adjuster = create_com_move_adjuster(0.4f, 0.5f);
-    const auto bisect_move_adjuster = create_bisect_move_adjuster(0.4f, 0.5f);
+    const auto com_move_adjuster = create_com_move_adjuster(0.3f, 0.4f);
+    const auto bisect_move_adjuster = create_bisect_move_adjuster(0.3f, 0.4f);
 
     auto com_step_size_writer = pimc::default_centre_of_mass_position_move_step_size_writer<float>(output_dirpath);
     auto multi_bead_move_info_writer = pimc::default_bisection_multibead_position_move_info_writer<float>(output_dirpath);
@@ -164,7 +166,7 @@ auto main(int argc, char** argv) -> int
     /* create the file writers for the estimators */
     auto kinetic_writer = estim::default_kinetic_writer<float>(output_dirpath);
     auto pair_potential_writer = estim::default_pair_potential_writer<float>(output_dirpath);
-    auto triplet_potential_writer = estim::default_triplet_potential_writer<float>(output_dirpath);
+    // auto triplet_potential_writer = estim::default_triplet_potential_writer<float>(output_dirpath);
     // auto quadruplet_potential_writer = estim::default_quadruplet_potential_writer<float>(output_dirpath);
     auto rms_centroid_writer = estim::default_rms_centroid_distance_writer<float>(output_dirpath);
     auto abs_centroid_writer = estim::default_absolute_centroid_distance_writer<float>(output_dirpath);
@@ -207,16 +209,26 @@ auto main(int argc, char** argv) -> int
         //     worldlines, minimage_box, environment, interaction_handler.adjacency_matrix(), cutoff_distance
         // );
 
+        /* save move acceptance rates */
+        const auto [com_accept, com_reject] = com_tracker.get_accept_and_reject();
+        com_move_writer.write(i_block, com_accept, com_reject);
+
+        const auto [sb_accept, sb_reject] = single_bead_tracker.get_accept_and_reject();
+        single_bead_move_writer.write(i_block, sb_accept, sb_reject);
+
+        const auto [mb_accept, mb_reject] = multi_bead_tracker.get_accept_and_reject();
+        multi_bead_move_writer.write(i_block, mb_accept, mb_reject);
+
         // clang-format off
         if (i_block >= parser.n_equilibrium_blocks) {
-            const auto& threebody_pot = interaction_handler.get<1>();
+            // const auto& threebody_pot = interaction_handler.get<1>();
             // auto& fourbody_pot = interaction_handler.get<2>();
             // auto& fourbody_pot = pot4b;
 
             /* run estimators */
             const auto total_kinetic_energy = estim::total_primitive_kinetic_energy(worldlines, environment);
             const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic(worldlines, pot, environment);
-            const auto total_triplet_potential_energy = estim::total_triplet_potential_energy_periodic(worldlines, threebody_pot.point_potential(), environment);
+            // const auto total_triplet_potential_energy = estim::total_triplet_potential_energy_periodic(worldlines, threebody_pot.point_potential(), environment);
             // const auto total_quadruplet_potential_energy = estim::calculate_total_four_body_potential_energy_via_shifting(worldlines, fourbody_pot, environment, minimage_box, coord::box_cutoff_distance(minimage_box));
             const auto rms_centroid_dist = estim::rms_centroid_distance(worldlines, environment);
             const auto abs_centroid_dist = estim::absolute_centroid_distance(worldlines, environment);
@@ -224,7 +236,7 @@ auto main(int argc, char** argv) -> int
             /* save estimators */
             kinetic_writer.write(i_block, total_kinetic_energy);
             pair_potential_writer.write(i_block, total_pair_potential_energy);
-            triplet_potential_writer.write(i_block, total_triplet_potential_energy);
+            // triplet_potential_writer.write(i_block, total_triplet_potential_energy);
             // quadruplet_potential_writer.write(i_block, total_quadruplet_potential_energy);
             rms_centroid_writer.write(i_block, rms_centroid_dist);
             abs_centroid_writer.write(i_block, abs_centroid_dist);
@@ -235,16 +247,6 @@ auto main(int argc, char** argv) -> int
 
             estim::update_centroid_radial_distribution_function_histogram(centroid_dist_histo, environment, periodic_distance_calculator, worldlines);
             mathtools::io::write_histogram(centroid_dist_histo_filepath, centroid_dist_histo);
-
-            /* save move acceptance rates */
-            const auto [com_accept, com_reject] = com_tracker.get_accept_and_reject();
-            com_move_writer.write(i_block, com_accept, com_reject);
-
-            const auto [sb_accept, sb_reject] = single_bead_tracker.get_accept_and_reject();
-            single_bead_move_writer.write(i_block, sb_accept, sb_reject);
-
-            const auto [mb_accept, mb_reject] = multi_bead_tracker.get_accept_and_reject();
-            multi_bead_move_writer.write(i_block, mb_accept, mb_reject);
 
             /* save the worldlines */
             worldline_writer.write(i_block, worldlines, environment);

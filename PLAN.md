@@ -275,3 +275,27 @@ The initial simulations?
       - maybe a reduced number of beads, a smaller potential?
     - can be performed very quickly, so I don't have to wait several days/weeks for results
     - can be *analyzed* very quickly (estimators take a lot of time too)
+
+#### Finding equilibration time, ideal MC moves, and autocorrelation times
+1. FIRST SIMULATION: the first thing we do is find the ideal MC moves
+  - make the number of passes large enough for enough moves to accumulate
+    - otherwise the MC move updates might be made using too few moves as data
+  - make the number of equilibration blocks large enough for the move sizes to converge
+  + the equilibration times we find here aren't useful anymore
+    - once we fix the MC sizes to their ideal values, later simulations will have different equlibration times
+  + we aren't concerned with autocorrelation times here
+  + INHERENT ASSUMPTION: we perform enough MC moves to both converge the MC step sizes and reach equilibrium
+2. SECOND SIMULATION: the next thing we do is find the new equilibration times, and autocorrelation times
+  - fix the MC sizes to whatever we get in step 1
+  - set the number of passes to 1 (so 1 pass = 1 block)
+  - set the number of equilibration blocks to 0
+  - wait until the estimator converges, and collect even more data
+  + we can find the number of equilibration passes
+  + we can find the number of passes needed for autocorrelation
+
+Now:
+  - we have the MC moves
+  - we know how many passes are needed for autocorrelation
+    - so define that number of passes as a block
+  - we know how many passes are needed for equilbration
+    - calculate the number of equilibration blocks based on the number of passes in a block
