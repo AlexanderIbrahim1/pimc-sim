@@ -299,3 +299,22 @@ Now:
     - so define that number of passes as a block
   - we know how many passes are needed for equilbration
     - calculate the number of equilibration blocks based on the number of passes in a block
+
+## Using smaller lattices to calculate MC info
+I used the ideal step size I found for the 3 x 2 x 2 matrix, for the 5 x 3 x 3 matrix
+  - they remained the same
+  - this indicates that I can (probably) get away with using the smaller lattices to find the ideal MC steps
+
+I got an autocorrelation time of 10 passes for the 3 x 2 x 2 matrix, for (P = 64, density=0.026)
+
+### At density = 0.1
+At this density, the COM and multilevel moves are frozen!
+  - COM step size drops to 0
+  - multilevel moves reduce to single bead moves
+  - single bead moves have a success rate of ~10%
+
+As a result, the autocorrelation time increases to ~150 passes (box = 3x2x2, P = 64, density = 0.1)
+  - the only recourse here is:
+    - pick a larger value of P so larger multilevel moves are allowed
+    - remove the COM and multilevel moves, because they fail anyways
+    - increase the number of passes for the single bead moves
