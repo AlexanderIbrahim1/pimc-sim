@@ -1,16 +1,42 @@
 #pragma once
 
+#include <algorithm>
+#include <array>
 #include <concepts>
 #include <filesystem>
+#include <optional>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 #include <string_view>
 #include <tuple>
+#include <variant>
+
+#include <rng/prng_state.hpp>
 
 #include <tomlplusplus/toml.hpp>
 
 namespace argparse
 {
+
+constexpr auto SEED_STRING_FLAG_OPTIONS = std::array<std::string_view, 2> {
+    "RANDOM",
+    "TIME_SINCE_EPOCH"
+};
+
+constexpr auto map_seed_string_flag_options(std::string_view flag) -> rng::RandomSeedFlag
+{
+    using RSF = rng::RandomSeedFlag;
+    if (flag == SEED_STRING_FLAG_OPTIONS[0]) {
+        return RSF::RANDOM;
+    }
+    else if (flag == SEED_STRING_FLAG_OPTIONS[1]) {
+        return RSF::TIME_SINCE_EPOCH;
+    }
+    else {
+        throw std::logic_error("impossible mapping for random seed flag");
+    }
+}
 
 template <typename T>
 auto cast_toml_to(const toml::table& table, std::string_view name) -> T
@@ -93,6 +119,7 @@ public:
     std::filesystem::path abs_two_body_filepath {};
     std::filesystem::path abs_three_body_filepath {};
     std::filesystem::path abs_four_body_filepath {};
+    std::variant<rng::RandomSeedFlag, std::uint64_t> initial_seed_state;
 
 private:
     bool parse_success_flag_ {};
@@ -120,6 +147,8 @@ private:
             abs_three_body_filepath = cast_toml_to<std::filesystem::path>(table, "abs_three_body_filepath");
             abs_four_body_filepath = cast_toml_to<std::filesystem::path>(table, "abs_four_body_filepath");
 
+            parse_seed_(table);
+
             parse_success_flag_ = true;
         }
         catch (const toml::parse_error& err) {
@@ -130,6 +159,47 @@ private:
             parse_success_flag_ = false;
             error_message_ = err.what();
         }
+    }
+
+    void parse_seed_(const toml::table& table) {
+        const auto maybe_uint64t = table["initial_seed"].value<std::uint64_t>();
+        if (maybe_uint64t) {
+            initial_seed_state = *maybe_uint64t;
+            return;
+        }
+
+        const auto maybe_string = table["initial_seed"].value<std::string>();
+        if (maybe_string) {
+            const auto seed_string = *maybe_string;
+
+            const auto found = std::any_of(
+                std::begin(SEED_STRING_FLAG_OPTIONS),
+                std::end(SEED_STRING_FLAG_OPTIONS),
+                [&seed_string] (std::string_view sv) {
+                    return seed_string == sv;
+                }
+            );
+
+            if (!found) {
+                parse_seed_error_message_();
+            }
+
+            initial_seed_state = map_seed_string_flag_options(seed_string);
+            return;
+        }
+
+        parse_seed_error_message_();
+    }
+
+    void parse_seed_error_message_()
+    {
+        auto err_msg = std::stringstream {};
+        err_msg << "'initial_seed' must be an integer that fits in a 64-bit unsigned integer, or a string.\n";
+        err_msg << "If 'initial_seed' is provided as a string, it must have one of the following values:\n";
+        for (auto option : SEED_STRING_FLAG_OPTIONS) {
+            err_msg << option << '\n';
+        }
+        throw std::runtime_error {err_msg.str()};
     }
 };
 

@@ -42,6 +42,7 @@
 #include <pimc/writers/default_writers.hpp>
 #include <rng/distributions.hpp>
 #include <rng/generator.hpp>
+#include <rng/prng_state.hpp>
 #include <simulation/box_sides_writer.hpp>
 #include <simulation/continue.hpp>
 #include <worldline/worldline.hpp>
@@ -66,7 +67,7 @@ auto main(int argc, char** argv) -> int
     const auto toml_input_filename = argv[1];
     const auto parser = argparse::ArgParser<float> {toml_input_filename};
     if (!parser.is_valid()) {
-        std::cout << "PARSER DID NOT PARSE PROPERLY\n";
+        std::cout << "ERROR: argument parser did not parse properly\n";
         std::cout << parser.error_message() << '\n';
         std::exit(EXIT_FAILURE);
     }
@@ -81,6 +82,7 @@ auto main(int argc, char** argv) -> int
 
     const auto last_block_index = parser.last_block_index;
     const auto first_block_index = read_simulation_first_block_index(continue_file_manager, parser);
+    const auto most_recent_completed_block_index = read_simulation_most_recent_completed_block_index(continue_file_manager, parser);
 
     const auto [n_particles, minimage_box, lattice_site_positions] = build_hcp_lattice_structure(parser.density, parser.n_unit_cells);
 
@@ -88,7 +90,7 @@ auto main(int argc, char** argv) -> int
 
     /* create the worldlines and worldline writer*/
     auto worldline_writer = worldline::WorldlineWriter<float, NDIM> {output_dirpath};
-    auto worldlines = read_simulation_worldlines<NDIM>(continue_file_manager, worldline_writer, first_block_index, n_timeslices, lattice_site_positions);
+    auto worldlines = read_simulation_worldlines<NDIM>(continue_file_manager, worldline_writer, most_recent_completed_block_index, n_timeslices, lattice_site_positions);
 
     sim::write_box_sides(output_dirpath / "box_sides.dat", minimage_box);
 
@@ -140,7 +142,8 @@ auto main(int argc, char** argv) -> int
     // );
 
     /* create the PRNG; save the seed (or set it?) */
-    auto prngw = rng::RandomNumberGeneratorWrapper<std::mt19937>::from_random_uint64();
+    const auto prng_state_filepath = rng::default_prng_state_filepath(output_dirpath);
+    auto prngw = create_prngw(prng_state_filepath, parser.initial_seed_state);
 
     /* create the move performers */
     auto com_mover = pimc::CentreOfMassMovePerformer<float, NDIM> {n_timeslices, com_step_size};
@@ -276,6 +279,8 @@ auto main(int argc, char** argv) -> int
         multi_bead_tracker.reset();
 
         worldline::delete_worldlines_file<float, NDIM>(worldline_writer, i_block, n_most_recent_worldlines_to_save);
+
+        rng::save_prng_state(prngw.prng(), prng_state_filepath);
     }
 
     return 0;

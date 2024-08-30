@@ -2,9 +2,12 @@
     This source file is meant to be included into `main.cpp` as part of a unity build.
 */
 
+#include <cstdint>
 #include <cstdlib>
 #include <filesystem>
+#include <optional>
 #include <tuple>
+#include <variant>
 
 #include <argparser.hpp>
 #include <geometries/bravais.hpp>
@@ -16,6 +19,8 @@
 #include <interactions/two_body/published/two_body_schmidt2015.hpp>
 #include <interactions/two_body/two_body_pointwise_wrapper.hpp>
 #include <pimc/adjusters/adjusters.hpp>
+#include <rng/generator.hpp>
+#include <rng/prng_state.hpp>
 #include <simulation/continue.hpp>
 #include <worldline/worldline.hpp>
 #include <worldline/writers/worldline_writer.hpp>
@@ -86,25 +91,7 @@ auto create_histogram(
     }
 }
 
-template <std::size_t NDIM>
-auto read_simulation_worldlines(
-    const sim::ContinueFileManager& continue_file_manager,
-    const worldline::WorldlineWriter<float, NDIM>& worldline_writer,
-    std::size_t first_block_index,
-    std::size_t n_timeslices,
-    const std::vector<coord::Cartesian<float, NDIM>>& lattice_site_positions
-) -> std::vector<worldline::Worldline<float, NDIM>>
-{
-    if (continue_file_manager.is_continued()) {
-        const auto worldline_filepath = worldline_writer.output_filepath(first_block_index);
-        return worldline::read_worldlines<float, NDIM>(worldline_filepath);
-    }
-    else {
-        return worldline::worldlines_from_positions<float, NDIM>(lattice_site_positions, n_timeslices);
-    }
-}
-
-auto read_simulation_first_block_index(
+auto read_simulation_most_recent_completed_block_index(
     const sim::ContinueFileManager& continue_file_manager,
     const argparse::ArgParser<float>& parser
 ) -> std::size_t
@@ -114,5 +101,70 @@ auto read_simulation_first_block_index(
     }
     else {
         return parser.first_block_index;
+    }
+}
+
+
+auto read_simulation_first_block_index(
+    const sim::ContinueFileManager& continue_file_manager,
+    const argparse::ArgParser<float>& parser
+) -> std::size_t
+{
+    if (continue_file_manager.file_exists()) {
+        // the continue file contains the most recently completed block, so we want the simulation
+        // to start at the next block, hence the offset of 1 below
+        return 1 + continue_file_manager.parse_block_index();
+    }
+    else {
+        return parser.first_block_index;
+    }
+}
+
+auto create_prngw(
+    const std::filesystem::path& prng_state_filepath,
+    const std::variant<rng::RandomSeedFlag, std::uint64_t>& initial_seed_state
+)
+{
+    if (std::filesystem::exists(prng_state_filepath) && std::filesystem::is_regular_file(prng_state_filepath)) {
+        auto prngw = rng::RandomNumberGeneratorWrapper<std::mt19937>::from_uint64(0);
+        rng::load_prng_state(prngw.prng(), prng_state_filepath);
+        return prngw;
+    }
+    else if (std::holds_alternative<rng::RandomSeedFlag>(initial_seed_state))
+    {
+        const auto flag = std::get<rng::RandomSeedFlag>(initial_seed_state);
+
+        if (flag == rng::RandomSeedFlag::RANDOM) {
+            return rng::RandomNumberGeneratorWrapper<std::mt19937>::from_random_uint64();
+        }
+        else if (flag == rng::RandomSeedFlag::TIME_SINCE_EPOCH) {
+            return rng::RandomNumberGeneratorWrapper<std::mt19937>::from_time_since_epoch();
+        }
+        else {
+            throw std::logic_error("unreachable path; PRNG flags exhausted");
+        }
+    }
+    else
+    {
+        const auto value = std::get<std::uint64_t>(initial_seed_state);
+        return rng::RandomNumberGeneratorWrapper<std::mt19937>::from_uint64(value);
+    }
+}
+
+template <std::size_t NDIM>
+auto read_simulation_worldlines(
+    const sim::ContinueFileManager& continue_file_manager,
+    const worldline::WorldlineWriter<float, NDIM>& worldline_writer,
+    std::size_t most_recent_completed_block_index,
+    std::size_t n_timeslices,
+    const std::vector<coord::Cartesian<float, NDIM>>& lattice_site_positions
+) -> std::vector<worldline::Worldline<float, NDIM>>
+{
+    if (continue_file_manager.is_continued()) {
+        const auto worldline_filepath = worldline_writer.output_filepath(most_recent_completed_block_index);
+        return worldline::read_worldlines<float, NDIM>(worldline_filepath);
+    }
+    else {
+        return worldline::worldlines_from_positions<float, NDIM>(lattice_site_positions, n_timeslices);
     }
 }

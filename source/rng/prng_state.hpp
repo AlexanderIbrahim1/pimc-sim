@@ -10,6 +10,12 @@
 namespace rng
 {
 
+enum class RandomSeedFlag
+{
+    RANDOM,
+    TIME_SINCE_EPOCH
+};
+
 constexpr auto DEFAULT_PRNG_STATE_FILENAME = std::string_view {"prng.state"};
 
 inline auto default_prng_state_filepath(const std::filesystem::path& output_dirpath) -> std::filesystem::path {
