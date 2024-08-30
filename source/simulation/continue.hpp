@@ -12,7 +12,7 @@
 namespace sim
 {
 
-constexpr inline auto DEFAULT_CONTINUE_FILE_NAME = std::string_view {"continue.toml"};
+constexpr inline auto DEFAULT_CONTINUE_FILENAME = std::string_view {"continue.toml"};
 
 constexpr auto continue_file_header() noexcept -> std::string
 {
@@ -61,7 +61,7 @@ class ContinueFileManager
 public:
     ContinueFileManager(
         const std::filesystem::path& continue_dirpath,
-        std::string_view continue_filename = DEFAULT_CONTINUE_FILE_NAME
+        std::string_view continue_filename = DEFAULT_CONTINUE_FILENAME
     )
         : continue_filepath_ {continue_dirpath / continue_filename}
     {}
