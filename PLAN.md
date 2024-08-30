@@ -168,7 +168,7 @@ To make this nicer, we could create classes that wrap together:
       even for a tetrahedron of side length 14.0f
 - [DONE:2024-08-30] implement saving the PRNG state (lower priority? the physics is still the same I guess)
 - [DONE:2024-08-??] modify main so it reads the arguments from an actual toml file instead of a string view
-- make saving the histograms atomic
+- [DONE:2024-08-30] make saving the histograms atomic
 - implement logging
 - simplify the header interface by putting several headers into a single one (too complicated right now)
 - convert the project into a header-only library, since that's what it is basically becoming
