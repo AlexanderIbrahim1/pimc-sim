@@ -156,8 +156,9 @@ To make this nicer, we could create classes that wrap together:
 - [DONE:2024-06-12] create interaction handler that allows both 2B and 3B interactions
 - [DONE:2024-06-12] fix the three-body potential estimator
   - the energies are positive, and way too big (about 1/2 the magnitude of the pair energy!)
-- [DONE:2024-08-26] implement the 4BPES
-- [DONE:2024-08-10]: solve a suspected bug with the dispersion potential
+- [DONE:2024-07-26] implement the 4BPES
+- [DONE:2024-07-26] come up with ideas for unit tests for the four-body PES
+- [DONE:2024-08-10] solve a suspected bug with the dispersion potential
   - [NOT-TRUE] I suspect that there are underflow errors with the dispersion potential when using 32-bit floats
     - this is because we take a number to the power of 12
     - for example, for a distance of 5 Angstroms, we get `4.096e-09 ANG^{-12}`
@@ -165,21 +166,20 @@ To make this nicer, we could create classes that wrap together:
     before perform all the math operations on it
     - [DONE] I attempted this solution, and both the original and rescaled dispersion potentials give the same result
       even for a tetrahedron of side length 14.0f
+- [DONE:2024-08-30] implement saving the PRNG state (lower priority? the physics is still the same I guess)
+- [DONE:2024-08-??] modify main so it reads the arguments from an actual toml file instead of a string view
 - make saving the histograms atomic
 - implement logging
-- implement saving the PRNG state (lower priority? the physics is still the same I guess)
 - simplify the header interface by putting several headers into a single one (too complicated right now)
 - convert the project into a header-only library, since that's what it is basically becoming
   - this also makes it easier to turn the library into a formal target for cmake, and makes it
     less sketchy to include headers from external projects
-- modify main so it reads the arguments from an actual toml file instead of a string view
 - create separate executables
   - one for running the simulation *and* calling certain estimators
   - another for reading worldline files and calling certain estimators on them
   + this is because the 3B potential estimator is actually much slower than the 3B potential sampler
     + the time complexity makes a difference!
     + I might want to skip calling the estimator so I can go through more states in a simulation
-- come up with ideas for unit tests for the four-body PES
 
 
 ### IDEAS (FOR FUTURE, AFTER THIS PUBLICATION)
