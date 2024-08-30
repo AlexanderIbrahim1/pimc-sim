@@ -4,6 +4,7 @@ to run the jobs manager.
 """
 
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 
@@ -16,7 +17,21 @@ def format_sim_id(sim_id: int) -> str:
     return f"{sim_id:0>3d}"
 
 
-def get_toml_file_contents(abs_output_dirpath: Path | str, abs_repo_dirpath: Path | str, density: float) -> str:
+def get_simulation_dirpath(abs_sim_root_dirpath: Path | str, sim_id: int) -> Path:
+    return Path(
+        f"{str(abs_sim_root_dirpath)}", "playground", "many_simulations_test", f"simulation_{format_sim_id(sim_id)}"
+    )
+
+
+def get_simulation_output_dirpath(abs_sim_dirpath: Path | str) -> Path:
+    return Path(abs_sim_dirpath) / "output"
+
+
+def get_toml_file_contents(contents_map: dict[str, Any]) -> str:
+    abs_output_dirpath: Path | str = contents_map["abs_output_dirpath"]
+    abs_repo_dirpath: Path | str = contents_map["abs_repo_dirpath"]
+    density: float = contents_map["density"]
+
     contents = "\n".join(
         [
             f"abs_output_dirpath = '{str(abs_output_dirpath)}'",
@@ -39,24 +54,14 @@ def get_toml_file_contents(abs_output_dirpath: Path | str, abs_repo_dirpath: Pat
     return contents
 
 
-def get_simulation_dirpath(abs_sim_root_dirpath: Path | str, sim_id: int) -> Path:
-    return Path(
-        f"{str(abs_sim_root_dirpath)}", "playground", "many_simulations_test", f"simulation_{format_sim_id(sim_id)}"
-    )
+def get_slurm_file_contents(contents_map: dict[str, Any]) -> str:
+    abs_executable_filepath: Path | str = contents_map["abs_executable_filepath"]
+    abs_toml_filepath: Path | str = contents_map["abs_toml_filepath"]
+    abs_slurm_output_prefix: Path | str = contents_map["abs_slurm_output_prefix"]
+    sim_id: int = contents_map["sim_id"]
+    memory_gb: int = contents_map["memory_gb"]
 
-
-def get_simulation_output_dirpath(abs_sim_dirpath: Path | str) -> Path:
-    return Path(abs_sim_dirpath) / "output"
-
-
-def get_slurm_file_contents(
-    abs_executable_filepath: Path | str,
-    abs_toml_filepath: Path | str,
-    abs_slurm_prefix: Path | str,
-    sim_id: int,
-    memory_gb: int,
-) -> str:
-    abs_slurm_output_filepath = f"{abs_slurm_prefix}-{format_sim_id(sim_id)}-%j.out"
+    abs_slurm_output_filepath = f"{abs_slurm_output_prefix}-{format_sim_id(sim_id)}-%j.out"
     contents = "\n".join(
         [
             "#!/bin/bash",
@@ -90,6 +95,14 @@ def example() -> None:
     toml_filename = "sim.toml"  # okay to have it be the same for each simulation; makes commands simpler
     memory_gb = 4
 
+    toml_file_contents_map: dict[str, Any] = {}
+    toml_file_contents_map["abs_repo_dirpath"] = abs_repo_dirpath
+
+    slurm_file_contents_map: dict[str, Any] = {}
+    slurm_file_contents_map["abs_executable_filepath"] = abs_executable_filepath
+    slurm_file_contents_map["abs_slurm_output_prefix"] = abs_slurm_output_prefix
+    slurm_file_contents_map["memory_gb"] = memory_gb
+
     abs_slurm_bash_dirpath.mkdir()
     abs_slurm_output_dirpath.mkdir()
 
@@ -102,24 +115,23 @@ def example() -> None:
         abs_output_dirpath.mkdir()
 
         # create the toml file
-        toml_contents = get_toml_file_contents(abs_output_dirpath, abs_repo_dirpath, density)
+        toml_file_contents_map["abs_output_dirpath"] = abs_output_dirpath
+        toml_file_contents_map["density"] = density
+
+        toml_contents = get_toml_file_contents(toml_file_contents_map)
         abs_toml_filepath = abs_sim_dirpath / toml_filename
         with open(abs_toml_filepath, "w") as fout:
             fout.write(toml_contents)
 
         # create the slurm file (in a separate directory?)
-        slurm_contents = get_slurm_file_contents(
-            abs_executable_filepath, abs_toml_filepath, abs_slurm_output_prefix, sim_id, memory_gb
-        )
+        slurm_file_contents_map["abs_toml_filepath"] = abs_toml_filepath
+        slurm_file_contents_map["sim_id"] = sim_id
+
+        slurm_contents = get_slurm_file_contents(slurm_file_contents_map)
         slurm_filename = get_slurm_bash_filename(sim_id)
         abs_slurm_filepath = abs_slurm_bash_dirpath / slurm_filename
         with open(abs_slurm_filepath, "w") as fout:
             fout.write(slurm_contents)
-
-    # perform the simulations
-    # - only need one version of the executable, so I don't need to copy it to each directory
-    # - the paths in the toml file should be absolute, and unique to the simulation directory
-    # - I need to perform the simulations through slurm
 
 
 if __name__ == "__main__":

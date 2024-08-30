@@ -21,6 +21,7 @@ playground/fourbody_examples/
 playground/investigations/
 playground/many_simulations_test/
 playground/devtoml.toml
+pimc_simpy/playground/slurm_files/
 compilation_output.txt
 
 TEMPNOTES.md
