@@ -17,14 +17,16 @@ def format_sim_id(sim_id: int) -> str:
     return f"{sim_id:0>3d}"
 
 
-def get_simulation_dirpath(abs_sim_root_dirpath: Path | str, sim_id: int) -> Path:
-    return Path(
-        f"{str(abs_sim_root_dirpath)}", "playground", "many_simulations_test", f"simulation_{format_sim_id(sim_id)}"
-    )
+def get_simulation_dirpath(abs_parent_simulations_dirpath: Path | str, sim_id: int) -> Path:
+    return Path(abs_parent_simulations_dirpath) / f"simulation_{format_sim_id(sim_id)}"
 
 
 def get_simulation_output_dirpath(abs_sim_dirpath: Path | str) -> Path:
     return Path(abs_sim_dirpath) / "output"
+
+
+def get_slurm_output_filename(abs_slurm_output_dirpath: Path | str, sim_id: int) -> str:
+    return f"{str(abs_slurm_output_dirpath)}/slurm-{format_sim_id(sim_id)}-%j.out"
 
 
 def get_toml_file_contents(contents_map: dict[str, Any]) -> str:
@@ -70,11 +72,9 @@ def get_toml_file_contents(contents_map: dict[str, Any]) -> str:
 def get_slurm_file_contents(contents_map: dict[str, Any]) -> str:
     abs_executable_filepath: Path | str = contents_map["abs_executable_filepath"]
     abs_toml_filepath: Path | str = contents_map["abs_toml_filepath"]
-    abs_slurm_output_prefix: Path | str = contents_map["abs_slurm_output_prefix"]
-    sim_id: int = contents_map["sim_id"]
     memory_gb: int = contents_map["memory_gb"]
+    abs_slurm_output_filename: str = contents_map["abs_slurm_output_filename"]
 
-    abs_slurm_output_filepath = f"{abs_slurm_output_prefix}-{format_sim_id(sim_id)}-%j.out"
     contents = "\n".join(
         [
             "#!/bin/bash",
@@ -83,7 +83,7 @@ def get_slurm_file_contents(contents_map: dict[str, Any]) -> str:
             f"#SBATCH --mem={memory_gb}G",
             "#SBATCH --time=0-06:00:00",
             "#SBATCH --cpus-per-task=1",
-            f"#SBATCH --output={str(abs_slurm_output_filepath)}",
+            f"#SBATCH --output={str(abs_slurm_output_filename)}",
             "",
             f"{str(abs_executable_filepath)}  {str(abs_toml_filepath)}",
         ]
@@ -92,66 +92,74 @@ def get_slurm_file_contents(contents_map: dict[str, Any]) -> str:
     return contents
 
 
-def get_slurm_bash_filename(sim_id: int) -> str:
-    return f"slurm_{format_sim_id(sim_id)}.sh"
+def get_slurm_bash_filename(subproject_name: str, sim_id: int) -> str:
+    return f"{subproject_name}_{format_sim_id(sim_id)}.sh"
 
 
 def example() -> None:
     n_densities = 31
     densities = np.linspace(0.024, 0.1, n_densities)  # ANG^{-3}
 
-    abs_repo_dirpath = Path("/home/a68ibrah/research/simulations/pimc-sim")
-    abs_executable_filepath = abs_repo_dirpath / "build" / "dev" / "source" / "pimc-sim"
-    abs_slurm_bash_dirpath = abs_repo_dirpath / "pimc_simpy" / "playground" / "slurm_files"
-    abs_slurm_output_dirpath = abs_slurm_bash_dirpath / "slurm_output"
-    abs_slurm_output_prefix = str(abs_slurm_output_dirpath / "slurm")
+    abs_a68home = Path("/home/a68ibrah/projects/def-pnroy/a68ibrah")
+    abs_repo_dirpath = abs_a68home / "pimc_simulations" / "pimc-sim"
+    abs_executable_filepath = abs_repo_dirpath / "build" / "dev-highperf" / "source" / "pimc-sim"
+    abs_project_dirpath = abs_a68home / "pimc_simulations" / "simulations" / "twothreefour_body"
+
+    subproject_name = "p64_coarse"
+    abs_subproject_dirpath = abs_project_dirpath / "mcmc_param_search" / subproject_name
+
+    abs_parent_simulations_dirpath = abs_subproject_dirpath / "simulations"
+    abs_slurm_dirpath = abs_subproject_dirpath / "slurm"
+    abs_slurm_files_dirpath = abs_slurm_dirpath / "slurm_files"
+    abs_slurm_output_dirpath = abs_slurm_dirpath / "slurm_output"
+
     toml_filename = "sim.toml"  # okay to have it be the same for each simulation; makes commands simpler
-    memory_gb = 4
 
-    toml_file_contents_map: dict[str, Any] = {}
-    toml_file_contents_map["abs_repo_dirpath"] = abs_repo_dirpath
-    toml_file_contents_map["cell_dimensions"] = (5, 3, 3)
-    toml_file_contents_map["seed"] = '"RANDOM"'
-    toml_file_contents_map["last_block_index"] = 500
-    toml_file_contents_map["n_equilibrium_blocks"] = 20
-    toml_file_contents_map["n_passes"] = 1
-    toml_file_contents_map["n_timeslices"] = 64
-    toml_file_contents_map["centre_of_mass_step_size"] = 0.3
-    toml_file_contents_map["bisection_level"] = 3
-    toml_file_contents_map["bisection_ratio"] = 0.5
+    toml_file_contents: dict[str, Any] = {}
+    toml_file_contents["abs_repo_dirpath"] = abs_repo_dirpath
+    toml_file_contents["cell_dimensions"] = (5, 3, 3)
+    toml_file_contents["seed"] = '"RANDOM"'
+    toml_file_contents["last_block_index"] = 200
+    toml_file_contents["n_equilibrium_blocks"] = 200
+    toml_file_contents["n_passes"] = 5
+    toml_file_contents["n_timeslices"] = 64
+    toml_file_contents["centre_of_mass_step_size"] = 0.3
+    toml_file_contents["bisection_level"] = 3
+    toml_file_contents["bisection_ratio"] = 0.5
 
-    slurm_file_contents_map: dict[str, Any] = {}
-    slurm_file_contents_map["abs_executable_filepath"] = abs_executable_filepath
-    slurm_file_contents_map["abs_slurm_output_prefix"] = abs_slurm_output_prefix
-    slurm_file_contents_map["memory_gb"] = memory_gb
+    slurm_file_contents: dict[str, Any] = {}
+    slurm_file_contents["abs_executable_filepath"] = abs_executable_filepath
+    slurm_file_contents["memory_gb"] = 4
 
-    abs_slurm_bash_dirpath.mkdir()
-    abs_slurm_output_dirpath.mkdir()
+    abs_parent_simulations_dirpath.mkdir(exist_ok=True)
+    abs_slurm_dirpath.mkdir(exist_ok=True)
+    abs_slurm_files_dirpath.mkdir(exist_ok=True)
+    abs_slurm_output_dirpath.mkdir(exist_ok=True)
 
     for sim_id, density in enumerate(densities):
         # create the locations for the simulation and the output
-        abs_sim_dirpath = get_simulation_dirpath(abs_repo_dirpath, sim_id)
+        abs_sim_dirpath = get_simulation_dirpath(abs_parent_simulations_dirpath, sim_id)
         abs_output_dirpath = get_simulation_output_dirpath(abs_sim_dirpath)
 
         abs_sim_dirpath.mkdir()
         abs_output_dirpath.mkdir()
 
         # create the toml file
-        toml_file_contents_map["abs_output_dirpath"] = abs_output_dirpath
-        toml_file_contents_map["density"] = density
+        toml_file_contents["abs_output_dirpath"] = abs_output_dirpath
+        toml_file_contents["density"] = density
 
-        toml_contents = get_toml_file_contents(toml_file_contents_map)
+        toml_contents = get_toml_file_contents(toml_file_contents)
         abs_toml_filepath = abs_sim_dirpath / toml_filename
         with open(abs_toml_filepath, "w") as fout:
             fout.write(toml_contents)
 
         # create the slurm file (in a separate directory?)
-        slurm_file_contents_map["abs_toml_filepath"] = abs_toml_filepath
-        slurm_file_contents_map["sim_id"] = sim_id
+        slurm_file_contents["abs_toml_filepath"] = abs_toml_filepath
+        slurm_file_contents["abs_slurm_output_filename"] = get_slurm_output_filename(abs_slurm_output_dirpath, sim_id)
 
-        slurm_contents = get_slurm_file_contents(slurm_file_contents_map)
-        slurm_filename = get_slurm_bash_filename(sim_id)
-        abs_slurm_filepath = abs_slurm_bash_dirpath / slurm_filename
+        slurm_contents = get_slurm_file_contents(slurm_file_contents)
+        slurm_filename = get_slurm_bash_filename(subproject_name, sim_id)
+        abs_slurm_filepath = abs_slurm_files_dirpath / slurm_filename
         with open(abs_slurm_filepath, "w") as fout:
             fout.write(slurm_contents)
 
