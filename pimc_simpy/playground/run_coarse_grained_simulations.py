@@ -31,20 +31,33 @@ def get_toml_file_contents(contents_map: dict[str, Any]) -> str:
     abs_output_dirpath: Path | str = contents_map["abs_output_dirpath"]
     abs_repo_dirpath: Path | str = contents_map["abs_repo_dirpath"]
     density: float = contents_map["density"]
+    cell_dimensions: tuple[float, float, float] = contents_map["cell_dimensions"]
+    seed: int | str = contents_map["seed"]
+    last_block_index = contents_map["last_block_index"]
+    n_equilibrium_blocks = contents_map["n_equilibrium_blocks"]
+    n_passes = contents_map["n_passes"]
+    n_timeslices = contents_map["n_timeslices"]
+    centre_of_mass_step_size = contents_map["centre_of_mass_step_size"]
+    bisection_level = contents_map["bisection_level"]
+    bisection_ratio = contents_map["bisection_ratio"]
 
     contents = "\n".join(
         [
             f"abs_output_dirpath = '{str(abs_output_dirpath)}'",
             "first_block_index = 0",
-            "last_block_index = 200",
-            "n_equilibrium_blocks = 10",
-            "n_passes = 2",
-            "n_timeslices = 16",
-            "centre_of_mass_step_size = 0.3",
-            "bisection_level = 3",
-            "bisection_ratio = 0.5",
+            f"last_block_index = {last_block_index}",
+            f"n_equilibrium_blocks = {n_equilibrium_blocks}",
+            f"n_passes = {n_passes}",
+            f"n_timeslices = {n_timeslices}",
+            f"centre_of_mass_step_size = {centre_of_mass_step_size}",
+            f"bisection_level = {bisection_level}",
+            f"bisection_ratio = {bisection_ratio}",
             f"density = {density:.8f}",
             "temperature = 4.2",
+            f"initial_seed = {seed}",
+            f"n_cells_dim0 = {cell_dimensions[0]}",
+            f"n_cells_dim1 = {cell_dimensions[1]}",
+            f"n_cells_dim2 = {cell_dimensions[2]}",
             f"abs_two_body_filepath =   '{str(abs_repo_dirpath)}/potentials/fsh_potential_angstroms_wavenumbers.potext_sq'",
             f"abs_three_body_filepath = '{str(abs_repo_dirpath)}/playground/scripts/threebody_126_101_51.dat'",
             f"abs_four_body_filepath =  '{str(abs_repo_dirpath)}/playground/scripts/models/fourbodypara_8_16_16_8.pt'",
@@ -97,6 +110,15 @@ def example() -> None:
 
     toml_file_contents_map: dict[str, Any] = {}
     toml_file_contents_map["abs_repo_dirpath"] = abs_repo_dirpath
+    toml_file_contents_map["cell_dimensions"] = (5, 3, 3)
+    toml_file_contents_map["seed"] = '"RANDOM"'
+    toml_file_contents_map["last_block_index"] = 500
+    toml_file_contents_map["n_equilibrium_blocks"] = 20
+    toml_file_contents_map["n_passes"] = 1
+    toml_file_contents_map["n_timeslices"] = 64
+    toml_file_contents_map["centre_of_mass_step_size"] = 0.3
+    toml_file_contents_map["bisection_level"] = 3
+    toml_file_contents_map["bisection_ratio"] = 0.5
 
     slurm_file_contents_map: dict[str, Any] = {}
     slurm_file_contents_map["abs_executable_filepath"] = abs_executable_filepath
