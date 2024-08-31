@@ -83,7 +83,7 @@ auto create_histogram(
     const coord::BoxSides<float, NDIM>& minimage_box
 )
 {
-    if (manager.is_continued()) {
+    if (manager.file_exists() && manager.get_info().is_equilibration_complete) {
         return mathtools::io::read_histogram<float>(histogram_filepath);
     }
     else {
@@ -97,7 +97,7 @@ auto read_simulation_most_recent_completed_block_index(
 ) -> std::size_t
 {
     if (continue_file_manager.file_exists()) {
-        return continue_file_manager.parse_block_index();
+        return continue_file_manager.get_info().most_recent_block_index;
     }
     else {
         return parser.first_block_index;
@@ -113,7 +113,7 @@ auto read_simulation_first_block_index(
     if (continue_file_manager.file_exists()) {
         // the continue file contains the most recently completed block, so we want the simulation
         // to start at the next block, hence the offset of 1 below
-        return 1 + continue_file_manager.parse_block_index();
+        return 1 + continue_file_manager.get_info().most_recent_block_index;
     }
     else {
         return parser.first_block_index;

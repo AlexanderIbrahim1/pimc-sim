@@ -6,7 +6,7 @@
 #include <string>
 #include <string_view>
 
-#include <tomlplusplus/toml.hpp>
+#include <../extern/tomlplusplus/toml.hpp>
 
 namespace common_utils
 {

@@ -74,7 +74,11 @@ auto main(int argc, char** argv) -> int
     }
 
     const auto output_dirpath = parser.abs_output_dirpath;
-    const auto continue_file_manager = sim::ContinueFileManager {output_dirpath};
+
+    auto continue_file_manager = sim::ContinueFileManager {output_dirpath};
+    if (continue_file_manager.file_exists()) {
+        continue_file_manager.deserialize();
+    }
 
     const auto temperature = parser.temperature;
     const auto n_timeslices = parser.n_timeslices;
@@ -256,12 +260,6 @@ auto main(int argc, char** argv) -> int
 
             estim::update_centroid_radial_distribution_function_histogram(centroid_dist_histo, environment, periodic_distance_calculator, worldlines);
             mathtools::io::write_histogram(centroid_dist_histo_filepath, centroid_dist_histo);
-
-            /* save the worldlines */
-            worldline_writer.write(i_block, worldlines, environment);
-
-            /* create the continue file */
-            continue_file_manager.serialize_block_index(i_block);
         }
 
         /* Update the step sizes during equilibration */
@@ -283,6 +281,12 @@ auto main(int argc, char** argv) -> int
         com_tracker.reset();
         single_bead_tracker.reset();
         multi_bead_tracker.reset();
+
+        /* save the worldlines */
+        worldline_writer.write(i_block, worldlines, environment);
+
+        /* create or update the continue file */
+        continue_file_manager.set_info_and_serialize({i_block, i_block >= parser.n_equilibrium_blocks});
 
         worldline::delete_worldlines_file<float, NDIM>(worldline_writer, i_block, n_most_recent_worldlines_to_save);
 

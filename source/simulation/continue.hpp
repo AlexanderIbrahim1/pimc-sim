@@ -8,8 +8,21 @@
 #include <string_view>
 
 #include <common/io_utils.hpp>
+#include <common/toml_utils.hpp>
 
 #include <../extern/tomlplusplus/toml.hpp>
+
+namespace sim
+{
+
+struct SimulationContinueInfo
+{
+    std::size_t most_recent_block_index;
+    bool is_equilibration_complete;
+};
+
+}  // namespace sim
+
 
 namespace impl_continue_sim
 {
@@ -25,37 +38,40 @@ constexpr auto continue_file_header_() noexcept -> std::string
 class ContinueFileManagerImpl_
 {
 public:
-    auto parse_block_index(std::istream& toml_stream) const -> std::size_t
+    auto deserialize(std::istream& toml_stream) const -> sim::SimulationContinueInfo
     {
+        using common_utils::cast_toml_to;
+
         const auto table = toml::parse(toml_stream);
 
-        const auto maybe_value = table[block_index_name_].value<std::size_t>();
-        if (!maybe_value) {
-            auto err_msg = std::stringstream {};
-            err_msg << "Failed to parse '" << block_index_name_ << "' from the toml stream.\n";
-            throw std::runtime_error {err_msg.str()};
-        }
+        const auto most_recent_block_index = cast_toml_to<std::size_t>(table, most_recent_block_index_name_);
+        const auto is_equilibration_complete = cast_toml_to<bool>(table, is_equilibration_complete_name_);
 
-        return *maybe_value;
+        return sim::SimulationContinueInfo {
+            most_recent_block_index,
+            is_equilibration_complete
+        };
     }
 
-    void serialize_block_index(std::ostream& toml_stream, std::size_t i_block) const
+    void serialize(std::ostream& toml_stream, const sim::SimulationContinueInfo& continue_info) const
     {
         toml_stream << continue_file_header_();
 
         // tomlplusplus requires that "Integral value initializers must be losslessly convertible to int64_t"
         // - we already know that `i_block` must be positive, so we don't really lose information here
-        const auto output_i_block = static_cast<std::int64_t>(i_block);
+        const auto most_recent_block_index = static_cast<std::int64_t>(continue_info.most_recent_block_index);
 
         const auto table = toml::table {
-            {block_index_name_, output_i_block}
+            {most_recent_block_index_name_, most_recent_block_index},
+            {is_equilibration_complete_name_, continue_info.is_equilibration_complete}
         };
 
         toml_stream << table;
     }
 
 private:
-    std::string_view block_index_name_ {"most_recent_block_index"};
+    std::string_view most_recent_block_index_name_ {"most_recent_block_index"};
+    std::string_view is_equilibration_complete_name_ {"is_equilibration_complete"};
 };
 
 }  // namespace impl_continue_sim
@@ -85,21 +101,42 @@ public:
         return file_exists();
     }
 
-    auto parse_block_index() const -> std::size_t
+    void deserialize()
     {
         auto in_stream = common_utils::open_input_filestream_checked(continue_filepath_);
-        return impl_.parse_block_index(in_stream);
+        info_ = impl_.deserialize(in_stream);
     }
 
-    void serialize_block_index(std::size_t i_block) const
+    void serialize()
     {
         auto out_stream = common_utils::open_output_filestream_checked(continue_filepath_);
-        return impl_.serialize_block_index(out_stream, i_block);
+        impl_.serialize(out_stream, info_);
+    }
+
+    constexpr auto get_info() const -> sim::SimulationContinueInfo
+    {
+        // getting/setting and deserializing/serializing are separated so the toml file doesn't have to be parsed
+        // every time we want some of its info
+        return info_;
+    }
+
+    constexpr void set_info(const sim::SimulationContinueInfo& continue_info)
+    {
+        // getting/setting and deserializing/serializing are separated so the toml file doesn't have to be parsed
+        // every time we want some of its info
+        info_ = continue_info;
+    }
+
+    void set_info_and_serialize(const sim::SimulationContinueInfo& continue_info)
+    {
+        set_info(continue_info);
+        serialize();
     }
 
 private:
     std::filesystem::path continue_filepath_;
     impl_continue_sim::ContinueFileManagerImpl_ impl_;
+    sim::SimulationContinueInfo info_;
 };
 
 }  // namespace sim
