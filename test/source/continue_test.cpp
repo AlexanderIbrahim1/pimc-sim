@@ -6,7 +6,7 @@
 
 TEST_CASE("basic continue file manager", "[ContinueFileManager]")
 {
-    const auto cfm_impl = sim::_ContinueFileManagerImpl {};
+    const auto cfm_impl = impl_continue_sim::ContinueFileManagerImpl_ {};
     const auto i_block = std::size_t {10};
 
     auto continue_stream = std::stringstream {};

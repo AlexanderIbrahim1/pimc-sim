@@ -8,6 +8,7 @@
 #include <sstream>
 
 #include <common/common_utils.hpp>
+#include <common/io_utils.hpp>
 #include <common/writers/writer_utils.hpp>
 
 namespace common
@@ -64,18 +65,6 @@ private:
     std::string header_contents_;
     std::string spacing_ {"   "};
 
-    auto open_filestream_checked_(const std::filesystem::path& filepath, std::ios::openmode mode) const -> std::ofstream
-    {
-        auto out_stream = std::ofstream {filepath, mode};
-        if (!out_stream.is_open()) {
-            auto err_msg = std::stringstream {};
-            err_msg << "Failed to open file: " << filepath.string() << '\n';
-            throw std::ios_base::failure {err_msg.str()};
-        }
-
-        return out_stream;
-    }
-
     template <common_utils::Numeric Number>
     auto output_value_(std::ofstream& out_stream, Number value, int fp_precision, int int_padding) const
     {
@@ -89,7 +78,7 @@ private:
 
     void write_(const std::filesystem::path& filepath, std::size_t i_block, Number1 value1, Number2 value2) const
     {
-        auto out_stream = open_filestream_checked_(filepath, std::ios::app);
+        auto out_stream = common_utils::open_append_filestream_checked(filepath);
 
         out_stream << std::setw(block_index_padding) << std::setfill('0') << std::right << i_block;
         out_stream << spacing_;
@@ -101,7 +90,7 @@ private:
 
     void write_first_() const
     {
-        auto out_stream = open_filestream_checked_(filepath_, std::ios::out);
+        auto out_stream = common_utils::open_output_filestream_checked(filepath_);
         out_stream << header_contents_;
     }
 };

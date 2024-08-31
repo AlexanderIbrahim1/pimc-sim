@@ -15,6 +15,7 @@
 #include <rng/prng_state.hpp>
 
 #include <tomlplusplus/toml.hpp>
+#include <common/toml_utils.hpp>
 
 namespace argparse
 {
@@ -36,32 +37,6 @@ constexpr auto map_seed_string_flag_options(std::string_view flag) -> rng::Rando
     else {
         throw std::logic_error("impossible mapping for random seed flag");
     }
-}
-
-template <typename T>
-auto cast_toml_to(const toml::table& table, std::string_view name) -> T
-{
-    const auto maybe_value = table[name].value<T>();
-    if (!maybe_value) {
-        auto err_msg = std::stringstream {};
-        err_msg << "Failed to parse '" << name << "' from the toml stream.\n";
-        throw std::runtime_error {err_msg.str()};
-    }
-
-    return *maybe_value;
-}
-
-template <>
-auto cast_toml_to(const toml::table& table, std::string_view name) -> std::filesystem::path
-{
-    const auto maybe_value = table[name].value<std::string>();
-    if (!maybe_value) {
-        auto err_msg = std::stringstream {};
-        err_msg << "Failed to parse '" << name << "' from the toml stream.\n";
-        throw std::runtime_error {err_msg.str()};
-    }
-
-    return std::filesystem::path{*maybe_value};
 }
 
 /*
@@ -127,6 +102,8 @@ private:
 
     void parse_helper_(std::istream& toml_stream) {
         try {
+            using common_utils::cast_toml_to;
+
             const auto table = toml::parse(toml_stream);
 
             abs_output_dirpath = cast_toml_to<std::filesystem::path>(table, "abs_output_dirpath");

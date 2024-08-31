@@ -7,20 +7,22 @@
 #include <stdexcept>
 #include <string_view>
 
+#include <common/io_utils.hpp>
+
 #include <../extern/tomlplusplus/toml.hpp>
 
-namespace sim
+namespace impl_continue_sim
 {
 
-constexpr inline auto DEFAULT_CONTINUE_FILENAME = std::string_view {"continue.toml"};
+constexpr auto DEFAULT_CONTINUE_FILENAME = std::string_view {"continue.toml"};
 
-constexpr auto continue_file_header() noexcept -> std::string
+constexpr auto continue_file_header_() noexcept -> std::string
 {
     using namespace std::literals::string_literals;
     return "# this file contains the information needed to continue a simulation\n"s;
 }
 
-class _ContinueFileManagerImpl
+class ContinueFileManagerImpl_
 {
 public:
     auto parse_block_index(std::istream& toml_stream) const -> std::size_t
@@ -39,7 +41,7 @@ public:
 
     void serialize_block_index(std::ostream& toml_stream, std::size_t i_block) const
     {
-        toml_stream << continue_file_header();
+        toml_stream << continue_file_header_();
 
         // tomlplusplus requires that "Integral value initializers must be losslessly convertible to int64_t"
         // - we already know that `i_block` must be positive, so we don't really lose information here
@@ -56,12 +58,18 @@ private:
     std::string_view block_index_name_ {"most_recent_block_index"};
 };
 
+}  // namespace impl_continue_sim
+
+
+namespace sim
+{
+
 class ContinueFileManager
 {
 public:
     ContinueFileManager(
         const std::filesystem::path& continue_dirpath,
-        std::string_view continue_filename = DEFAULT_CONTINUE_FILENAME
+        std::string_view continue_filename = impl_continue_sim::DEFAULT_CONTINUE_FILENAME
     )
         : continue_filepath_ {continue_dirpath / continue_filename}
     {}
@@ -79,31 +87,19 @@ public:
 
     auto parse_block_index() const -> std::size_t
     {
-        auto in_stream = std::ifstream {continue_filepath_};
-        if (!in_stream.is_open()) {
-            auto err_msg = std::stringstream {};
-            err_msg << "Error: Unable to open file: '" << continue_filepath_ << "'\n";
-            throw std::ios_base::failure {err_msg.str()};
-        }
-
+        auto in_stream = common_utils::open_input_filestream_checked(continue_filepath_);
         return impl_.parse_block_index(in_stream);
     }
 
     void serialize_block_index(std::size_t i_block) const
     {
-        auto out_stream = std::ofstream {continue_filepath_, std::ios::out};
-        if (!out_stream.is_open()) {
-            auto err_msg = std::stringstream {};
-            err_msg << "Error: Unable to open file: '" << continue_filepath_ << "'\n";
-            throw std::ios_base::failure {err_msg.str()};
-        }
-
+        auto out_stream = common_utils::open_output_filestream_checked(continue_filepath_);
         return impl_.serialize_block_index(out_stream, i_block);
     }
 
 private:
     std::filesystem::path continue_filepath_;
-    _ContinueFileManagerImpl impl_;
+    impl_continue_sim::ContinueFileManagerImpl_ impl_;
 };
 
 }  // namespace sim
