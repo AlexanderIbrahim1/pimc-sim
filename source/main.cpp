@@ -45,6 +45,7 @@
 #include <rng/prng_state.hpp>
 #include <simulation/box_sides_writer.hpp>
 #include <simulation/continue.hpp>
+#include <simulation/timer.hpp>
 #include <worldline/worldline.hpp>
 #include <worldline/writers/delete_worldlines.hpp>
 #include <worldline/writers/read_worldlines.hpp>
@@ -154,25 +155,25 @@ auto main(int argc, char** argv) -> int
     const auto com_move_adjuster = create_com_move_adjuster(0.3f, 0.4f);
     const auto bisect_move_adjuster = create_bisect_move_adjuster(0.3f, 0.4f);
 
-    auto com_step_size_writer = pimc::default_centre_of_mass_position_move_step_size_writer<float>(output_dirpath);
-    auto multi_bead_move_info_writer = pimc::default_bisection_multibead_position_move_info_writer<float>(output_dirpath);
+    const auto com_step_size_writer = pimc::default_centre_of_mass_position_move_step_size_writer<float>(output_dirpath);
+    const auto multi_bead_move_info_writer = pimc::default_bisection_multibead_position_move_info_writer<float>(output_dirpath);
 
     /* create the move acceptance rate trackers for the move performers */
     auto com_tracker = pimc::MoveSuccessTracker {};
     auto single_bead_tracker = pimc::MoveSuccessTracker {};
     auto multi_bead_tracker = pimc::MoveSuccessTracker {};
 
-    auto com_move_writer = pimc::default_centre_of_mass_position_move_success_writer(output_dirpath);
-    auto single_bead_move_writer = pimc::default_single_bead_position_move_success_writer(output_dirpath);
-    auto multi_bead_move_writer = pimc::default_bisection_multibead_position_move_success_writer(output_dirpath);
+    const auto com_move_writer = pimc::default_centre_of_mass_position_move_success_writer(output_dirpath);
+    const auto single_bead_move_writer = pimc::default_single_bead_position_move_success_writer(output_dirpath);
+    const auto multi_bead_move_writer = pimc::default_bisection_multibead_position_move_success_writer(output_dirpath);
 
     /* create the file writers for the estimators */
-    auto kinetic_writer = estim::default_kinetic_writer<float>(output_dirpath);
-    auto pair_potential_writer = estim::default_pair_potential_writer<float>(output_dirpath);
-    // auto triplet_potential_writer = estim::default_triplet_potential_writer<float>(output_dirpath);
-    // auto quadruplet_potential_writer = estim::default_quadruplet_potential_writer<float>(output_dirpath);
-    auto rms_centroid_writer = estim::default_rms_centroid_distance_writer<float>(output_dirpath);
-    auto abs_centroid_writer = estim::default_absolute_centroid_distance_writer<float>(output_dirpath);
+    const auto kinetic_writer = estim::default_kinetic_writer<float>(output_dirpath);
+    const auto pair_potential_writer = estim::default_pair_potential_writer<float>(output_dirpath);
+    // const auto triplet_potential_writer = estim::default_triplet_potential_writer<float>(output_dirpath);
+    // const auto quadruplet_potential_writer = estim::default_quadruplet_potential_writer<float>(output_dirpath);
+    const auto rms_centroid_writer = estim::default_rms_centroid_distance_writer<float>(output_dirpath);
+    const auto abs_centroid_writer = estim::default_absolute_centroid_distance_writer<float>(output_dirpath);
 
     /* create the histogram and the histogram writers */
     const auto radial_dist_histo_filepath = output_dirpath / "radial_dist_histo.dat";
@@ -183,9 +184,14 @@ auto main(int argc, char** argv) -> int
 
     const auto periodic_distance_calculator = coord::PeriodicDistanceMeasureWrapper<float, NDIM> {minimage_box};
 
+    /* create the timer and the corresponding writer to keep track of how long each block takes */
+    auto timer = sim::Timer {};
+    const auto timer_writer = sim::default_timer_writer(output_dirpath);
+
     /* perform the simulation loop */
     for (std::size_t i_block {first_block_index}; i_block < last_block_index; ++i_block) {
         std::cout << "i_block = " << i_block << '\n';
+        timer.start();
         /* the number of passes is chosen such that the autocorrelation time between blocks is passed */
         for (std::size_t i_pass {0}; i_pass < parser.n_passes; ++i_pass) {
             /* perform COM move for each particle */
@@ -281,6 +287,9 @@ auto main(int argc, char** argv) -> int
         worldline::delete_worldlines_file<float, NDIM>(worldline_writer, i_block, n_most_recent_worldlines_to_save);
 
         rng::save_prng_state(prngw.prng(), prng_state_filepath);
+
+        const auto duration = timer.duration_since_last_start();
+        timer_writer.write(i_block, duration.seconds, duration.milliseconds, duration.microseconds);
     }
 
     return 0;
