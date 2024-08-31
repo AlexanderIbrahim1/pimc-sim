@@ -169,8 +169,10 @@ To make this nicer, we could create classes that wrap together:
 - [DONE:2024-08-30] implement saving the PRNG state (lower priority? the physics is still the same I guess)
 - [DONE:2024-08-??] modify main so it reads the arguments from an actual toml file instead of a string view
 - [DONE:2024-08-30] make saving the histograms atomic
-- implement a timer
+- [DONE:2024-08-31] implement a timer
   - so I know how long each pass takes, and how long a simulation is expected to run for
+- allow worldlines and continue files to be created during equilibration
+  - in case a simulation needs to be continued after being interrupted during equilibration
 - consolidate the different `XValueBlockWriter` classes into a single class
   - they share so much functionality, it looks like I can clean up the code by a lot
 - implement logging - simplify the header interface by putting several headers into a single one (too complicated right now)
