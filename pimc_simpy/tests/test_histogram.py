@@ -3,9 +3,9 @@ from io import StringIO
 import numpy as np
 import pytest
 
-from pimc_simpy.histogram import HistogramInfo
-from pimc_simpy.histogram import OutOfRangePolicy
-from pimc_simpy.histogram import read_histogram_stream
+from pimc_simpy.data.histogram import HistogramInfo
+from pimc_simpy.data.histogram import OutOfRangePolicy
+from pimc_simpy.data.histogram import read_histogram_stream
 
 
 def test_read_histogram() -> None:
