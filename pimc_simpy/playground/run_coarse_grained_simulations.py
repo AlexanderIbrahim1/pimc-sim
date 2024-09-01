@@ -3,10 +3,6 @@ This script contains pseudocode to help me find out what I need to implement to 
 to run the jobs manager.
 """
 
-from abc import ABC
-from abc import abstractmethod
-
-from dataclasses import dataclass
 from pathlib import Path
 import subprocess
 from typing import Any
@@ -14,7 +10,14 @@ from typing import Any
 import numpy as np
 from numpy.typing import NDArray
 
-TOML_FILENAME = "sim.toml"  # okay to have it be the same for each simulation; makes commands simpler
+from pimc_simpy.manage import get_abs_slurm_output_filename
+from pimc_simpy.manage import get_abs_job_output_dirpath
+from pimc_simpy.manage import get_slurm_filepath
+from pimc_simpy.manage import get_toml_filepath
+from pimc_simpy.manage import mkdir_subproject_dirpaths
+from pimc_simpy.manage import mkdir_job_and_output_dirpaths
+
+from project_info import ProjectInfo
 
 
 # @dataclass
@@ -25,97 +28,6 @@ TOML_FILENAME = "sim.toml"  # okay to have it be the same for each simulation; m
 #     abs_project_dirpath = abs_a68home / "pimc_simulations" / "simulations" / "twothreefour_body"
 #     abs_subproject_dirpath = abs_project_dirpath / "mcmc_param_search" / "p64_coarse"
 #     subproject_name = "p64_coarse"
-
-
-class SimulationProjectInfoBase(ABC):
-    @property
-    @abstractmethod
-    def abs_repo_dirpath(self) -> Path:
-        pass
-
-    @property
-    @abstractmethod
-    def abs_executable_filepath(self) -> Path:
-        pass
-
-    @property
-    @abstractmethod
-    def abs_subproject_dirpath(self) -> Path:
-        pass
-
-    @property
-    @abstractmethod
-    def subproject_name(self) -> str:
-        pass
-
-
-@dataclass
-class SimulationProjectInfo(SimulationProjectInfoBase):
-    def __init__(self) -> None:
-        self.abs_a68home = Path("/home/a68ibrah/research/simulations")
-        self.abs_project_dirpath = self.abs_a68home / "pimc_simulations" / "simulations" / "twothreefour_body"
-
-    @property
-    def abs_repo_dirpath(self) -> Path:
-        return self.abs_a68home / "pimc-sim"
-
-    @property
-    def abs_executable_filepath(self) -> Path:
-        return self.abs_repo_dirpath / "build" / "dev-highperf" / "source" / "pimc-sim"
-
-    @property
-    def abs_subproject_dirpath(self) -> Path:
-        return self.abs_project_dirpath / "mcmc_param_search" / "p64_coarse"
-
-    @property
-    def subproject_name(self) -> str:
-        return "p64_coarse"
-
-
-def get_abs_parent_simulations_dirpath(info: SimulationProjectInfo) -> Path:
-    return info.abs_subproject_dirpath / "simulations"
-
-
-def get_abs_slurm_dirpath(info: SimulationProjectInfo) -> Path:
-    return info.abs_subproject_dirpath / "slurm"
-
-
-def get_abs_slurm_files_dirpath(info: SimulationProjectInfo) -> Path:
-    return get_abs_slurm_dirpath(info) / "slurm_files"
-
-
-def get_abs_slurm_output_dirpath(info: SimulationProjectInfo) -> Path:
-    return get_abs_slurm_dirpath(info) / "slurm_output"
-
-
-def mkdir_simulation_and_slurm_dirpaths(info) -> None:
-    get_abs_parent_simulations_dirpath(info).mkdir(exist_ok=True)
-    get_abs_slurm_dirpath(info).mkdir(exist_ok=True)
-    get_abs_slurm_files_dirpath(info).mkdir(exist_ok=True)
-    get_abs_slurm_output_dirpath(info).mkdir(exist_ok=True)
-
-
-def format_sim_id(sim_id: int) -> str:
-    """
-    Create a specific function to format the simulation ID since it is used in so many
-    different places in this script.
-    """
-    return f"{sim_id:0>3d}"
-
-
-# might vary between projects
-def get_abs_simulation_dirpath(info: SimulationProjectInfo, sim_id: int) -> Path:
-    return get_abs_parent_simulations_dirpath(info) / f"simulation_{format_sim_id(sim_id)}"
-
-
-# might vary between projects
-def get_abs_simulation_output_dirpath(abs_sim_dirpath: Path) -> Path:
-    return abs_sim_dirpath / "output"
-
-
-# might vary between projects
-def get_abs_slurm_output_filename(abs_slurm_output_dirpath: Path, sim_id: int) -> str:
-    return f"{str(abs_slurm_output_dirpath)}/slurm-{format_sim_id(sim_id)}-%j.out"
 
 
 def get_toml_file_contents(contents_map: dict[str, Any]) -> str:
@@ -185,12 +97,8 @@ def get_slurm_file_contents(contents_map: dict[str, Any]) -> str:
     return contents
 
 
-def get_slurm_bash_filename(subproject_name: str, sim_id: int) -> str:
-    return f"{subproject_name}_{format_sim_id(sim_id)}.sh"
-
-
 def example(densities: NDArray) -> None:
-    info = SimulationProjectInfo()
+    info = ProjectInfo()
 
     toml_info_map: dict[str, Any] = {}
     toml_info_map["abs_repo_dirpath"] = info.abs_repo_dirpath
@@ -208,43 +116,36 @@ def example(densities: NDArray) -> None:
     slurm_info_map["abs_executable_filepath"] = info.abs_executable_filepath
     slurm_info_map["memory_gb"] = 4
 
-    mkdir_simulation_and_slurm_dirpaths(info)
+    mkdir_subproject_dirpaths(info)
 
     for sim_id, density in enumerate(densities):
         # create the locations for the simulation and the output
-        abs_sim_dirpath = get_abs_simulation_dirpath(info, sim_id)
-        abs_output_dirpath = get_abs_simulation_output_dirpath(abs_sim_dirpath)
-
-        abs_sim_dirpath.mkdir()
-        abs_output_dirpath.mkdir()
+        mkdir_job_and_output_dirpaths(info, sim_id)
 
         # create the toml file
-        toml_info_map["abs_output_dirpath"] = abs_output_dirpath
+        toml_info_map["abs_output_dirpath"] = get_abs_job_output_dirpath(info, sim_id)
         toml_info_map["density"] = density
 
         toml_file_contents = get_toml_file_contents(toml_info_map)
-        abs_toml_filepath = abs_sim_dirpath / TOML_FILENAME
+        abs_toml_filepath = get_toml_filepath(info, sim_id)
         with open(abs_toml_filepath, "w") as fout:
             fout.write(toml_file_contents)
 
         # create the slurm file (in a separate directory?)
-        abs_slurm_output_dirpath = get_abs_slurm_output_dirpath(info)
         slurm_info_map["abs_toml_filepath"] = abs_toml_filepath
-        slurm_info_map["abs_slurm_output_filename"] = get_abs_slurm_output_filename(abs_slurm_output_dirpath, sim_id)
+        slurm_info_map["abs_slurm_output_filename"] = get_abs_slurm_output_filename(info, sim_id)
 
         slurm_file_contents = get_slurm_file_contents(slurm_info_map)
-        slurm_filename = get_slurm_bash_filename(info.subproject_name, sim_id)
-        abs_slurm_filepath = get_abs_slurm_files_dirpath(info) / slurm_filename
+        abs_slurm_filepath = get_slurm_filepath(info, sim_id)
         with open(abs_slurm_filepath, "w") as fout:
             fout.write(slurm_file_contents)
 
 
 def run_slurm_files(densities: NDArray) -> None:
-    info = SimulationProjectInfo()
+    info = ProjectInfo()
 
-    for sim_id, density in enumerate(densities):
-        slurm_filename = get_slurm_bash_filename(info.subproject_name, sim_id)
-        abs_slurm_filepath = get_abs_slurm_files_dirpath(info) / slurm_filename
+    for sim_id in range(len(densities)):
+        abs_slurm_filepath = get_slurm_filepath(info, sim_id)
 
         cmd = ["cat", str(abs_slurm_filepath)]
         subprocess.run(cmd, check=True)
