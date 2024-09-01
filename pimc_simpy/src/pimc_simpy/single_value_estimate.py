@@ -118,9 +118,7 @@ def get_property_statistics(data: PropertyData) -> PropertyStatistics:
     return PropertyStatistics(first_sampled_epoch, n_samples, mean, stddev, stderrmean)
 
 
-def plot_property(
-    properties: Union[PropertyData, Sequence[PropertyData]], *, labels: Optional[Sequence[str]] = None
-) -> None:
+def plot_property(properties: Union[PropertyData, Sequence[PropertyData]], *, labels: Optional[Sequence[str]] = None) -> None:
     if isinstance(properties, PropertyData):
         if labels is not None:
             labels = labels[0]
