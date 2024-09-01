@@ -20,16 +20,6 @@ from pimc_simpy.manage import mkdir_job_and_output_dirpaths
 from project_info import ProjectInfo
 
 
-# @dataclass
-# class SimulationProjectInfo:
-#     abs_a68home = Path("/home/a68ibrah/projects/def-pnroy/a68ibrah")
-#     abs_repo_dirpath = abs_a68home / "pimc_simulations" / "pimc-sim"
-#     abs_executable_filepath = abs_repo_dirpath / "build" / "dev-highperf" / "source" / "pimc-sim"
-#     abs_project_dirpath = abs_a68home / "pimc_simulations" / "simulations" / "twothreefour_body"
-#     abs_subproject_dirpath = abs_project_dirpath / "mcmc_param_search" / "p64_coarse"
-#     subproject_name = "p64_coarse"
-
-
 def get_toml_file_contents(contents_map: dict[str, Any]) -> str:
     abs_output_dirpath: Path | str = contents_map["abs_output_dirpath"]
     abs_repo_dirpath: Path | str = contents_map["abs_repo_dirpath"]
@@ -102,11 +92,11 @@ def example(densities: NDArray) -> None:
 
     toml_info_map: dict[str, Any] = {}
     toml_info_map["abs_repo_dirpath"] = info.abs_repo_dirpath
-    toml_info_map["cell_dimensions"] = (5, 3, 3)
+    toml_info_map["cell_dimensions"] = (3, 2, 2)
     toml_info_map["seed"] = '"RANDOM"'
-    toml_info_map["last_block_index"] = 200
-    toml_info_map["n_equilibrium_blocks"] = 200
-    toml_info_map["n_passes"] = 5
+    toml_info_map["last_block_index"] = 1000
+    toml_info_map["n_equilibrium_blocks"] = 1000
+    toml_info_map["n_passes"] = 20
     toml_info_map["n_timeslices"] = 64
     toml_info_map["centre_of_mass_step_size"] = 0.3
     toml_info_map["bisection_level"] = 3
@@ -144,10 +134,10 @@ def example(densities: NDArray) -> None:
 def run_slurm_files(densities: NDArray) -> None:
     info = ProjectInfo()
 
-    for sim_id in range(len(densities)):
+    for sim_id in range(1, len(densities)):
         abs_slurm_filepath = get_slurm_filepath(info, sim_id)
 
-        cmd = ["cat", str(abs_slurm_filepath)]
+        cmd = ["sbatch", str(abs_slurm_filepath)]
         subprocess.run(cmd, check=True)
 
 
@@ -155,5 +145,5 @@ if __name__ == "__main__":
     n_densities = 31
     densities = np.linspace(0.024, 0.1, n_densities)  # ANG^{-3}
 
-    example(densities)
+    # example(densities)
     run_slurm_files(densities)

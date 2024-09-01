@@ -41,7 +41,7 @@ def get_abs_job_output_dirpath(info: SimulationProjectInfo, sim_id: int) -> Path
 
 
 def get_abs_slurm_output_filename(info: SimulationProjectInfo, sim_id: int) -> str:
-    abs_slurm_output_dirpath = get_abs_job_output_dirpath(info, sim_id)
+    abs_slurm_output_dirpath = _get_abs_slurm_output_dirpath(info)
     return f"{str(abs_slurm_output_dirpath)}/slurm-{format_sim_id(sim_id)}-%j.out"
 
 
