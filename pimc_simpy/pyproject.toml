@@ -37,4 +37,4 @@ testpaths = [
 ]
 
 [tool.black]
-line-length = 120
+line-length = 130

@@ -3,10 +3,96 @@ This script contains pseudocode to help me find out what I need to implement to 
 to run the jobs manager.
 """
 
+from abc import ABC
+from abc import abstractmethod
+
+from dataclasses import dataclass
 from pathlib import Path
+import subprocess
 from typing import Any
 
 import numpy as np
+from numpy.typing import NDArray
+
+TOML_FILENAME = "sim.toml"  # okay to have it be the same for each simulation; makes commands simpler
+
+
+# @dataclass
+# class SimulationProjectInfo:
+#     abs_a68home = Path("/home/a68ibrah/projects/def-pnroy/a68ibrah")
+#     abs_repo_dirpath = abs_a68home / "pimc_simulations" / "pimc-sim"
+#     abs_executable_filepath = abs_repo_dirpath / "build" / "dev-highperf" / "source" / "pimc-sim"
+#     abs_project_dirpath = abs_a68home / "pimc_simulations" / "simulations" / "twothreefour_body"
+#     abs_subproject_dirpath = abs_project_dirpath / "mcmc_param_search" / "p64_coarse"
+#     subproject_name = "p64_coarse"
+
+
+class SimulationProjectInfoBase(ABC):
+    @property
+    @abstractmethod
+    def abs_repo_dirpath(self) -> Path:
+        pass
+
+    @property
+    @abstractmethod
+    def abs_executable_filepath(self) -> Path:
+        pass
+
+    @property
+    @abstractmethod
+    def abs_subproject_dirpath(self) -> Path:
+        pass
+
+    @property
+    @abstractmethod
+    def subproject_name(self) -> str:
+        pass
+
+
+@dataclass
+class SimulationProjectInfo(SimulationProjectInfoBase):
+    def __init__(self) -> None:
+        self.abs_a68home = Path("/home/a68ibrah/research/simulations")
+        self.abs_project_dirpath = self.abs_a68home / "pimc_simulations" / "simulations" / "twothreefour_body"
+
+    @property
+    def abs_repo_dirpath(self) -> Path:
+        return self.abs_a68home / "pimc-sim"
+
+    @property
+    def abs_executable_filepath(self) -> Path:
+        return self.abs_repo_dirpath / "build" / "dev-highperf" / "source" / "pimc-sim"
+
+    @property
+    def abs_subproject_dirpath(self) -> Path:
+        return self.abs_project_dirpath / "mcmc_param_search" / "p64_coarse"
+
+    @property
+    def subproject_name(self) -> str:
+        return "p64_coarse"
+
+
+def get_abs_parent_simulations_dirpath(info: SimulationProjectInfo) -> Path:
+    return info.abs_subproject_dirpath / "simulations"
+
+
+def get_abs_slurm_dirpath(info: SimulationProjectInfo) -> Path:
+    return info.abs_subproject_dirpath / "slurm"
+
+
+def get_abs_slurm_files_dirpath(info: SimulationProjectInfo) -> Path:
+    return get_abs_slurm_dirpath(info) / "slurm_files"
+
+
+def get_abs_slurm_output_dirpath(info: SimulationProjectInfo) -> Path:
+    return get_abs_slurm_dirpath(info) / "slurm_output"
+
+
+def mkdir_simulation_and_slurm_dirpaths(info) -> None:
+    get_abs_parent_simulations_dirpath(info).mkdir(exist_ok=True)
+    get_abs_slurm_dirpath(info).mkdir(exist_ok=True)
+    get_abs_slurm_files_dirpath(info).mkdir(exist_ok=True)
+    get_abs_slurm_output_dirpath(info).mkdir(exist_ok=True)
 
 
 def format_sim_id(sim_id: int) -> str:
@@ -17,15 +103,18 @@ def format_sim_id(sim_id: int) -> str:
     return f"{sim_id:0>3d}"
 
 
-def get_simulation_dirpath(abs_parent_simulations_dirpath: Path | str, sim_id: int) -> Path:
-    return Path(abs_parent_simulations_dirpath) / f"simulation_{format_sim_id(sim_id)}"
+# might vary between projects
+def get_abs_simulation_dirpath(info: SimulationProjectInfo, sim_id: int) -> Path:
+    return get_abs_parent_simulations_dirpath(info) / f"simulation_{format_sim_id(sim_id)}"
 
 
-def get_simulation_output_dirpath(abs_sim_dirpath: Path | str) -> Path:
-    return Path(abs_sim_dirpath) / "output"
+# might vary between projects
+def get_abs_simulation_output_dirpath(abs_sim_dirpath: Path) -> Path:
+    return abs_sim_dirpath / "output"
 
 
-def get_slurm_output_filename(abs_slurm_output_dirpath: Path | str, sim_id: int) -> str:
+# might vary between projects
+def get_abs_slurm_output_filename(abs_slurm_output_dirpath: Path, sim_id: int) -> str:
     return f"{str(abs_slurm_output_dirpath)}/slurm-{format_sim_id(sim_id)}-%j.out"
 
 
@@ -85,7 +174,11 @@ def get_slurm_file_contents(contents_map: dict[str, Any]) -> str:
             "#SBATCH --cpus-per-task=1",
             f"#SBATCH --output={str(abs_slurm_output_filename)}",
             "",
-            f"{str(abs_executable_filepath)}  {str(abs_toml_filepath)}",
+            f'executable="{str(abs_executable_filepath)}"',
+            f'toml_file="{str(abs_toml_filepath)}"',
+            "",
+            "${executable} ${toml_file}",
+            "",
         ]
     )
 
@@ -96,73 +189,70 @@ def get_slurm_bash_filename(subproject_name: str, sim_id: int) -> str:
     return f"{subproject_name}_{format_sim_id(sim_id)}.sh"
 
 
-def example() -> None:
-    n_densities = 31
-    densities = np.linspace(0.024, 0.1, n_densities)  # ANG^{-3}
+def example(densities: NDArray) -> None:
+    info = SimulationProjectInfo()
 
-    abs_a68home = Path("/home/a68ibrah/projects/def-pnroy/a68ibrah")
-    abs_repo_dirpath = abs_a68home / "pimc_simulations" / "pimc-sim"
-    abs_executable_filepath = abs_repo_dirpath / "build" / "dev-highperf" / "source" / "pimc-sim"
-    abs_project_dirpath = abs_a68home / "pimc_simulations" / "simulations" / "twothreefour_body"
+    toml_info_map: dict[str, Any] = {}
+    toml_info_map["abs_repo_dirpath"] = info.abs_repo_dirpath
+    toml_info_map["cell_dimensions"] = (5, 3, 3)
+    toml_info_map["seed"] = '"RANDOM"'
+    toml_info_map["last_block_index"] = 200
+    toml_info_map["n_equilibrium_blocks"] = 200
+    toml_info_map["n_passes"] = 5
+    toml_info_map["n_timeslices"] = 64
+    toml_info_map["centre_of_mass_step_size"] = 0.3
+    toml_info_map["bisection_level"] = 3
+    toml_info_map["bisection_ratio"] = 0.5
 
-    subproject_name = "p64_coarse"
-    abs_subproject_dirpath = abs_project_dirpath / "mcmc_param_search" / subproject_name
+    slurm_info_map: dict[str, Any] = {}
+    slurm_info_map["abs_executable_filepath"] = info.abs_executable_filepath
+    slurm_info_map["memory_gb"] = 4
 
-    abs_parent_simulations_dirpath = abs_subproject_dirpath / "simulations"
-    abs_slurm_dirpath = abs_subproject_dirpath / "slurm"
-    abs_slurm_files_dirpath = abs_slurm_dirpath / "slurm_files"
-    abs_slurm_output_dirpath = abs_slurm_dirpath / "slurm_output"
-
-    toml_filename = "sim.toml"  # okay to have it be the same for each simulation; makes commands simpler
-
-    toml_file_contents: dict[str, Any] = {}
-    toml_file_contents["abs_repo_dirpath"] = abs_repo_dirpath
-    toml_file_contents["cell_dimensions"] = (5, 3, 3)
-    toml_file_contents["seed"] = '"RANDOM"'
-    toml_file_contents["last_block_index"] = 200
-    toml_file_contents["n_equilibrium_blocks"] = 200
-    toml_file_contents["n_passes"] = 5
-    toml_file_contents["n_timeslices"] = 64
-    toml_file_contents["centre_of_mass_step_size"] = 0.3
-    toml_file_contents["bisection_level"] = 3
-    toml_file_contents["bisection_ratio"] = 0.5
-
-    slurm_file_contents: dict[str, Any] = {}
-    slurm_file_contents["abs_executable_filepath"] = abs_executable_filepath
-    slurm_file_contents["memory_gb"] = 4
-
-    abs_parent_simulations_dirpath.mkdir(exist_ok=True)
-    abs_slurm_dirpath.mkdir(exist_ok=True)
-    abs_slurm_files_dirpath.mkdir(exist_ok=True)
-    abs_slurm_output_dirpath.mkdir(exist_ok=True)
+    mkdir_simulation_and_slurm_dirpaths(info)
 
     for sim_id, density in enumerate(densities):
         # create the locations for the simulation and the output
-        abs_sim_dirpath = get_simulation_dirpath(abs_parent_simulations_dirpath, sim_id)
-        abs_output_dirpath = get_simulation_output_dirpath(abs_sim_dirpath)
+        abs_sim_dirpath = get_abs_simulation_dirpath(info, sim_id)
+        abs_output_dirpath = get_abs_simulation_output_dirpath(abs_sim_dirpath)
 
         abs_sim_dirpath.mkdir()
         abs_output_dirpath.mkdir()
 
         # create the toml file
-        toml_file_contents["abs_output_dirpath"] = abs_output_dirpath
-        toml_file_contents["density"] = density
+        toml_info_map["abs_output_dirpath"] = abs_output_dirpath
+        toml_info_map["density"] = density
 
-        toml_contents = get_toml_file_contents(toml_file_contents)
-        abs_toml_filepath = abs_sim_dirpath / toml_filename
+        toml_file_contents = get_toml_file_contents(toml_info_map)
+        abs_toml_filepath = abs_sim_dirpath / TOML_FILENAME
         with open(abs_toml_filepath, "w") as fout:
-            fout.write(toml_contents)
+            fout.write(toml_file_contents)
 
         # create the slurm file (in a separate directory?)
-        slurm_file_contents["abs_toml_filepath"] = abs_toml_filepath
-        slurm_file_contents["abs_slurm_output_filename"] = get_slurm_output_filename(abs_slurm_output_dirpath, sim_id)
+        abs_slurm_output_dirpath = get_abs_slurm_output_dirpath(info)
+        slurm_info_map["abs_toml_filepath"] = abs_toml_filepath
+        slurm_info_map["abs_slurm_output_filename"] = get_abs_slurm_output_filename(abs_slurm_output_dirpath, sim_id)
 
-        slurm_contents = get_slurm_file_contents(slurm_file_contents)
-        slurm_filename = get_slurm_bash_filename(subproject_name, sim_id)
-        abs_slurm_filepath = abs_slurm_files_dirpath / slurm_filename
+        slurm_file_contents = get_slurm_file_contents(slurm_info_map)
+        slurm_filename = get_slurm_bash_filename(info.subproject_name, sim_id)
+        abs_slurm_filepath = get_abs_slurm_files_dirpath(info) / slurm_filename
         with open(abs_slurm_filepath, "w") as fout:
-            fout.write(slurm_contents)
+            fout.write(slurm_file_contents)
+
+
+def run_slurm_files(densities: NDArray) -> None:
+    info = SimulationProjectInfo()
+
+    for sim_id, density in enumerate(densities):
+        slurm_filename = get_slurm_bash_filename(info.subproject_name, sim_id)
+        abs_slurm_filepath = get_abs_slurm_files_dirpath(info) / slurm_filename
+
+        cmd = ["cat", str(abs_slurm_filepath)]
+        subprocess.run(cmd, check=True)
 
 
 if __name__ == "__main__":
-    example()
+    n_densities = 31
+    densities = np.linspace(0.024, 0.1, n_densities)  # ANG^{-3}
+
+    example(densities)
+    run_slurm_files(densities)
