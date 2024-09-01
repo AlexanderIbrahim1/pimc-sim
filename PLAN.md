@@ -323,3 +323,32 @@ As a result, the autocorrelation time increases to ~150 passes (box = 3x2x2, P =
     - pick a larger value of P so larger multilevel moves are allowed
     - remove the COM and multilevel moves, because they fail anyways
     - increase the number of passes for the single bead moves
+
+## 2024-08-28
+
+### Planning large-scale simulation jobs
+There are times where I want to create lots of simulation jobs
+  - each of them will run under a different set of conditions
+    - although some of them might be duplicates!
+  - I need this procedure to happen in an organized fashion
+
+#### EXAMPLES
+1. I want to run lots of simulations for the coarse-grained grid of densities
+  - each simulation has:
+    - a different density
+    - different ideal monte carlo steps, autocorrelation times, equilbration times
+    - the same number of beads, number of particles, types of potentials, etc.
+
+2. I want to run simulations for the fine-grained grid of densities around the equilibrium density
+  - each simulation has:
+    - a different `(density, n_beads)` combination
+    - different ideal monte carlo steps, autocorrelation times, equilbration times
+    - the same number of particles, types of potentials, etc.
+
+#### What do I need?
+It looks like I need a way to:
+  - create ways to label the different simulations that I want
+    - including creating a file that describes what is going on in a given directory
+  - create the appropriate directories, one for each simulation
+  - create the corresponding toml files
+  - run the jobs via slurm (don't need to abstract this just yet)
