@@ -14,6 +14,10 @@ from pimc_simpy.data.histogram.bin_info import BinInfo
 from pimc_simpy.data.property_data import PropertyData
 from pimc_simpy.data.property_data import PropertyStatistics
 from pimc_simpy.data.property_data import get_property_statistics
+from pimc_simpy.data.property_data import between_epochs
+from pimc_simpy.data.property_data import between_indices
+from pimc_simpy.data.property_data import element_by_epoch
+from pimc_simpy.data.property_data import element_by_index
 
 from pimc_simpy.data.property_data_reading import read_property_data
 from pimc_simpy.data.property_data_reading import read_property_data_multiple

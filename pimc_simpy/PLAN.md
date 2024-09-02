@@ -78,7 +78,7 @@ I already have code for reading the histograms
   - move out the functions about plotting and reading data
 - [DONE] create a separate module with functions to read the multicolumn data
   - each useful column can be read as a separate property
-- create functions that perform slicing and searching by epoch index
+- [DONE] create functions that perform slicing and searching by epoch index
   - but don't use operator overloading, because that would be very confusing for the user
   - instead, create a separate function to do this
   - in fact, maybe don't implement `__setitem__`, `__getitem__`, etc.
@@ -92,3 +92,11 @@ I already have code for reading the histograms
   ```
 - right now, the property plotting code only shows the cumulative means and sems
   - what if I just want to see the property itself, without the cumulative means?
+- what if I want two different PropertyData instances to shift their epochs?
+  - maybe ignore the fact that the epochs are on different labels?
+- create a plotting function that:
+  - takes several PropertyData instances
+  - normalizes all their values between 0 and 1
+  - plots them all
+  + the point wouldn't be to look at their values, but rather to see where they level out
+    + so I can see the equilibration time
