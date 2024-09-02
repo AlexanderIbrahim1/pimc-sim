@@ -8,4 +8,6 @@ figures of that quality. Instead, these functions make it easy to create certain
 of common plots very quickly.
 """
 
-from pimc_simpy.plotting.plot_property import plot_property_cumulative
+from pimc_simpy.plotting.plot_property_data import plot_property
+from pimc_simpy.plotting.plot_property_data import plot_property_cumulative
+from pimc_simpy.plotting.plot_property_data import plot_property_rescaled
