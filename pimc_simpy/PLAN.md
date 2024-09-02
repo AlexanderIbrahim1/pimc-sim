@@ -26,3 +26,67 @@ Is this stuff even worth doing?
     - and also show the variance calculated up to that point (semi-transparent in the background)
   - get the mean, variance, other statistical data
 
+
+
+## 2024-09-01
+
+### What types of files are there so far?
+
+1. Two column file of format (i_block, value)
+  - `absolute_centroid_distance.dat`
+  - `centre_of_mass_step_size.dat`
+  - `kinetic.dat`
+  - `pair_potential.dat`
+  - `rms_centroid_distance.dat`
+
+2. Three column file of format (i_block, value0, value1)
+  - `bisection_multibead_position_move_accept.dat`
+  - `bisection_multibead_position_move_info.dat`
+  - `centre_of_mass_position_move_accept.dat`
+  - `single_bead_position_move_accept.dat`
+
+3. Four column file of format (i_block, value0, value1, value2)
+  - `timer.dat`
+
+4. Histograms
+  - `centroid_radial_dist_histo.dat`
+  - `radial_dist_histo.dat`
+
+
+### Miscellaneous
+1. The `box_sides.dat` file:
+  - an integer, followed by the sides of the box (depends on the dimensionality)
+
+2. `continue.toml`
+
+3. `prng.state`
+
+4. `worldlines00000.dat`
+
+
+## What do I do for now?
+I want to make it convenient to read the data from the files of 2-, 3-, and 4-column format
+  - they contain information about the MC step sizes and the estimators
+
+I already have code for reading the histograms
+  - I just need some functions for the multicolumn data
+
+
+## How to proceed with the code?
+- move the plotting functions into a separate subpackage
+- put the `single_value_estimate.py` file in the `data` subpackage
+  - move out the functions about plotting and reading data
+- create a separate module with functions to read the multicolumn data
+  - each useful column can be read as a separate property
+- create functions that perform slicing and searching by epoch index
+  - but don't use operator overloading, because that would be very confusing for the user
+  - instead, create a separate function to do this
+  - in fact, maybe don't implement `__setitem__`, `__getitem__`, etc.
+    - after all, `epochs` and `values` are publicly accessible, and they can work directly with those
+  - the functions to implement should be called:
+  ```
+  element_by_index(index: int, property: PropertyData) -> np.float64
+  element_by_epoch(index: int, property: PropertyData) -> np.float64
+  slice_by_index(slice: slice, property: PropertyData) -> PropertyData
+  slice_by_epoch(slice: slice, property: PropertyData) -> PropertyData
+  ```
