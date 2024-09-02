@@ -8,8 +8,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-from pimc_simpy.autocorrelation import autocorrelation1d
-from pimc_simpy.autocorrelation import autocorrelation_time
+from pimc_simpy.statistics import autocorrelation1d
+from pimc_simpy.statistics import autocorrelation_time_from_data
 
 
 def main() -> None:
@@ -19,7 +19,7 @@ def main() -> None:
     data = np.loadtxt(filepath, usecols=(1,))
 
     autocorrelation = autocorrelation1d(data)
-    auto_time = autocorrelation_time(data)
+    auto_time = autocorrelation_time_from_data(data)
 
     print(auto_time)
 

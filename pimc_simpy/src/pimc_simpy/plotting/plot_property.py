@@ -10,7 +10,7 @@ from typing import Union
 
 import matplotlib.pyplot as plt
 
-from pimc_simpy.data.property_data import PropertyData
+from pimc_simpy.data import PropertyData
 from pimc_simpy.statistics import calculate_cumulative_means_and_sems
 
 

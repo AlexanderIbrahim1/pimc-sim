@@ -10,6 +10,11 @@ This code is slightly modified after being taken directly from
 import numpy as np
 from numpy.typing import NDArray
 
+# This is the suggested value we use when determining how to truncate the number of terms
+# used to calculate the autocorrelation time.
+# Suggested by Sokal, taken from here: `https://emcee.readthedocs.io/en/stable/tutorials/autocorr/`
+_DEFAULT_SOKAL_CUTOFF: float = 5.0
+
 
 # Automated windowing procedure following Sokal (1989)
 def _autocorrelation_window(autocorr_times: NDArray, sokal_cutoff: float):
@@ -65,12 +70,14 @@ def autocorrelation1d(mcmc_data: NDArray, *, normalize: bool = True) -> NDArray:
         )
 
 
-def autocorrelation_time_from_autocorrelations(autocorrelations: NDArray, *, sokal_cutoff: float = 5.0) -> float:
+def autocorrelation_time_from_autocorrelations(
+    autocorrelations: NDArray, *, sokal_cutoff: float = _DEFAULT_SOKAL_CUTOFF
+) -> float:
     autocorrelation_times = 2.0 * np.cumsum(autocorrelations) - 1.0
     ideal_window = _autocorrelation_window(autocorrelation_times, sokal_cutoff)
     return autocorrelation_times[ideal_window]
 
 
-def autocorrelation_time(mcmc_data: NDArray, *, sokal_cutoff: float = 5.0) -> float:
+def autocorrelation_time_from_data(mcmc_data: NDArray, *, sokal_cutoff: float = _DEFAULT_SOKAL_CUTOFF) -> float:
     autocorrelations = autocorrelation1d(mcmc_data, normalize=True)
-    return autocorrelation_time_from_autocorrelations(autocorrelations)
+    return autocorrelation_time_from_autocorrelations(autocorrelations, sokal_cutoff=sokal_cutoff)
