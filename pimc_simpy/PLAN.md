@@ -73,10 +73,10 @@ I already have code for reading the histograms
 
 
 ## How to proceed with the code?
-- move the plotting functions into a separate subpackage
-- put the `single_value_estimate.py` file in the `data` subpackage
+- [DONE] move the plotting functions into a separate subpackage
+- [DONE] put the `single_value_estimate.py` file in the `data` subpackage
   - move out the functions about plotting and reading data
-- create a separate module with functions to read the multicolumn data
+- [DONE] create a separate module with functions to read the multicolumn data
   - each useful column can be read as a separate property
 - create functions that perform slicing and searching by epoch index
   - but don't use operator overloading, because that would be very confusing for the user

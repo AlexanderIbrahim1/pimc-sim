@@ -6,7 +6,7 @@ simulation code, and plotting the results.
 from pathlib import Path
 
 from pimc_simpy.data import read_histogram
-from pimc_simpy.radial_distribution_function import plot_radial_distribution_function
+from pimc_simpy.plotting.plot_radial_distribution_function import plot_radial_distribution_function
 
 
 def main() -> None:
