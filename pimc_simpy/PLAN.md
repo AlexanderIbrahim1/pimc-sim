@@ -90,3 +90,5 @@ I already have code for reading the histograms
   slice_by_index(slice: slice, property: PropertyData) -> PropertyData
   slice_by_epoch(slice: slice, property: PropertyData) -> PropertyData
   ```
+- right now, the property plotting code only shows the cumulative means and sems
+  - what if I just want to see the property itself, without the cumulative means?
