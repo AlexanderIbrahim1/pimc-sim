@@ -1,10 +1,9 @@
 from io import StringIO
 
 import numpy as np
-from numpy.testing import assert_array_almost_equal
 
-from pimc_simpy.single_value_estimate import read_property_data_stream
-from pimc_simpy.single_value_estimate import PropertyData
+from pimc_simpy.data.property_data_reading import _read_property_data_stream
+from pimc_simpy.data import PropertyData
 
 
 def test_read_property_data_stream() -> None:
@@ -20,10 +19,8 @@ def test_read_property_data_stream() -> None:
         )
     )
 
-    expected = PropertyData(
-        np.array([5, 6, 7], dtype=np.int32), np.array([1.23456, 2.34567, 3.45678], dtype=np.float64)
-    )
-    actual = read_property_data_stream(stream)
+    expected = PropertyData(np.array([5, 6, 7], dtype=np.int32), np.array([1.23456, 2.34567, 3.45678], dtype=np.float64))
+    actual = _read_property_data_stream(stream, n_data=1)[0]
 
     np.testing.assert_array_equal(expected.epochs, actual.epochs)
-    np.testing.assert_array_almost_equal(expected.values, actual.values)
+    np.testing.assert_allclose(expected.values, actual.values)

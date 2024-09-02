@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
 
-from pimc_simpy.data.histogram import HistogramInfo
-from pimc_simpy.data.histogram import create_bin_info
+from pimc_simpy.data import HistogramInfo
+from pimc_simpy.data import create_bin_info
 
 _RADIAL_DISTRIBUTION_FUNCTION_UPPER_BOUND_PLOT_RATIO: float = 1.1
 
