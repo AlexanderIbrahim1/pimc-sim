@@ -81,6 +81,11 @@ public:
                 }
             }
         }
+        else {
+            if (move_tracker) {
+                move_tracker->add_accept();
+            }
+        }
     }
 
 private:
