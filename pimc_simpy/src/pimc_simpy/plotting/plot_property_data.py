@@ -126,7 +126,6 @@ def plot_property_rescaled(
     ax.set_ylim(y_lim_min, y_lim_max)
 
     new_properties = [_rescale_property_data(data) for data in properties]
-    print(new_properties)
 
     for i, data in enumerate(new_properties):
         if labels is not None:
@@ -143,8 +142,6 @@ def plot_property_rescaled(
 def _rescale_property_data(data: PropertyData) -> PropertyData:
     minimum = np.min(data.values).astype(np.float64)
     maximum = np.max(data.values).astype(np.float64)
-
-    print(minimum, maximum)
 
     if np.isclose(minimum, maximum):
         new_values = np.full(data.values.size, 0.5)
