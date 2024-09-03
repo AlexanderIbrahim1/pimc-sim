@@ -406,3 +406,25 @@ Things I have tried, which have not worked:
 Some more things I could try:
   - roll back to an older version of the repo, and see if I can get the 3B PES to output negative energies
     at the equilibrium density again
+
+I looked at the three-body energies collected for the original 2B-3B-4B perturbative EOS
+  - and they were slightly positive!!!
+
+I looked at the only MC code
+  - there *was* a part of it that did early rejections of certain triangles, but it wasn't used for the estimator
+    - so I really doubt that rejecting too many large triangles in the old simulation code is the reason it was slightly negative
+  - and I just tried using the incorrect periodicity in this simulation, and the energies were even *MORE* positive
+
+[WRONG:NOT_FOUND] I *MIGHT* have found the reason (a rescaling bug in the original code):
+  - the old code used energies in units of Kelvin instead of wavenumbers
+  - but the input file was always in units of wavenumbers
+  - so when I read in the energies, I used a function to rescale all the energies in the grid
+    from units of wavenumbers to units of kelvin
+  - BUT I didn't do so for the ATM potential
+    - that stayed in units of wavenumbers (which are smaller numerically compared to Kelvin)
+  + to test this, I could run the estimators with the ATM potential:
+    1. turned off -> DID NOT WORK! STILL POSITIVE!!!
+    2. rescaled down by "kelvin per wavenumber" -> DID NOT WORK! STILL POSITIVE!!!
+  + this means the possibility that early rejection above caused the bug is also incorrect
+    - if turning off the ATM potential completely did nothing, then ignoring certain configurations wouldn't do anything either,
+      even if it did happen during estimation
