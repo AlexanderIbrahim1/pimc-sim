@@ -63,7 +63,7 @@ auto main(int argc, char** argv) -> int
         std::exit(EXIT_FAILURE);
     }
 
-    const auto n_most_recent_worldlines_to_save = 5;
+    // const auto n_most_recent_worldlines_to_save = 5;
 
     const auto toml_input_filename = argv[1];
     const auto parser = argparse::ArgParser<float> {toml_input_filename};
@@ -100,9 +100,8 @@ auto main(int argc, char** argv) -> int
     sim::write_box_sides(output_dirpath / "box_sides.dat", minimage_box);
 
     const auto pot = fsh_potential(minimage_box, parser.abs_two_body_filepath);
-    // const auto pot3b = threebodyparah2_potential(minimage_box, parser.abs_three_body_filepath);
+    const auto pot3b = threebodyparah2_potential(minimage_box, parser.abs_three_body_filepath);
 
-    // const auto abs_pot4b_filepath = std::filesystem::path {"/home/a68ibrah/research/simulations/pimc-sim/playground/scripts/models/fourbodypara_ssp_64_128_128_64_cpu_eval.pt"};
     // const long int buffer_size = 1024;
     // auto pot4b = interact::get_published_buffered_four_body_potential<NDIM, interact::PermutationTransformerFlag::EXACT>(parser.abs_four_body_filepath, buffer_size);
     // clang-format on
@@ -174,7 +173,7 @@ auto main(int argc, char** argv) -> int
     /* create the file writers for the estimators */
     const auto kinetic_writer = estim::default_kinetic_writer<float>(output_dirpath);
     const auto pair_potential_writer = estim::default_pair_potential_writer<float>(output_dirpath);
-    // const auto triplet_potential_writer = estim::default_triplet_potential_writer<float>(output_dirpath);
+    const auto triplet_potential_writer = estim::default_triplet_potential_writer<float>(output_dirpath);
     // const auto quadruplet_potential_writer = estim::default_quadruplet_potential_writer<float>(output_dirpath);
     const auto rms_centroid_writer = estim::default_rms_centroid_distance_writer<float>(output_dirpath);
     const auto abs_centroid_writer = estim::default_absolute_centroid_distance_writer<float>(output_dirpath);
@@ -237,11 +236,12 @@ auto main(int argc, char** argv) -> int
             // const auto& threebody_pot = interaction_handler.get<1>();
             // auto& fourbody_pot = interaction_handler.get<2>();
             // auto& fourbody_pot = pot4b;
+            auto& threebody_pot = pot3b;
 
             /* run estimators */
             const auto total_kinetic_energy = estim::total_primitive_kinetic_energy(worldlines, environment);
             const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic(worldlines, pot, environment);
-            // const auto total_triplet_potential_energy = estim::total_triplet_potential_energy_periodic(worldlines, threebody_pot.point_potential(), environment);
+            const auto total_triplet_potential_energy = estim::total_triplet_potential_energy_periodic(worldlines, threebody_pot, environment);
             // const auto total_quadruplet_potential_energy = estim::calculate_total_four_body_potential_energy_via_shifting(worldlines, fourbody_pot, environment, minimage_box, coord::box_cutoff_distance(minimage_box));
             const auto rms_centroid_dist = estim::rms_centroid_distance(worldlines, environment);
             const auto abs_centroid_dist = estim::absolute_centroid_distance(worldlines, environment);
@@ -249,7 +249,7 @@ auto main(int argc, char** argv) -> int
             /* save estimators */
             kinetic_writer.write(i_block, total_kinetic_energy);
             pair_potential_writer.write(i_block, total_pair_potential_energy);
-            // triplet_potential_writer.write(i_block, total_triplet_potential_energy);
+            triplet_potential_writer.write(i_block, total_triplet_potential_energy);
             // quadruplet_potential_writer.write(i_block, total_quadruplet_potential_energy);
             rms_centroid_writer.write(i_block, rms_centroid_dist);
             abs_centroid_writer.write(i_block, abs_centroid_dist);
@@ -260,6 +260,9 @@ auto main(int argc, char** argv) -> int
 
             estim::update_centroid_radial_distribution_function_histogram(centroid_dist_histo, environment, periodic_distance_calculator, worldlines);
             mathtools::io::write_histogram(centroid_dist_histo_filepath, centroid_dist_histo);
+
+            /* save the worldlines */
+            worldline_writer.write(i_block, worldlines, environment);
         }
 
         /* Update the step sizes during equilibration */
@@ -282,13 +285,10 @@ auto main(int argc, char** argv) -> int
         single_bead_tracker.reset();
         multi_bead_tracker.reset();
 
-        /* save the worldlines */
-        worldline_writer.write(i_block, worldlines, environment);
-
         /* create or update the continue file */
         continue_file_manager.set_info_and_serialize({i_block, i_block >= parser.n_equilibrium_blocks});
 
-        worldline::delete_worldlines_file<float, NDIM>(worldline_writer, i_block, n_most_recent_worldlines_to_save);
+        // worldline::delete_worldlines_file<float, NDIM>(worldline_writer, i_block, n_most_recent_worldlines_to_save);
 
         rng::save_prng_state(prngw.prng(), prng_state_filepath);
 
