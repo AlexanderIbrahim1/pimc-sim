@@ -10,19 +10,14 @@ CMakeLists.txt.user
 CMakeUserPresets.json
 compile_commands.json
 
-!playground/CMakeUserPresets.json
-playground/ignore*/
-playground/scripts/
+playground/
 
 **/__pycache__/
 
-playground/fourbodypes/
-playground/fourbody_examples/
-playground/investigations/
-playground/many_simulations_test/
-playground/devtoml.toml
 pimc_simpy/playground/slurm_files/
 pimc_simpy/playground/other/
-compilation_output.txt
+pimc_simpy/scripts/pes_files/
+pimc_simpy/scripts/models/
+other/investigations/
 
 TEMPNOTES.md
