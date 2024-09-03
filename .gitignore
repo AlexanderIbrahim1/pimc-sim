@@ -11,11 +11,10 @@ CMakeUserPresets.json
 compile_commands.json
 
 playground/
+pimc_simpy/playground/
 
 **/__pycache__/
 
-pimc_simpy/playground/slurm_files/
-pimc_simpy/playground/other/
 pimc_simpy/scripts/pes_files/
 pimc_simpy/scripts/models/
 other/investigations/
