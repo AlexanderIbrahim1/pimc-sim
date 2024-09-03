@@ -217,8 +217,8 @@ auto main(int argc, char** argv) -> int
             }
         }
 
-        // interact::update_centroid_adjacency_matrix<float, 3>(
-        //     worldlines, minimage_box, environment, interaction_handler.adjacency_matrix(), cutoff_distance
+        // interact::update_centroid_adjacency_matrix<float, NDIM>(
+        //     worldlines, minimage_box, environment, interaction_handler.adjacency_matrix(), pair_cutoff_distance
         // );
 
         /* save move acceptance rates */

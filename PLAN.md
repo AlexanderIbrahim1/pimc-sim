@@ -370,3 +370,39 @@ So the clusters should have enough memory on them
   - so I can use a random subset of the saved worldlines for the total 4B energy calculations
 
 ## BUG: figure out why sign of the 3B total energy is flipped now!
+I remember the 3B total energy being negative at the equilibrium density
+  - but now it is positive
+  - it doesn't become negative until a slightly higher density of `rho = 0.03` (rather than `rho = 0.026`)
+  - the `g(r)` definitely says it spends a lot of time in the negative energy region!
+
+Things I have tried, which have not worked:
+  1. running the simulation using double instead of float; DID NOT CHANGE ANYTHING
+  2. changing the periodicity from Attard to the (incorrect) regular minimage
+    - maybe the fact that it was negative in the old paper was the result of that bug
+    - but this IS NOT THE CASE!
+    - it actually gets MORE POSITIVE:
+    ```[attard periodicity]
+    # total triplet potential energy in wavenumbers
+    00060   2.94176636e+02
+    00061   2.73421997e+02
+    00062   2.88672577e+02
+    00063   3.05167999e+02
+    00064   3.01176056e+02
+    00065   2.95887482e+02
+    ```
+    ```[incorrect periodicity]
+    # total triplet potential energy in wavenumbers
+    00060   4.00757660e+02
+    00061   3.80848083e+02
+    00062   3.95636566e+02
+    00063   4.11265961e+02
+    ```
+  3. switching between `dev` and `dev-highperf`
+    - same output
+  4. constantly updating the nearest neighbours grid does not work (although it fixed a bug)
+  5. going from NearestNeighbour to Full for the pair sampling
+
+
+Some more things I could try:
+  - roll back to an older version of the repo, and see if I can get the 3B PES to output negative energies
+    at the equilibrium density again

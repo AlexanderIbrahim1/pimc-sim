@@ -53,6 +53,8 @@ void update_centroid_adjacency_matrix_from_grid(
     const auto n_particles = distance_squared_grid.n_rows();
     const auto cutoff_distance_sq = cutoff_distance * cutoff_distance;
 
+    adjmat.clear_all();
+
     for (std::size_t ip0 {0}; ip0 < n_particles - 1; ++ip0) {
         for (std::size_t ip1 {ip0 + 1}; ip1 < n_particles; ++ip1) {
             if (distance_squared_grid.get(ip0, ip1) <= cutoff_distance_sq) {
