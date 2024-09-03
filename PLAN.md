@@ -173,6 +173,9 @@ To make this nicer, we could create classes that wrap together:
   - so I know how long each pass takes, and how long a simulation is expected to run for
 - [DONE:2024-08-31] allow worldlines and continue files to be created during equilibration
   - in case a simulation needs to be continued after being interrupted during equilibration
+- remove the `playground` directories from the repo entirely
+  - they should be in `.gitignore` and be a place to put files that don't clutter the repo
+  - any important files in there should be moved to other directories
 - consolidate the different `XValueBlockWriter` classes into a single class
   - they share so much functionality, it looks like I can clean up the code by a lot
 - implement logging - simplify the header interface by putting several headers into a single one (too complicated right now)
