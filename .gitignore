@@ -22,6 +22,7 @@ playground/investigations/
 playground/many_simulations_test/
 playground/devtoml.toml
 pimc_simpy/playground/slurm_files/
+pimc_simpy/playground/other/
 compilation_output.txt
 
 TEMPNOTES.md
