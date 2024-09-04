@@ -229,6 +229,17 @@ PROBLEM: mutability of buffered potentials
 Should I just make them non-const?
 Should I separate the buffer from the buffered potential?
 
+#### Making a Worldlines interface
+Right now, a worldline is just a vector of `Cartesian<FP, NDIM>` instance
+  - and the entire system state is given in a `std::vector<Worldline<FP, NDIM>>` instance
+
+But a better idea might be to create a `Worldlines` interface that other concrete types can implement
+  - it will be agnostic to the underlying data layout
+  - this means different users can pick from different data layouts depending on what they need
+
+Some data layouts are better than others for performance
+  - and some data layouts are flat out impossible if more than one type of particle exists
+
 
 ### PUBLICATION PLAN
 I want to starting running simulations to get results for the (2 + 3 + 4)-body simulations
@@ -448,3 +459,10 @@ There is a bug in the current 3-body code
   - I'm not sure what's causing the erratic results?
     - equililbrium *SHOULD* have been reached here already
     - I used the same MC move steps written in the graham code
+
+Take the buggy worldline snapshot
+  - load it into the code
+  - print out the energies for every timeslice
+  - find out which timeslice(s) give the erratic behaviour
+  - look at the three-body energies for every single triplet
+    - find out what is happening with that triplet
