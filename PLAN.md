@@ -428,3 +428,23 @@ I looked at the only MC code
   + this means the possibility that early rejection above caused the bug is also incorrect
     - if turning off the ATM potential completely did nothing, then ignoring certain configurations wouldn't do anything either,
       even if it did happen during estimation
+
+It looks like the old PIMC code *DID* properly implement the 3-body attard minimage rules?
+  - so what exactly was the issue?
+  - or maybe that's a version that I updated, and I compiled with an older version
+    - unfortunately I didn't use version control at the time so I can't tell for certain
+
+## Fix bug in the current 3-body code
+There is a bug in the current 3-body code
+  - it *MIGHT* be responsible for why the three-body energy is slightly positive, but it's definitely there
+  - here's the output of the three-body simulation with P = 960 beads:
+  ```triplet_potential.dat
+  # total triplet potential energy in wavenumbers
+  00020   2.02011871e+02
+  00021   -9.63872250e+05
+  00022   1.87773575e+02
+  00023   -3.53046875e+06
+  ```
+  - I'm not sure what's causing the erratic results?
+    - equililbrium *SHOULD* have been reached here already
+    - I used the same MC move steps written in the graham code
