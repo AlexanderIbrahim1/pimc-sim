@@ -266,9 +266,14 @@ I want to starting running simulations to get results for the (2 + 3 + 4)-body s
   - look up how I did it before
     - figure out the shortcomings, benefits, etc.
   - I can use the same strategy with the old `qmc.input` file with the new `.toml` file
-- make sure I have all the estimators that I want (simulations are expensive, don't want to miss important things)
+- [DONE:2024-09-04] make sure I have all the estimators that I want (simulations are expensive, don't want to miss important things)
   - look at the older publications, and see what estimators I had back them
-  - look at what other estimators I might be able to create
+- [DONE:2024-09-04] create another executable that only evaluates worldlines
+- modify the worldline evaluating executable so that:
+  - it can evaluate multiple different worldines
+  - and make sure the 4B estimator works too
+- look at what other estimators I might be able to create
+
 
 - there are some easy attempts at improving the performance we could try:
   - switch the default ThreeBodyParaH2Potential with the early rejector potential
@@ -326,7 +331,7 @@ I used the ideal step size I found for the 3 x 2 x 2 matrix, for the 5 x 3 x 3 m
 
 I got an autocorrelation time of 10 passes for the 3 x 2 x 2 matrix, for (P = 64, density=0.026)
 
-### At density = 0.1
+### [INCORRECT] At density = 0.1
 At this density, the COM and multilevel moves are frozen!
   - COM step size drops to 0
   - multilevel moves reduce to single bead moves
@@ -337,6 +342,10 @@ As a result, the autocorrelation time increases to ~150 passes (box = 3x2x2, P =
     - pick a larger value of P so larger multilevel moves are allowed
     - remove the COM and multilevel moves, because they fail anyways
     - increase the number of passes for the single bead moves
+
+[INCORRECT] it turns out this was a bug where I was undercounting the number of accepts
+  - not sure how it changes the optimal step sizes, but they should not freeze anymore
+
 
 ## 2024-08-28
 

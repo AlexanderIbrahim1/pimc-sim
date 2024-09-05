@@ -18,6 +18,7 @@
 #include <interactions/three_body/three_body_pointwise_wrapper.hpp>
 #include <interactions/two_body/published/two_body_schmidt2015.hpp>
 #include <interactions/two_body/two_body_pointwise_wrapper.hpp>
+#include <mathtools/io/histogram.hpp>
 #include <pimc/adjusters/adjusters.hpp>
 #include <rng/generator.hpp>
 #include <rng/prng_state.hpp>
