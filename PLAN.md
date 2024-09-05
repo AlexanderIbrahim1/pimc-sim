@@ -449,6 +449,26 @@ I looked at the only MC code
     - if turning off the ATM potential completely did nothing, then ignoring certain configurations wouldn't do anything either,
       even if it did happen during estimation
 
+[WRONG] It is not the definition of the box sides for the periodic lattice
+  - both the old code and the new code use the full box length, not the half box length
+```Attard paper
+The situation can be resolved generally by defining the `x` component of the lattice translation vectors,
+
+t_{ij} = [(x_i - x_j) / L] * L
+t_{ik} = [(x_i - x_k) / L] * L
+
+where l (typo, should be uppercase?) is the box length, and...
+...
+The cutoff convention sets the triplet potential to zero if any side of the triangle
+has a length greater than L/2.
+```
+
+[WRONG] I fixed a bug in the creation of the HCP lattice
+  - changed the x-values for two of the basis cell points from 0.0 to 0.5
+  - I also rederived the lattice positions on paper, and checked against the old moribs and the old python lattice repo
+    - so I'm pretty sure it's correct now
+  - it didn't fix the discrepancy between the old and new 3B energies
+
 It looks like the old PIMC code *DID* properly implement the 3-body attard minimage rules?
   - so what exactly was the issue?
   - or maybe that's a version that I updated, and I compiled with an older version

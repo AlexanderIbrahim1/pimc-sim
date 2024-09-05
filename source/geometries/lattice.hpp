@@ -54,7 +54,7 @@ constexpr auto lattice_particle_positions(
 template <std::floating_point FP, std::size_t NDIM>
 constexpr auto lattice_box(
     const coord::BoxSides<FP, NDIM>& unit_cell_sides,
-    const UnitCellTranslations<NDIM>& translations  //
+    const UnitCellTranslations<NDIM>& translations
 ) -> coord::BoxSides<FP, NDIM>
 {
     const auto boxes_in_each_dimension = translations.translations();
