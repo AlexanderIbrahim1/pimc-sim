@@ -25,9 +25,9 @@ constexpr auto primitive_kinetic_energy(
 ) noexcept -> FP
 {
     const auto n_particles = environment.n_particles();
-    const auto lambda = environment.thermodynamic_lambda();
-    const auto tau = environment.thermodynamic_tau();
-    const auto beta = environment.thermodynamic_beta();
+    const auto lambda = environment.thermodynamic_lambda_kelvin();
+    const auto tau = environment.thermodynamic_tau_kelvin();
+    const auto beta = environment.thermodynamic_beta_kelvin();
 
     const auto thermal_kinetic_energy = 0.5 * static_cast<FP>(ndim * n_particles) / tau;
     const auto vibration_correction_energy = total_dist_squared / (FP {4.0} * tau * beta * lambda);

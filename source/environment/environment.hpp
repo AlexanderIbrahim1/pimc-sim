@@ -26,30 +26,49 @@ public:
         std::size_t n_particles,
         std::size_t n_timeslices
     )
-        : thermodynamic_beta_ {thermodynamic_beta}
-        , thermodynamic_tau_ {thermodynamic_tau}
-        , thermodynamic_lambda_ {thermodynamic_lambda}
+        : thermodynamic_beta_ {thermodynamic_beta / conversions::WAVENUMBERS_PER_KELVIN<FP>}
+        , thermodynamic_tau_ {thermodynamic_tau / conversions::WAVENUMBERS_PER_KELVIN<FP>}
+        , thermodynamic_lambda_ {thermodynamic_lambda * conversions::WAVENUMBERS_PER_KELVIN<FP>}
         , n_particles_ {n_particles}
         , n_timeslices_ {n_timeslices}
     {}
 
-    constexpr auto thermodynamic_beta() const noexcept -> FP
+    constexpr auto thermodynamic_beta_kelvin() const noexcept -> FP
     {
         // units of Kelvin^{-1}
+        return thermodynamic_beta_ * conversions::WAVENUMBERS_PER_KELVIN<FP>;
+    }
+
+    constexpr auto thermodynamic_tau_kelvin() const noexcept -> FP
+    {
+        // units of Kelvin^{-1}
+        return thermodynamic_tau_ * conversions::WAVENUMBERS_PER_KELVIN<FP>;
+    }
+
+    constexpr auto thermodynamic_lambda_kelvin() const noexcept -> FP
+    {
+        // units of Angstroms^2 * Kelvin
+        return thermodynamic_lambda_ / conversions::WAVENUMBERS_PER_KELVIN<FP>;
+    }
+
+    constexpr auto thermodynamic_beta() const noexcept -> FP
+    {
+        // units of wavenumber^{-1}
         return thermodynamic_beta_;
     }
 
     constexpr auto thermodynamic_tau() const noexcept -> FP
     {
-        // units of Kelvin^{-1}
+        // units of wavenumber^{-1}
         return thermodynamic_tau_;
     }
 
     constexpr auto thermodynamic_lambda() const noexcept -> FP
     {
-        // units of Angstroms^2 * Kelvin
+        // units of Angstroms^2 * wavenumber
         return thermodynamic_lambda_;
     }
+
 
     constexpr auto n_particles() const noexcept -> std::size_t
     {
