@@ -33,7 +33,7 @@ inline auto timer_file_header() -> std::string
     message << "# \n";
     message << "# for example, if a line looks like\n";
     message << "#   00205         12        345        678\n";
-    message << "# this means block 205 took 12.345678 microseconds to perform\n";
+    message << "# this means block 205 took 12.345678 seconds to perform\n";
 
     return message.str();
 }

@@ -63,7 +63,7 @@ auto create_com_move_adjuster(float lower_range_limit, float upper_range_limit) 
     -> pimc::SingleValueMoveAdjuster<float>
 {
     const auto com_accept_range = pimc::AcceptPercentageRange<float> {lower_range_limit, upper_range_limit};
-    const auto com_adjust_step = 0.001f;
+    const auto com_adjust_step = 0.005f;
     const auto com_direction = pimc::DirectionIfAcceptTooLow::NEGATIVE;
     const auto com_limits = pimc::MoveLimits<float> {0.0, std::nullopt};
     return pimc::SingleValueMoveAdjuster<float> {com_accept_range, com_adjust_step, com_direction, com_limits};
