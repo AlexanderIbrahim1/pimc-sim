@@ -38,7 +38,7 @@ public:
     {
         mathtools_utils::ctr_check_positive(shape_.size0, "size0");
         mathtools_utils::ctr_check_positive(shape_.size1, "size1");
-        mathtools_utils::ctr_check_positive(shape_.size2, "size1");
+        mathtools_utils::ctr_check_positive(shape_.size2, "size2");
 
         data_.resize(shape_.size0 * shape_.size1 * shape_.size2);
     }
@@ -49,7 +49,7 @@ public:
     {
         mathtools_utils::ctr_check_positive(shape_.size0, "size0");
         mathtools_utils::ctr_check_positive(shape_.size1, "size1");
-        mathtools_utils::ctr_check_positive(shape_.size2, "size1");
+        mathtools_utils::ctr_check_positive(shape_.size2, "size2");
 
         if (shape_.size0 * shape_.size1 * shape_.size2 != data_.size()) {
             auto err_msg = std::stringstream {};

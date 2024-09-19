@@ -8,6 +8,20 @@
 namespace mathtools
 {
 
+namespace impl_trilinear
+{
+
+template <std::floating_point FP>
+static constexpr FP EPSILON_LOWER_INDEX_SHIFT;
+
+template <>
+constexpr float EPSILON_LOWER_INDEX_SHIFT<float> = 1.0e-6f;
+
+template <>
+constexpr double EPSILON_LOWER_INDEX_SHIFT<double> = 1.0e-8f;
+
+}  // namespace impl_trilinear
+
 template <std::floating_point FP>
 class TrilinearInterpolator
 {
@@ -76,9 +90,10 @@ private:
 
     constexpr auto lower_indices_(FP x0, FP x1, FP x2) const noexcept -> Index3D
     {
-        const auto idx0 = static_cast<std::size_t>((x0 - limits0_.lower()) / d0_);
-        const auto idx1 = static_cast<std::size_t>((x1 - limits1_.lower()) / d1_);
-        const auto idx2 = static_cast<std::size_t>((x2 - limits2_.lower()) / d2_);
+        constexpr auto eps = impl_trilinear::EPSILON_LOWER_INDEX_SHIFT<FP>;
+        const auto idx0 = static_cast<std::size_t>((x0 - limits0_.lower()) / d0_ - eps);
+        const auto idx1 = static_cast<std::size_t>((x1 - limits1_.lower()) / d1_ - eps);
+        const auto idx2 = static_cast<std::size_t>((x2 - limits2_.lower()) / d2_ - eps);
 
         return {idx0, idx1, idx2};
     }
