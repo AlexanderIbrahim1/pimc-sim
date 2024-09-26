@@ -72,6 +72,7 @@ constexpr auto total_triplet_potential_energy_periodic_per_worldline(
                 worldline_triplet_pot_energy += triplet_energy;
 
                 if (std::fabs(triplet_energy) > FP{1.0e3}) {
+                    const auto triplet_energy = potential.within_box_cutoff_print(p0, p1, p2);
                     std::cout << "(" << ip0 << ", " << ip1 << ", " << ip2 << ") = " << triplet_energy << '\n';
                 }
             }

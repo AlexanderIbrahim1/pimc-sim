@@ -80,11 +80,11 @@ public:
         const auto [r_, s, cosu] = jacobi_from_pair_distances_unordered(dist01, dist02, dist12);
         const auto r = std::max(r_, r_min_);
 
-        if (r > r_max_ || s > s_max_) {
-            return atm_potential_(dist01, dist02, dist12);
+        if (r < r_max_ && s < s_max_) {
+            return interpolator_(r, s, cosu);
         }
         else {
-            return interpolator_(r, s, cosu);
+            return atm_potential_(dist01, dist02, dist12);
         }
     }
 

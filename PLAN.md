@@ -474,7 +474,7 @@ It looks like the old PIMC code *DID* properly implement the 3-body attard minim
   - or maybe that's a version that I updated, and I compiled with an older version
     - unfortunately I didn't use version control at the time so I can't tell for certain
 
-## Fix bug in the current 3-body code
+## [DONE] Fix bug in the current 3-body code
 There is a bug in the current 3-body code
   - it *MIGHT* be responsible for why the three-body energy is slightly positive, but it's definitely there
   - here's the output of the three-body simulation with P = 960 beads:
@@ -495,3 +495,20 @@ Take the buggy worldline snapshot
   - find out which timeslice(s) give the erratic behaviour
   - look at the three-body energies for every single triplet
     - find out what is happening with that triplet
+
+The issue occured when the shortest pair distance was exactly 5.5 angstroms
+  - the control flow would cause the grid interpolation to be called
+  - and 5.5 angstroms is exactly at the cusp where the index falls outside the grid
+
+I fixed it by switching the control flow order
+
+
+## Finding the difference between the old and new three-body energies
+1. Convert a worldline from the old file format into one with the new file format, and calculate the energy here
+  - check if the energies match
+  - if the energy is negative, then the problem is with the sampling
+  - if the energy is still positive, then the difference is the potential
+
+2. Check if the two-body energies in the old and new code match
+  - if they match, the difference is the three-body potential
+  - if they differ, the difference is either the two-body potential, or the sampling

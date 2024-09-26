@@ -140,17 +140,8 @@
       "inherits": ["ci-linux"],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "HighPerf",
-        "CMAKE_CXX_FLAGS_HIGHPERF": "-O3 -DNDEBUG -ffast-math -march=native",
+        "CMAKE_CXX_FLAGS_HIGHPERF": "-O3 -ffast-math -march=native",
         "CMAKE_MAP_IMPORTED_CONFIG_HIGHPERF": "HighPerf;RelWithDebInfo;Release;Debug;"
-      }
-    },
-    {
-      "name": "highperf",
-      "binaryDir": "${sourceDir}/build/highperf",
-      "inherits": "ci-linux-highperf",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "HighPerf",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
     {
@@ -169,13 +160,6 @@
     {
       "name": "ci-windows",
       "inherits": ["ci-build", "ci-win64", "dev-mode"]
-    }
-  ],
-  "buildPresets": [
-    {
-      "name": "highperf",
-      "configurePreset": "highperf",
-      "jobs": 8
     }
   ]
 }

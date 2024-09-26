@@ -1,5 +1,8 @@
 #pragma once
 
+// TODO: remove
+#include <iostream>
+
 #include <cmath>
 #include <concepts>
 #include <cstddef>
@@ -57,6 +60,20 @@ public:
     auto within_box_cutoff(const Point& p0, const Point& p1, const Point& p2) const noexcept -> FP
     {
         const auto [dist01_sq, dist02_sq, dist12_sq] = geom::three_body_attard_side_lengths_squared({p0, p1, p2}, box_);
+
+        if (dist01_sq < cutoff_dist_sq_ && dist02_sq < cutoff_dist_sq_ && dist12_sq < cutoff_dist_sq_) {
+            return pot_(std::sqrt(dist01_sq), std::sqrt(dist02_sq), std::sqrt(dist12_sq));
+        }
+        else {
+            return FP {0.0};
+        }
+    }
+
+    auto within_box_cutoff_print(const Point& p0, const Point& p1, const Point& p2) const noexcept -> FP
+    {
+        const auto [dist01_sq, dist02_sq, dist12_sq] = geom::three_body_attard_side_lengths_squared({p0, p1, p2}, box_);
+
+        std::cout << "dist01_sq, dist02_sq, dist12_sq = (" << dist01_sq << ", " << dist02_sq << ", " << dist12_sq << ")\n";
 
         if (dist01_sq < cutoff_dist_sq_ && dist02_sq < cutoff_dist_sq_ && dist12_sq < cutoff_dist_sq_) {
             return pot_(std::sqrt(dist01_sq), std::sqrt(dist02_sq), std::sqrt(dist12_sq));
