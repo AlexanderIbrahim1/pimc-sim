@@ -512,3 +512,18 @@ I fixed it by switching the control flow order
 2. Check if the two-body energies in the old and new code match
   - if they match, the difference is the three-body potential
   - if they differ, the difference is either the two-body potential, or the sampling
+
+### The two-body energies do not match
+I took a worldline file from the old moribs code
+  - density = 0.026 ANG^{-3}, P = 64, N = 180
+
+I reformatted the worldline file to fit the new simulation code format
+  - then I recalculated the 2B and 3B energies, with the estimators only
+
+NEW CODE
+  - total 2B potential: -1.94617500e+04 wvn
+  - total 3B potential:  2.98763550e+02 wvn
+
+OLD CODE
+  - total 2B potential: -2.8640198083e+04 K = -1.99058041e+04 wvn
+  - total 3B potential: -6.6980686797e+01 K = -4.65536035e+01 wvn
