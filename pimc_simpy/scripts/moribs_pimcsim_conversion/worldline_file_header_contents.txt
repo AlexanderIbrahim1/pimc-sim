@@ -1,0 +1,13 @@
+# This file contains the positions of all the beads in all the particles in a simulation
+# The information after the comments is laid out in the following manner:
+# - [integer] block index of the simulation this snapshot is taken at
+# - [integer] NDIM: number of dimensions the simulation was performed in
+# - [integer] n_particles: total number of particles
+# - [integer] n_timeslices: total number of timeslices
+# ... followed by the bead positions...
+# 
+# The positions of the beads are laid out in `NDIM` space-separated columns;
+#   - the first `n_particle` lines correspond to the 0th worldline
+#   - the next `n_particle` lines correspond to the 1st worldline
+#   - the next `n_particle` lines correspond to the 2nd worldline, and so on
+#   - there are `n_timeslices` worldlines in total
