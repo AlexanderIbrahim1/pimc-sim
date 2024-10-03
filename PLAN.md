@@ -527,3 +527,27 @@ NEW CODE
 OLD CODE
   - total 2B potential: -2.8640198083e+04 K = -1.99058041e+04 wvn
   - total 3B potential: -6.6980686797e+01 K = -4.65536035e+01 wvn
+
+### I recompiled the old simulation code, and got simulations running on it
+1. The new code's 2B energy is slightly more negative than the old code's 2B energy
+  - when simulating at rho = 0.026 ANG^{-3}, P = 64, N = 180
+
+The old code only includes energies if the centroids are within a certain distance
+  - the new code includes energies if the beads themselves are within a certain distance
+  - check if this is responsible for the discrepancy
+
+2. The old code and new code have different 3B energies
+  - still not sure why this is the case
+
+3. The energies from the pimcanalysis on graham are negative!
+  - I want to try and run the unoptimized three-body estimator
+    - maybe the "fancy, faster" estimator has a bug in it?
+  - right now I'm dealing with an issue where I can't run the code because
+    of an incorrect version of numpy?
+  - it's too complicated to fix!
+
+4. I tried running the new PIMC code with no minimage
+  - but I haven't tried it with *incorrect* minimage
+  - and these will give different results
+    - incorrect minimage will give fictitious smaller triangles!
+  - so this is something to try!
