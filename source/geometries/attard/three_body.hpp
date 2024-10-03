@@ -77,25 +77,6 @@ auto three_body_separation_points(
         separation12[i_dim] = coord12;
     }
 
-//     auto coordinates = std::array<FP, 3 * NDIM> {};
-// 
-//     auto i_coord = std::size_t {0};
-//     for (std::size_t i_dim {0}; i_dim < NDIM; ++i_dim) {
-//         const auto [coord01, coord02, coord12] = separation_coordinates(p0[i_dim], p1[i_dim], p2[i_dim], box[i_dim]);
-//         coordinates[i_coord++] = coord01;
-//         coordinates[i_coord++] = coord02;
-//         coordinates[i_coord++] = coord12;
-//     }
-// 
-//     auto separation01 = coord::Cartesian<FP, NDIM> {};
-//     auto separation02 = coord::Cartesian<FP, NDIM> {};
-//     auto separation12 = coord::Cartesian<FP, NDIM> {};
-//     for (std::size_t i_dim {0}; i_dim < NDIM; ++i_dim) {
-//         separation01[i_dim] = coordinates[3 * i_dim + 0];
-//         separation02[i_dim] = coordinates[3 * i_dim + 1];
-//         separation12[i_dim] = coordinates[3 * i_dim + 2];
-//     }
-
     return {separation01, separation02, separation12};
 }
 

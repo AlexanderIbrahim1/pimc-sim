@@ -18,13 +18,12 @@
 //
 //     return [p0, p1, p2, p3]
 
-template <std::floating_point FP>
-constexpr auto get_tetrahedron_points(FP side_length)
+constexpr auto get_tetrahedron_points(float side_length)
 {
-    const auto p0 = side_length * coord::Cartesian<FP, 3> {-0.5, 0.0, 0.0};
-    const auto p1 = side_length * coord::Cartesian<FP, 3> {0.5, 0.0, 0.0};
-    const auto p2 = side_length * coord::Cartesian<FP, 3> {0.0, std::sqrt(3.0 / 4.0), 0.0};
-    const auto p3 = side_length * coord::Cartesian<FP, 3> {0.0, std::sqrt(1.0 / 12.0), std::sqrt(2.0 / 3.0)};
+    const auto p0 = side_length * coord::Cartesian<float, 3> {-0.5f, 0.0f, 0.0f};
+    const auto p1 = side_length * coord::Cartesian<float, 3> {0.5f, 0.0f, 0.0f};
+    const auto p2 = side_length * coord::Cartesian<float, 3> {0.0f, std::sqrt(3.0f / 4.0f), 0.0f};
+    const auto p3 = side_length * coord::Cartesian<float, 3> {0.0f, std::sqrt(1.0f / 12.0f), std::sqrt(2.0f / 3.0f)};
 
     return std::tuple {p0, p1, p2, p3};
 }
@@ -38,7 +37,7 @@ TEST_CASE("dispersion potential equality", "FourBodyDispersionPotential")
     SECTION("shorter distances")
     {
         auto distance = GENERATE(2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 12.0f, 14.0f);
-        const auto [p0, p1, p2, p3] = get_tetrahedron_points<float>(distance);
+        const auto [p0, p1, p2, p3] = get_tetrahedron_points(distance);
         const auto original_energy = original_potential(p0, p1, p2, p3);
         const auto rescaled_energy = rescaled_potential(p0, p1, p2, p3);
 

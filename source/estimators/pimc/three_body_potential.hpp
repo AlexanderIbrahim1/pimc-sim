@@ -70,11 +70,6 @@ constexpr auto total_triplet_potential_energy_periodic_per_worldline(
                 const auto p2 = points[ip2];
                 const auto triplet_energy = potential.within_box_cutoff(p0, p1, p2);
                 worldline_triplet_pot_energy += triplet_energy;
-// 
-//                 if (std::fabs(triplet_energy) > FP{1.0e3}) {
-//                     const auto triplet_energy = potential.within_box_cutoff_print(p0, p1, p2);
-//                     std::cout << "(" << ip0 << ", " << ip1 << ", " << ip2 << ") = " << triplet_energy << '\n';
-//                 }
             }
         }
     }
@@ -100,34 +95,10 @@ constexpr auto total_triplet_potential_energy_periodic(
 
     auto total_triplet_pot_energy = FP {0.0};
 
-//     auto idx = std::size_t {0};
     for (const auto& wline : worldlines) {
-//         if (idx != 592) {
-//             ++idx;
-//             continue;
-//         }
-
         const auto wline_energy = total_triplet_potential_energy_periodic_per_worldline(wline, potential, environment);
         total_triplet_pot_energy += wline_energy;
-//         ++idx;
-// 
-//         std::cout << "wline_energy[" << idx << "] = " << wline_energy << '\n';
     }
-
-//     for (const auto& wline : worldlines) {
-//         const auto& points = wline.points();
-// 
-//         for (std::size_t ip0 {0}; ip0 < points.size() - 2; ++ip0) {
-//             const auto p0 = points[ip0];
-//             for (std::size_t ip1 {ip0 + 1}; ip1 < points.size() - 1; ++ip1) {
-//                 const auto p1 = points[ip1];
-//                 for (std::size_t ip2 {ip1 + 1}; ip2 < points.size(); ++ip2) {
-//                     const auto p2 = points[ip2];
-//                     total_triplet_pot_energy += potential.within_box_cutoff(p0, p1, p2);
-//                 }
-//             }
-//         }
-//     }
 
     total_triplet_pot_energy /= static_cast<FP>(environment.n_timeslices());
 

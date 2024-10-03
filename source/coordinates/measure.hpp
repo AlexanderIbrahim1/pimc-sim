@@ -34,7 +34,7 @@ template <std::floating_point FP, std::size_t NDIM>
 constexpr auto distance_squared_periodic(
     const Cartesian<FP, NDIM>& point0,
     const Cartesian<FP, NDIM>& point1,
-    const BoxSides<FP, NDIM>& box
+    const BoxSides<FP, NDIM>& box  //
 ) noexcept -> FP
 {
     FP dist_sq = 0.0;
