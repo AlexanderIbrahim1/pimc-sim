@@ -1,7 +1,5 @@
 #pragma once
 
-#include <iostream>
-
 #include <algorithm>
 #include <cmath>
 #include <concepts>
@@ -77,7 +75,6 @@ public:
         }
 
         const auto expon_contrib = coeff_ * std::exp(-expon_ * average_pairdist);
-        // const auto dispersion_contrib = calculate_dispersion_contrib_(average_pairdist);
         const auto denom = static_cast<FP>(std::pow(average_pairdist, 12));
         const auto dispersion_contrib = dispersion_coeff_ / denom;
 
@@ -88,15 +85,6 @@ private:
     FP coeff_;
     FP expon_;
     FP dispersion_coeff_;
-
-    //     constexpr auto calculate_dispersion_contrib_(FP average_pairdist) const noexcept -> FP
-    //     {
-    //         const auto pairdist2 = average_pairdist * average_pairdist;
-    //         const auto pairdist4 = pairdist2 * pairdist2;
-    //         const auto pairdist12 = pairdist4 * pairdist4 * pairdist4;
-    //
-    //         return dispersion_coeff_ / pairdist12;
-    //     }
 };
 
 template <std::floating_point FP>
@@ -231,10 +219,6 @@ public:
             const FP res_energy = rescaled_energies[i].template item<FP>();
             const auto rescaled_energy = reverse_rescaler_(res_energy, side_length_groups[i]);
             rescaled_energies[i] = rescaled_energy;
-            // rescaled_energies[i] = reverse_rescaler_(res_energy, side_length_groups[i]);
-
-            // std::cout << "before rescale: energy[" << i << "] = " << static_cast<double>(res_energy) << '\n';
-            // std::cout << "after rescale:  energy[" << i << "] = " << static_cast<double>(rescaled_energy) << '\n';
         }
 
         return rescaled_energies;
