@@ -522,19 +522,22 @@ I reformatted the worldline file to fit the new simulation code format
 
 NEW CODE
   - total 2B potential: -1.94617500e+04 wvn
-  - total 3B potential:  2.98763550e+02 wvn
-
+  - total 3B potential:  3.05606598e+02 wvn
 OLD CODE
   - total 2B potential: -2.8640198083e+04 K = -1.99058041e+04 wvn
   - total 3B potential: -6.6980686797e+01 K = -4.65536035e+01 wvn
 
 ### I recompiled the old simulation code, and got simulations running on it
-1. The new code's 2B energy is slightly less negative than the old code's 2B energy
+[NOTE:PROBABLY_NOT] 1. The new code's 2B energy is slightly less negative than the old code's 2B energy
   - when simulating at rho = 0.026 ANG^{-3}, P = 64, N = 180
 
 The old code only includes energies if the centroids are within a certain distance
   - the new code includes energies if the beads themselves are within a certain distance
   - check if this is responsible for the discrepancy
+
+This probably isn't the reason for the discrepancy
+  - if it were, then the new code would give a more negative 2B energy than the old code
+  - because the old code is rejecting more long-range (attractive) terms
 
 2. The old code and new code have different 3B energies
   - still not sure why this is the case
@@ -551,6 +554,29 @@ The old code only includes energies if the centroids are within a certain distan
   - and these will give different results
     - incorrect minimage will give fictitious smaller triangles!
   - so this is something to try!
+
+5. Maybe the reason is the old code was running with units of Kelvin instead of wavenumbers
+  - this might make a difference when interpolation is involved?
+  - although I doubt it, but it should be fast to check
+
+6. The old simulation code is now giving positive energies for the 3B PES (rho=0.0251, P=64, N=180)
+  - the simulations for the perturbative EOS on graham did not run the 3B PES at all
+  - instead, that was handled by the pimcanalysis jobs
+  - so I should check those out
+
+But then why did an older simulation on graham give negative energies too?
+  - I hope I'm not getting different results on graham vs local
+  - but the 2B energies from the (old code, graham) and (old code, local) match
+    - so that's a good sign
+
+7. Just fixed a memory error for the 3B potential (althouh it looked like it didn't matter to begin with)
+  - just now, I found a bug where I reserved memory for the 3B energy grid, but I used `>>` to
+    fill in the grid from the stream, rather than using push_back
+  - I fixed this with a resize
+  - it didn't change the energy on a local simulation
+
+8. IDEA: load the new pimc-sim code onto graham, run a calculation there
+  - maybe it's the server that makes the difference?
 
 ### Different optimization settings give different energies with 2B, but not 3B?
 Applying the estimators on the moribs 370 worldlines (p=64, rho=0026, N=180)
