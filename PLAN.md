@@ -515,7 +515,7 @@ I fixed it by switching the control flow order
 
 ### The two-body energies do not match
 I took a worldline file from the old moribs code
-  - density = 0.026 ANG^{-3}, P = 64, N = 180
+  - density = 0.0251 ANG^{-3}, P = 64, N = 180
 
 I reformatted the worldline file to fit the new simulation code format
   - then I recalculated the 2B and 3B energies, with the estimators only
@@ -529,7 +529,7 @@ OLD CODE
   - total 3B potential: -6.6980686797e+01 K = -4.65536035e+01 wvn
 
 ### I recompiled the old simulation code, and got simulations running on it
-1. The new code's 2B energy is slightly more negative than the old code's 2B energy
+1. The new code's 2B energy is slightly less negative than the old code's 2B energy
   - when simulating at rho = 0.026 ANG^{-3}, P = 64, N = 180
 
 The old code only includes energies if the centroids are within a certain distance
@@ -551,3 +551,25 @@ The old code only includes energies if the centroids are within a certain distan
   - and these will give different results
     - incorrect minimage will give fictitious smaller triangles!
   - so this is something to try!
+
+### Different optimization settings give different energies with 2B, but not 3B?
+Applying the estimators on the moribs 370 worldlines (p=64, rho=0026, N=180)
+  - the effect of optimization on the result is much smaller with double than with float
+
+#### FP = float
+2-BODY:
+DEV:      00370   -1.94464746e+04
+HIGHPERF: 00370   -1.94617500e+04
+
+3-BODY:
+DEV:      00370   3.05606598e+02
+HIGHPERF: 00370   3.05606598e+02
+
+#### FP = double
+2-BODY:
+DEV:      00370   -1.94419184e+04
+HIGHPERF: 00370   -1.94419184e+04
+
+3-BODY:
+DEV:      00370   3.05606007e+02
+HIGHPERF: 00370   3.05605997e+02

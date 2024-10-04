@@ -33,7 +33,7 @@ auto main(int argc, char** argv) -> int
     }
 
     const auto toml_input_filename = argv[1];
-    const auto parser = argparse::EvaluateWorldlineArgParser<float> {toml_input_filename};
+    const auto parser = argparse::EvaluateWorldlineArgParser<double> {toml_input_filename};
     if (!parser.is_valid()) {
         std::cout << "ERROR: argument parser did not parse properly\n";
         std::cout << parser.error_message() << '\n';
@@ -41,16 +41,16 @@ auto main(int argc, char** argv) -> int
     }
 
     const auto output_dirpath = parser.abs_output_dirpath;
-    const auto temperature = 1.0f;  // temperature doesn't matter for worldline evaluation
+    const auto temperature = 1.0;  // temperature doesn't matter for worldline evaluation
     const auto n_timeslices = parser.n_timeslices;
     const auto block_index = parser.block_index;
     const auto [n_particles, minimage_box, lattice_site_positions] = build_hcp_lattice_structure(parser.density, parser.n_unit_cells);
 
     /* create the worldlines */
     auto worldlines = [&]() {
-        auto worldline_writer = worldline::WorldlineWriter<float, NDIM> {output_dirpath};
+        auto worldline_writer = worldline::WorldlineWriter<double, NDIM> {output_dirpath};
         const auto worldline_filepath = worldline_writer.output_filepath(block_index);
-        return worldline::read_worldlines<float, NDIM>(worldline_filepath);
+        return worldline::read_worldlines<double, NDIM>(worldline_filepath);
     }();
 
     // clang-format off
@@ -86,12 +86,12 @@ auto main(int argc, char** argv) -> int
     */
 
     /* create the environment object */
-    const auto h2_mass = constants::H2_MASS_IN_AMU<float>;
+    const auto h2_mass = constants::H2_MASS_IN_AMU<double>;
     const auto environment = envir::create_environment(temperature, h2_mass, n_timeslices, n_particles);
 
     /* create the file writers for the estimators */
-    const auto pair_potential_writer = estim::default_pair_potential_writer<float>(output_dirpath);
-    const auto triplet_potential_writer = estim::default_triplet_potential_writer<float>(output_dirpath);
+    const auto pair_potential_writer = estim::default_pair_potential_writer<double>(output_dirpath);
+    const auto triplet_potential_writer = estim::default_triplet_potential_writer<double>(output_dirpath);
     // const auto quadruplet_potential_writer = estim::default_quadruplet_potential_writer<float>(output_dirpath);
 
     /* create the timer and the corresponding writer to keep track of how long each block takes */
