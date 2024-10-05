@@ -5,6 +5,7 @@
 
 #include "coordinates/box_sides.hpp"
 #include "coordinates/cartesian.hpp"
+#include "coordinates/measure_wrappers.hpp"
 #include "environment/environment.hpp"
 #include "interactions/handlers/nearest_neighbour_interaction_handler.hpp"
 #include "mathtools/grid/square_adjacency_matrix.hpp"
@@ -72,7 +73,6 @@ TEST_CASE("update adjacency matrix")
     const auto cutoff_distance = double {0.25};
     const auto n_timeslices = std::size_t {8};
     const auto n_particles = std::size_t {5};
-    const auto environment = envir::create_environment<double>(4.2, 2.0, n_timeslices, n_particles);
 
     auto adjmat = mathtools::SquareAdjacencyMatrix {n_particles};
 
@@ -102,7 +102,8 @@ TEST_CASE("update adjacency matrix")
     REQUIRE(adjmat.neighbours(3).size() == 0);
     REQUIRE(adjmat.neighbours(4).size() == 0);
 
-    interact::update_centroid_adjacency_matrix<double, 2>(worldlines, box, environment, adjmat, cutoff_distance);
+    const auto periodic_dist_sq_calculator = coord::PeriodicDistanceSquaredMeasureWrapper<double, 2> {box};
+    interact::update_centroid_adjacency_matrix<double, 2>(worldlines, periodic_dist_sq_calculator, adjmat, cutoff_distance);
 
     REQUIRE(collect_neighbours(adjmat, 0) == std::vector<std::size_t> {1, 2});
     REQUIRE(collect_neighbours(adjmat, 1) == std::vector<std::size_t> {0, 2, 4});

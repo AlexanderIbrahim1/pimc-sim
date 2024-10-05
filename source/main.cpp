@@ -91,6 +91,9 @@ auto main(int argc, char** argv) -> int
 
     const auto [n_particles, minimage_box, lattice_site_positions] = build_hcp_lattice_structure(parser.density, parser.n_unit_cells);
 
+    const auto periodic_distance_calculator = coord::PeriodicDistanceMeasureWrapper<float, NDIM> {minimage_box};
+    const auto periodic_distance_squared_calculator = coord::PeriodicDistanceSquaredMeasureWrapper<float, NDIM> {minimage_box};
+
     // clang-format off
 
     /* create the worldlines and worldline writer*/
@@ -134,7 +137,7 @@ auto main(int argc, char** argv) -> int
     // const auto quadruplet_cutoff_distance = static_cast<float>(1.1 * lattice_constant);
 
     interact::update_centroid_adjacency_matrix<float, NDIM>(
-        worldlines, minimage_box, environment, interaction_handler.adjacency_matrix(), pair_cutoff_distance
+        worldlines, periodic_distance_squared_calculator, interaction_handler.adjacency_matrix(), pair_cutoff_distance
     );
 
     // interact::update_centroid_adjacency_matrix<float, NDIM>(
@@ -184,8 +187,6 @@ auto main(int argc, char** argv) -> int
 
     const auto centroid_dist_histo_filepath = output_dirpath / "centroid_radial_dist_histo.dat";
     auto centroid_dist_histo = create_histogram(centroid_dist_histo_filepath, continue_file_manager, minimage_box);
-
-    const auto periodic_distance_calculator = coord::PeriodicDistanceMeasureWrapper<float, NDIM> {minimage_box};
 
     /* create the timer and the corresponding writer to keep track of how long each block takes */
     auto timer = sim::Timer {};

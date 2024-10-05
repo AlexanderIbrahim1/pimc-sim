@@ -10,6 +10,8 @@
 #include <coordinates/box_sides.hpp>
 #include <coordinates/cartesian.hpp>
 #include <coordinates/measure.hpp>
+#include <coordinates/measure_concepts.hpp>
+#include <coordinates/operations.hpp>
 #include <environment/environment.hpp>
 #include <interactions/four_body/potential_concepts.hpp>
 #include <interactions/three_body/potential_concepts.hpp>
@@ -20,28 +22,6 @@
 
 namespace interact
 {
-
-template <std::floating_point FP, std::size_t NDIM>
-auto create_centroid_pair_distance_squared_grid(
-    const std::vector<worldline::Worldline<FP, NDIM>>& worldlines,
-    const coord::BoxSides<FP, NDIM>& minimage_box,
-    const envir::Environment<FP>& environment
-) -> mathtools::Grid2D<FP>
-{
-    const auto n_particles = environment.n_particles();
-    auto grid = mathtools::Grid2D<FP> {n_particles, n_particles};
-
-    const auto centroids = worldline::calculate_all_centroids(worldlines);
-    for (std::size_t ip0 {0}; ip0 < centroids.size() - 1; ++ip0) {
-        for (std::size_t ip1 {ip0 + 1}; ip1 < centroids.size(); ++ip1) {
-            const auto dist_sq = coord::distance_squared_periodic(centroids[ip0], centroids[ip1], minimage_box);
-            grid.set(ip0, ip1, dist_sq);
-            grid.set(ip1, ip0, dist_sq);
-        }
-    }
-
-    return grid;
-}
 
 template <std::floating_point FP>
 void update_centroid_adjacency_matrix_from_grid(
@@ -67,13 +47,14 @@ void update_centroid_adjacency_matrix_from_grid(
 template <std::floating_point FP, std::size_t NDIM>
 void update_centroid_adjacency_matrix(
     const std::vector<worldline::Worldline<FP, NDIM>>& worldlines,
-    const coord::BoxSides<FP, NDIM>& minimage_box,
-    const envir::Environment<FP>& environment,
+    const coord::DistanceSquaredCalculator<FP, NDIM> auto& distance_squared_calculator,
     mathtools::SquareAdjacencyMatrix& adjmat,
     FP cutoff_distance
 )
 {
-    const auto distance_sq_grid = create_centroid_pair_distance_squared_grid(worldlines, minimage_box, environment);
+    const auto centroids = worldline::calculate_all_centroids(worldlines);
+    const auto distance_sq_grid = coord::create_pair_measure_grid(centroids, distance_squared_calculator);
+
     update_centroid_adjacency_matrix_from_grid(distance_sq_grid, adjmat, cutoff_distance);
 }
 

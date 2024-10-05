@@ -52,6 +52,16 @@ constexpr auto total_pair_potential_energy_maybe_periodic(
     return total_pair_potential_energy;
 }
 
+// template <typename PointPotential, std::floating_point FP, std::size_t NDIM, bool IsPeriodic>
+// constexpr auto total_pair_potential_energy_maybe_periodic_with_centroid_cutoff(
+//     const std::vector<worldline::Worldline<FP, NDIM>>& worldlines,
+//     const PointPotential& potential,
+//     const envir::Environment<FP>& environment,
+//     FP cutoff_distance_sq
+// ) noexcept -> FP
+// {
+// }
+
 }
 
 

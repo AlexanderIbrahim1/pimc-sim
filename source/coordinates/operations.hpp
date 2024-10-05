@@ -3,10 +3,13 @@
 #include <cmath>
 #include <concepts>
 #include <tuple>
+#include <vector>
 
 #include <coordinates/cartesian.hpp>
 #include <coordinates/constants.hpp>
 #include <coordinates/measure.hpp>
+#include <coordinates/measure_concepts.hpp>
+#include <mathtools/grid/grid2d.hpp>
 
 namespace coord
 {
@@ -129,6 +132,28 @@ constexpr auto cartesian_to_six_side_lengths(
     const auto r23 = coord::distance(point2, point3);
 
     return std::make_tuple(r01, r02, r03, r12, r13, r23);
+}
+
+template <std::floating_point FP, std::size_t NDIM>
+auto create_pair_measure_grid(
+    const std::vector<coord::Cartesian<FP, NDIM>>& points,
+    const DistanceCalculator<FP, NDIM> auto& distance_calculator
+) -> mathtools::Grid2D<FP>
+{
+    auto grid = mathtools::Grid2D<FP> {points.size(), points.size()};
+
+    for (std::size_t i0 {0}; i0 < points.size() - 1; ++i0) {
+        const auto& p0 = points[i0];
+        for (std::size_t i1 {i0 + 1}; i1 < points.size(); ++i1) {
+            const auto& p1 = points[i1];
+            const auto distance = distance_calculator(p0, p1);
+
+            grid.set(i0, i1, distance);
+            grid.set(i1, i0, distance);
+        }
+    }
+
+    return grid;
 }
 
 }  // namespace coord
