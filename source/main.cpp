@@ -241,7 +241,8 @@ auto main(int argc, char** argv) -> int
 
             /* run estimators */
             const auto total_kinetic_energy = estim::total_primitive_kinetic_energy(worldlines, environment);
-            const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic(worldlines, pot, environment);
+            // const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic(worldlines, pot, environment);
+            const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic_with_centroid_cutoff(worldlines, pot, environment, periodic_distance_squared_calculator, pair_cutoff_distance);
             const auto total_triplet_potential_energy = estim::total_triplet_potential_energy_periodic(worldlines, threebody_pot, environment);
             // const auto total_quadruplet_potential_energy = estim::calculate_total_four_body_potential_energy_via_shifting(worldlines, fourbody_pot, environment, minimage_box, coord::box_cutoff_distance(minimage_box));
             const auto rms_centroid_dist = estim::rms_centroid_distance(worldlines, environment);

@@ -528,7 +528,7 @@ OLD CODE
   - total 3B potential: -6.6980686797e+01 K = -4.65536035e+01 wvn
 
 ### I recompiled the old simulation code, and got simulations running on it
-[NOTE:PROBABLY_NOT] 1. The new code's 2B energy is slightly less negative than the old code's 2B energy
+[NOTE:NOT_THE_REASON] 1. The new code's 2B energy is slightly less negative than the old code's 2B energy
   - when simulating at rho = 0.026 ANG^{-3}, P = 64, N = 180
 
 The old code only includes energies if the centroids are within a certain distance
@@ -538,6 +538,11 @@ The old code only includes energies if the centroids are within a certain distan
 This probably isn't the reason for the discrepancy
   - if it were, then the new code would give a more negative 2B energy than the old code
   - because the old code is rejecting more long-range (attractive) terms
+
+[2024-05-10]:
+  - implemented this, and I was right
+    - the 2B energy became slightly less negative
+    - the 3B energy became slightly less positive
 
 2. The old code and new code have different 3B energies
   - still not sure why this is the case
