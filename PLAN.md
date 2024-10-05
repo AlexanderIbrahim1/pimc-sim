@@ -604,3 +604,13 @@ HIGHPERF: 00370   -1.94419184e+04
 3-BODY:
 DEV:      00370   3.05606007e+02
 HIGHPERF: 00370   3.05605997e+02
+
+
+### I tried running the estimators again, with a snapshot from the old code run on the local machine
+The two-body energies match (almost, but close enough)
+  - and I matched the centroid cutoff
+
+The three-body energies do not match
+  - I just realized that the old and new simulation code require three-body PES files of different formats
+    - I changed all the local ones so that instead of having the coordinates for the R, s, cosu grid, they just have the endpoint limits
+    - so I need a file that matches the old format

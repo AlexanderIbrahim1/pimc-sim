@@ -1,8 +1,5 @@
 #pragma once
 
-// TODO: remove
-#include <iostream>
-
 #include <cmath>
 #include <concepts>
 #include <cstddef>

@@ -67,9 +67,9 @@ def write_pimc_sim_worldline_file(filestream: TextIO, worldlines: list[list[Cart
 
 
 if __name__ == "__main__":
-    worldline_dirpath = Path("..", "..", "..", "other", "investigations", "moribs_pimc_conversion", "example1")
-    original_filepath = worldline_dirpath / "gr00370.xyz"
-    i_block = 370
+    worldline_dirpath = Path("..", "..", "..", "other", "investigations", "moribs_pimc_conversion", "example2")
+    original_filepath = worldline_dirpath / "gr00005.xyz"
+    i_block = 5
     n_particles = 180
     n_worldlines = 64
 
@@ -77,7 +77,7 @@ if __name__ == "__main__":
         points = read_moribs_worldline_file(filestream)
         worldlines = rearrange_into_worldlines(points, n_worldlines, n_particles)
 
-    new_filepath = worldline_dirpath / "pimcsim_gr00370.xyz"
+    new_filepath = worldline_dirpath / "pimcsim_gr0005.xyz"
 
     with open(new_filepath, "w") as outstream:
         write_pimc_sim_worldline_file(outstream, worldlines, i_block)
