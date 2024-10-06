@@ -8,6 +8,8 @@
 // #include <torch/script.h>
 
 #include <common/writers/writer_utils.hpp>
+#include <coordinates/box_sides.hpp>
+#include <coordinates/measure_wrappers.hpp>
 #include <environment/environment.hpp>
 #include <estimators/pimc/two_body_potential.hpp>
 #include <estimators/pimc/three_body_potential.hpp>
@@ -46,6 +48,9 @@ auto main(int argc, char** argv) -> int
     const auto block_index = parser.block_index;
     const auto [n_particles, minimage_box, lattice_site_positions] = build_hcp_lattice_structure(parser.density, parser.n_unit_cells);
 
+    const auto periodic_distance_squared_calculator = coord::PeriodicDistanceSquaredMeasureWrapper<double, NDIM> {minimage_box};
+    const auto pair_cutoff_distance = coord::box_cutoff_distance(minimage_box);
+
     /* create the worldlines */
     auto worldlines = [&]() {
         auto worldline_writer = worldline::WorldlineWriter<double, NDIM> {output_dirpath};
@@ -54,10 +59,10 @@ auto main(int argc, char** argv) -> int
     }();
 
     // clang-format off
-    using ReturnType2B = decltype(fsh_potential(minimage_box, parser.abs_two_body_filepath));
+    using ReturnType2B = decltype(fsh_potential<double>(minimage_box, parser.abs_two_body_filepath));
     const auto pot2b = [&]() -> std::optional<ReturnType2B> {
         if (parser.evaluate_two_body) {
-            return std::make_optional(fsh_potential(minimage_box, parser.abs_two_body_filepath));
+            return std::make_optional(fsh_potential<double>(minimage_box, parser.abs_two_body_filepath));
         } else {
             return std::nullopt;
         }
@@ -103,7 +108,8 @@ auto main(int argc, char** argv) -> int
 
     /* run estimators */
     if (pot2b) {
-        const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic(worldlines, pot2b.value(), environment);
+        // const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic(worldlines, pot2b.value(), environment);
+        const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic_with_centroid_cutoff(worldlines, pot2b.value(), environment, periodic_distance_squared_calculator, pair_cutoff_distance);
         pair_potential_writer.write(block_index, total_pair_potential_energy);
     }
 

@@ -614,3 +614,26 @@ The three-body energies do not match
   - I just realized that the old and new simulation code require three-body PES files of different formats
     - I changed all the local ones so that instead of having the coordinates for the R, s, cosu grid, they just have the endpoint limits
     - so I need a file that matches the old format
+
+
+## I fixed the three-body potential issues!
+The reason was that the calculation of `cosu_unclamped` had the incorrect sign
+  - this flipped its sign to negative
+  - so clamping it set the value of `cosu` to `0.0`
+  - so all the interpolations kept hitting the incorrect energy
+
+With the change, the old code (local) and new code give the same 3B energy
+
+## The two-body energies are slightly off
+I don't know why this is the case
+  - I set the cutoff distances to the same thing (minimum side length of box / 2)
+  - going between release and highperf doesn't change anything in the 2B, negligible change in 3B
+    - and the old code was compiled on -O3
+
+OLD CODE:
+  2B ENERGY : -2.9305497158e+04 K -> -2.0368207034e+04 wvn
+  3B ENERGY : -3.2526552306e+01 K -> -2.2606937801e+04 wvn
+
+NEW CODE:
+  2B ENERGY : -2.03312547e+04 wvn
+  3B ENERGY : -2.26068183e+01 wvn

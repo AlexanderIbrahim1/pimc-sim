@@ -1,5 +1,9 @@
 #pragma once
 
+// TODO: remove after done
+#include <iostream>
+#include <iomanip>
+
 #include <algorithm>
 #include <cmath>
 #include <concepts>
@@ -36,12 +40,16 @@ auto jacobi_from_pair_distances_ordered(FP r01, FP r02, FP r12) -> JacobiPoint<F
     const auto r12_sq = r12 * r12;
 
     const auto s_unsc = std::sqrt(FP {0.5} * (r02_sq + r12_sq - FP {0.5} * r01_sq));
-    const auto cosu_unclamped = (r02_sq - r12_sq) / (FP {2.0} * r01 * s_unsc);
+    const auto cosu_unclamped = (r12_sq - r02_sq) / (FP {2.0} * r01 * s_unsc);
 
     // floating-point errors sometimes causes `cosu_unclamped` to be very slightly
     // greater than 1.0 or less than 0.0 (like -0.00000000001 or something), and
     // this causes issues later for the grid interpolation
     const auto cosu = std::clamp(cosu_unclamped, FP {0.0}, FP {1.0});
+
+    // std::cout << std::fixed << std::setprecision(8);
+    // std::cout << "cosu_unclamped = " << cosu_unclamped << '\n';
+    // std::cout << "cosu = " << cosu << '\n';
 
     const auto s_min = FP {0.5} * r01 * (cosu + std::sqrt(FP {3.0} + cosu * cosu));
 
@@ -79,6 +87,18 @@ public:
     {
         const auto [r_, s, cosu] = jacobi_from_pair_distances_unordered(dist01, dist02, dist12);
         const auto r = std::max(r_, r_min_);
+        
+//         // TODO: revert to original after done
+//         FP energy;
+//         if (r < r_max_ && s < s_max_) {
+//             energy = interpolator_(r, s, cosu);
+//         }
+//         else {
+//             energy = atm_potential_(dist01, dist02, dist12);
+//         }
+// 
+//         std::cout << std::fixed << std::setprecision(8);
+//         std::cout << "POT3B(R, s, u) : (" << r << ", " << s << ", " << u << ") = " << energy << '\n';
 
         if (r < r_max_ && s < s_max_) {
             return interpolator_(r, s, cosu);

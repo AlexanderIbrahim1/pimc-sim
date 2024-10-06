@@ -45,9 +45,10 @@ constexpr auto build_hcp_lattice_structure(auto density, auto n_unit_cells) //, 
     return std::tuple(n_particles, minimage_box, lattice_site_positions);
 }
 
+template <std::floating_point FP>
 auto fsh_potential(auto minimage_box, auto two_body_filepath)
 {
-    auto distance_pot = interact::two_body_schmidt2015<float>(two_body_filepath);
+    auto distance_pot = interact::two_body_schmidt2015<FP>(two_body_filepath);
 
     return interact::PeriodicTwoBodySquaredPointPotential {std::move(distance_pot), minimage_box};
 }

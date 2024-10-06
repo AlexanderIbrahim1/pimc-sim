@@ -1,5 +1,9 @@
 #pragma once
 
+// TODO: remove after done
+#include <iostream>
+#include <iomanip>
+
 #include <cmath>
 #include <concepts>
 #include <cstddef>
@@ -8,6 +12,7 @@
 #include <coordinates/measure.hpp>
 #include <geometries/attard/three_body.hpp>
 #include <interactions/three_body/potential_concepts.hpp>
+#include <interactions/three_body/three_body_parah2.hpp>
 
 namespace interact
 {
@@ -64,6 +69,40 @@ public:
         else {
             return FP {0.0};
         }
+    }
+
+    auto within_box_cutoff_printed(const Point& p0, const Point& p1, const Point& p2) const noexcept -> FP
+    {
+        const auto [dist01_sq, dist02_sq, dist12_sq] = geom::three_body_attard_side_lengths_squared({p0, p1, p2}, box_);
+
+        const auto dist01 = std::sqrt(dist01_sq);
+        const auto dist02 = std::sqrt(dist02_sq);
+        const auto dist12 = std::sqrt(dist12_sq);
+
+        const auto [r_, s, cosu] = jacobi_from_pair_distances_unordered(dist01, dist02, dist12);
+        const auto r = std::max(r_, FP {0.5});  // fixed for this test case
+
+        FP energy;
+        if (dist01_sq < cutoff_dist_sq_ && dist02_sq < cutoff_dist_sq_ && dist12_sq < cutoff_dist_sq_) {
+            energy = pot_(std::sqrt(dist01_sq), std::sqrt(dist02_sq), std::sqrt(dist12_sq));
+        }
+        else {
+            energy = FP {0.0};
+        }
+
+        std::cout << std::fixed << std::setprecision(8);
+        std::cout << "POT3B(R, s, u) : (" << r << ", " << s << ", " << cosu << ") = " << energy << '\n';
+
+        // const auto [dist01_sq, dist02_sq, dist12_sq] = geom::three_body_attard_side_lengths_squared({p0, p1, p2}, box_);
+
+        // if (dist01_sq < cutoff_dist_sq_ && dist02_sq < cutoff_dist_sq_ && dist12_sq < cutoff_dist_sq_) {
+        //     return pot_(std::sqrt(dist01_sq), std::sqrt(dist02_sq), std::sqrt(dist12_sq));
+        // }
+        // else {
+        //     return FP {0.0};
+        // }
+
+        return energy;
     }
 
     auto within_box_cutoff_incorrect(const Point& p0, const Point& p1, const Point& p2) const noexcept -> FP

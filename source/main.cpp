@@ -102,7 +102,7 @@ auto main(int argc, char** argv) -> int
 
     sim::write_box_sides(output_dirpath / "box_sides.dat", minimage_box);
 
-    const auto pot = fsh_potential(minimage_box, parser.abs_two_body_filepath);
+    const auto pot = fsh_potential<float>(minimage_box, parser.abs_two_body_filepath);
     const auto pot3b = threebodyparah2_potential(minimage_box, parser.abs_three_body_filepath);
 
     // const long int buffer_size = 1024;

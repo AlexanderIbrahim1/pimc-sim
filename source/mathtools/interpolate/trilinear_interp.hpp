@@ -1,5 +1,8 @@
 #pragma once
 
+// TODO: remove
+#include <iostream>
+
 #include <concepts>
 
 #include <mathtools/grid/grid3d.hpp>
@@ -46,6 +49,10 @@ public:
         d0_ = (limits0_.upper() - limits0_.lower()) / static_cast<FP>(shape.size0 - 1);
         d1_ = (limits1_.upper() - limits1_.lower()) / static_cast<FP>(shape.size1 - 1);
         d2_ = (limits2_.upper() - limits2_.lower()) / static_cast<FP>(shape.size2 - 1);
+
+        std::cout << "d0_ = " << d0_ << '\n';
+        std::cout << "d1_ = " << d1_ << '\n';
+        std::cout << "d2_ = " << d2_ << '\n';
     }
 
     constexpr auto operator()(FP x0, FP x1, FP x2) const noexcept -> FP

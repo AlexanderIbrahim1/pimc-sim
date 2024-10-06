@@ -86,11 +86,11 @@ constexpr auto total_pair_potential_energy_maybe_periodic_with_centroid_cutoff(
             const auto p0 = points[ip0];
             for (std::size_t ip1 {ip0 + 1}; ip1 < points.size(); ++ip1) {
                 if constexpr (IsPeriodic) {
-                    if (distance_sq_grid.get(ip0, ip1) < cutoff_distance_sq) {
+                    if (distance_sq_grid.get(ip0, ip1) <= cutoff_distance_sq) {
                         total_pair_potential_energy += potential.within_box_cutoff(p0, points[ip1]);
                     }
                 } else {
-                    if (distance_sq_grid.get(ip0, ip1) < cutoff_distance_sq) {
+                    if (distance_sq_grid.get(ip0, ip1) <= cutoff_distance_sq) {
                         total_pair_potential_energy += potential(p0, points[ip1]);
                     }
                 }
