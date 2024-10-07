@@ -1,5 +1,9 @@
 #pragma once
 
+// TODO: remove after done
+#include <iostream>
+#include <iomanip>
+
 #include <concepts>
 #include <cstddef>
 #include <vector>
@@ -73,21 +77,43 @@ constexpr auto total_pair_potential_energy_maybe_periodic_with_centroid_cutoff(
     const auto distance_sq_grid = coord::create_pair_measure_grid(centroids, dist_sq_calculator);
     const auto cutoff_distance_sq = cutoff_distance * cutoff_distance;
 
+    // std::cout << std::fixed << std::setprecision(12);
+    // std::cout << "cutoff_distance_sq = " << cutoff_distance_sq << '\n';
+
     if (worldlines.empty()) {
         return FP {0.0};
     }
 
     auto total_pair_potential_energy = FP {0.0};
 
+    bool is_printed = true;
     for (const auto& wline : worldlines) {
         const auto& points = wline.points();
+
+        if (is_printed) {
+            auto n_interactions = int {0};
+            for (std::size_t ip0 {0}; ip0 < points.size() - 1; ++ip0) {
+                for (std::size_t ip1 {ip0 + 1}; ip1 < points.size(); ++ip1) {
+                    if (distance_sq_grid.get(ip0, ip1) <= cutoff_distance_sq) {
+                        std::cout << ip0 << "   " << ip1 << '\n';
+                        ++n_interactions;
+                    }
+                }
+            }
+
+            std::cout << "n_interactions = " << n_interactions;
+        }
 
         for (std::size_t ip0 {0}; ip0 < points.size() - 1; ++ip0) {
             const auto p0 = points[ip0];
             for (std::size_t ip1 {ip0 + 1}; ip1 < points.size(); ++ip1) {
                 if constexpr (IsPeriodic) {
                     if (distance_sq_grid.get(ip0, ip1) <= cutoff_distance_sq) {
-                        total_pair_potential_energy += potential.within_box_cutoff(p0, points[ip1]);
+                        if (is_printed) {
+                            total_pair_potential_energy += potential.within_box_cutoff_printed(p0, points[ip1]);
+                        } else {
+                            total_pair_potential_energy += potential.within_box_cutoff(p0, points[ip1]);
+                        }
                     }
                 } else {
                     if (distance_sq_grid.get(ip0, ip1) <= cutoff_distance_sq) {
@@ -96,6 +122,8 @@ constexpr auto total_pair_potential_energy_maybe_periodic_with_centroid_cutoff(
                 }
             }
         }
+
+        is_printed = false;
     }
 
     total_pair_potential_energy /= static_cast<FP>(environment.n_timeslices());

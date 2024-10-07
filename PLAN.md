@@ -637,3 +637,17 @@ OLD CODE:
 NEW CODE:
   2B ENERGY : -2.03312547e+04 wvn
   3B ENERGY : -2.26068183e+01 wvn
+
+## The old and new PIMC codes evaluate different pairs even for the same snapshot
+There are more terms that go into the sum in the old moribs code, than in the current pimcsim code
+
+
+## FINALLY SOLVED
+The reason was:
+  - the old code was limiting the evaluation to between particles whose centres of mass were within the cutoff
+  - the new code was limiting the evaluation to between individual beads within the cutoff
+  - so the old code was rejecting more samples
+
+I didn't change the current pimc-sim code, but I did check to make sure that this was the difference by changing the old code
+
+And now both the 2B and 3B energies match!

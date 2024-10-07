@@ -67,7 +67,7 @@ def write_pimc_sim_worldline_file(filestream: TextIO, worldlines: list[list[Cart
 
 
 if __name__ == "__main__":
-    worldline_dirpath = Path("..", "..", "..", "other", "investigations", "moribs_pimc_conversion", "example4")
+    worldline_dirpath = Path("..", "..", "..", "other", "investigations", "moribs_pimc_conversion", "example8")
     original_filepath = worldline_dirpath / "gr00002.xyz"
     i_block = 2
     n_particles = 180

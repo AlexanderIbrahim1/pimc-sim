@@ -108,8 +108,8 @@ auto main(int argc, char** argv) -> int
 
     /* run estimators */
     if (pot2b) {
-        // const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic(worldlines, pot2b.value(), environment);
-        const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic_with_centroid_cutoff(worldlines, pot2b.value(), environment, periodic_distance_squared_calculator, pair_cutoff_distance);
+        const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic(worldlines, pot2b.value(), environment);
+        // const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic_with_centroid_cutoff(worldlines, pot2b.value(), environment, periodic_distance_squared_calculator, pair_cutoff_distance);
         pair_potential_writer.write(block_index, total_pair_potential_energy);
     }
 
