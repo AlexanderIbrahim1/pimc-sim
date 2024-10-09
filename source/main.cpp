@@ -6,7 +6,7 @@
 #include <string_view>
 
 #include <tomlplusplus/toml.hpp>
-#include <torch/script.h>
+// #include <torch/script.h>
 
 #include <argparser.hpp>
 #include <constants/constants.hpp>
@@ -14,7 +14,7 @@
 #include <environment/environment.hpp>
 #include <estimators/pimc/centroid.hpp>
 #include <estimators/pimc/centroid_radial_distribution_function.hpp>
-#include <estimators/pimc/four_body_potential.hpp>
+// #include <estimators/pimc/four_body_potential.hpp>
 #include <estimators/pimc/primitive_kinetic.hpp>
 #include <estimators/pimc/radial_distribution_function.hpp>
 #include <estimators/pimc/three_body_potential.hpp>
@@ -24,7 +24,7 @@
 #include <geometries/lattice.hpp>
 #include <geometries/lattice_type.hpp>
 #include <geometries/unit_cell_translations.hpp>
-#include <interactions/four_body/published_potential.hpp>
+// #include <interactions/four_body/published_potential.hpp>
 #include <interactions/handlers/composite_interaction_handler.hpp>
 #include <interactions/handlers/full_interaction_handler.hpp>
 #include <interactions/handlers/interaction_handler_concepts.hpp>
@@ -107,8 +107,8 @@ auto main(int argc, char** argv) -> int
     const auto pot = fsh_potential<float>(minimage_box, parser.abs_two_body_filepath);
     const auto pot3b = threebodyparah2_potential(minimage_box, parser.abs_three_body_filepath);
 
-    const long int buffer_size = 1024;
-    auto pot4b = interact::get_published_buffered_four_body_potential<NDIM, interact::PermutationTransformerFlag::EXACT>(parser.abs_four_body_filepath, buffer_size);
+    // const long int buffer_size = 1024;
+    // auto pot4b = interact::get_published_buffered_four_body_potential<NDIM, interact::PermutationTransformerFlag::EXACT>(parser.abs_four_body_filepath, buffer_size);
     // clang-format on
 
     /* create the environment object */
@@ -240,14 +240,14 @@ auto main(int argc, char** argv) -> int
         if (i_block >= parser.n_equilibrium_blocks) {
             // const auto& threebody_pot = interaction_handler.get<1>();
             // auto& fourbody_pot = interaction_handler.get<2>();
-            auto& fourbody_pot = pot4b;
+            // auto& fourbody_pot = pot4b;
             auto& threebody_pot = pot3b;
 
             /* run estimators */
             const auto total_kinetic_energy = estim::total_primitive_kinetic_energy(worldlines, environment);
             const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic(worldlines, pot, environment);
             const auto total_triplet_potential_energy = estim::total_triplet_potential_energy_periodic(worldlines, threebody_pot, environment);
-            const auto total_quadruplet_potential_energy = estim::calculate_total_four_body_potential_energy_via_shifting(worldlines, fourbody_pot, environment, minimage_box, coord::box_cutoff_distance(minimage_box));
+            // const auto total_quadruplet_potential_energy = estim::calculate_total_four_body_potential_energy_via_shifting(worldlines, fourbody_pot, environment, minimage_box, coord::box_cutoff_distance(minimage_box));
             const auto rms_centroid_dist = estim::rms_centroid_distance(worldlines, environment);
             const auto abs_centroid_dist = estim::absolute_centroid_distance(worldlines, environment);
 
