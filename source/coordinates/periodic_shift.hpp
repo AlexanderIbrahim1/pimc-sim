@@ -21,7 +21,7 @@ constexpr auto number_of_box_shifts(FP pair_separation, FP side_length) -> FP
 
     const auto shifted_gap = (abs_pair_sep / side_length) - FP {0.5};
     if (shifted_gap > FP {0.0}) {
-        const auto sign = common_utils::sign(pair_separation);
+        const auto sign = common::sign(pair_separation);
         const auto n_shifts = std::ceil(shifted_gap);
         return sign * n_shifts;
     }

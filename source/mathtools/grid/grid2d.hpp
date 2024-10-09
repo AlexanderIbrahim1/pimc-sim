@@ -12,7 +12,7 @@ namespace mathtools
 {
 
 // NOTE: I'm not too concerned with the allocations from resizing
-template <common_utils::Numeric Number>
+template <common::Numeric Number>
 class Grid2D
 {
 public:

@@ -28,7 +28,7 @@ struct Index3D
     std::size_t idx2;
 };
 
-template <common_utils::Numeric Number>
+template <common::Numeric Number>
 class Grid3D
 {
 public:

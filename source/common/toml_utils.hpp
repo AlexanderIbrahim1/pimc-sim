@@ -8,7 +8,10 @@
 
 #include <../extern/tomlplusplus/toml.hpp>
 
-namespace common_utils
+namespace common
+{
+
+namespace io
 {
 
 template <typename T>
@@ -37,4 +40,6 @@ auto cast_toml_to(const toml::table& table, std::string_view name) -> std::files
     return std::filesystem::path {*maybe_value};
 }
 
-}  // namespace common_utils
+}  // namespace io
+
+}  // namespace common

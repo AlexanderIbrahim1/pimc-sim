@@ -6,7 +6,7 @@
 #include <numbers>
 #include <tuple>
 
-namespace common_utils
+namespace common
 {
 
 template <typename T>
@@ -57,4 +57,4 @@ constexpr auto calculate_mean(FP value, Args... args) -> FP
     return (value + (args + ...)) / (1 + sizeof...(args));
 }
 
-}  // namespace common_utils
+}  // namespace common

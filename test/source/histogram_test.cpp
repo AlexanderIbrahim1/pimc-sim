@@ -80,7 +80,7 @@ TEST_CASE("write histogram", "[Histogram]")
     auto actual = std::stringstream {};
     mathtools::io::write_histogram(actual, histogram);
 
-    common_utils::writer_utils::skip_lines_starting_with(actual, '#');
+    common::writers::skip_lines_starting_with(actual, '#');
 
     // check the policy
     auto policy_key = int {};

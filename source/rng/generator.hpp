@@ -91,7 +91,7 @@ private:
             m_prng.seed(mtseed);
         }
         else {
-            static_assert(common_utils::always_false<PRNG>::value, "Invalid PRNG entered into wrapper.");
+            static_assert(common::always_false<PRNG>::value, "Invalid PRNG entered into wrapper.");
         }
     }
 };

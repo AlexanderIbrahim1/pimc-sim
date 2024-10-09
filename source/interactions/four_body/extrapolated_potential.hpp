@@ -88,7 +88,7 @@ public:
 
             const auto min_side_length = torch::min(sample).template item<FP>();
 
-            const auto fraction_mid = common_utils::smooth_01_transition(min_side_length, lower, upper);
+            const auto fraction_mid = common::smooth_01_transition(min_side_length, lower, upper);
             const auto fraction_short = FP {1.0} - fraction_mid;
 
             return fraction_short * short_range_energy + fraction_mid * mid_range_energy;

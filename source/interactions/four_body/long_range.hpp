@@ -58,7 +58,7 @@ public:
         const auto& [r01, r02, r03, r12, r13, r23] = unpack_six_side_lengths_<Container>(pair_distances);
         const auto& [p0, p1, p2, p3] =
             coord::six_side_lengths_to_cartesian<FP, NDIM>(r01, r02, r03, r12, r13, r23, tolerance);
-        const auto average_sidelength = common_utils::calculate_mean(r01, r02, r03, r12, r13, r23);
+        const auto average_sidelength = common::calculate_mean(r01, r02, r03, r12, r13, r23);
 
         return mixed_energy_(p0, p1, p2, p3, abinitio_energy, average_sidelength);
     }
@@ -67,7 +67,7 @@ public:
         const -> FP
     {
         const auto& [r01, r02, r03, r12, r13, r23] = coord::cartesian_to_six_side_lengths(p0, p1, p2, p3);
-        const auto average_sidelength = common_utils::calculate_mean(r01, r02, r03, r12, r13, r23);
+        const auto average_sidelength = common::calculate_mean(r01, r02, r03, r12, r13, r23);
 
         return mixed_energy_(p0, p1, p2, p3, abinitio_energy, average_sidelength);
     }
@@ -97,7 +97,7 @@ private:
 
     constexpr auto frac_dispersion_(FP average_sidelength) const -> FP
     {
-        return common_utils::smooth_01_transition(average_sidelength, long_range_cutoff_begin_, long_range_cutoff_end_);
+        return common::smooth_01_transition(average_sidelength, long_range_cutoff_begin_, long_range_cutoff_end_);
     }
 
     template <typename Container>

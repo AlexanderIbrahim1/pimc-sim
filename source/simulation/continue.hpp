@@ -39,7 +39,7 @@ class ContinueFileManagerImpl_
 public:
     auto deserialize(std::istream& toml_stream) const -> sim::SimulationContinueInfo
     {
-        using common_utils::cast_toml_to;
+        using common::io::cast_toml_to;
 
         const auto table = toml::parse(toml_stream);
 
@@ -98,13 +98,13 @@ public:
 
     void deserialize()
     {
-        auto in_stream = common_utils::open_input_filestream_checked(continue_filepath_);
+        auto in_stream = common::io::open_input_filestream_checked(continue_filepath_);
         info_ = impl_.deserialize(in_stream);
     }
 
     void serialize()
     {
-        auto out_stream = common_utils::open_output_filestream_checked(continue_filepath_);
+        auto out_stream = common::io::open_output_filestream_checked(continue_filepath_);
         impl_.serialize(out_stream, info_);
     }
 

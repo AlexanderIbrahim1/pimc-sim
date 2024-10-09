@@ -18,7 +18,7 @@ template <std::floating_point FP>
 void check_lattice_constant_is_positive(FP lattice_constant)
 {
     if (lattice_constant <= FP {0.0}) {
-        const auto precision = common_utils::writer_utils::DEFAULT_WRITER_SINGLE_VALUE_PRECISION;
+        const auto precision = common::writers::DEFAULT_WRITER_SINGLE_VALUE_PRECISION;
 
         auto err_msg = std::stringstream {};
         err_msg << "The lattice constant must be positive. Found: ";

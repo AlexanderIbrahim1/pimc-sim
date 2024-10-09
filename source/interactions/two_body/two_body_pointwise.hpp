@@ -15,7 +15,7 @@ template <std::floating_point FP>
 void ctr_check_well_depth_positive(FP well_depth)
 {
     if (well_depth <= FP {0.0}) {
-        const auto precision = common_utils::writer_utils::DEFAULT_WRITER_SINGLE_VALUE_PRECISION;
+        const auto precision = common::writers::DEFAULT_WRITER_SINGLE_VALUE_PRECISION;
 
         auto err_msg = std::stringstream {};
         err_msg << "The Lennard-Jones well depth must be positive\nFound: ";
@@ -28,7 +28,7 @@ template <std::floating_point FP>
 void ctr_check_particle_size_positive(FP particle_size)
 {
     if (particle_size <= FP {0.0}) {
-        const auto precision = common_utils::writer_utils::DEFAULT_WRITER_SINGLE_VALUE_PRECISION;
+        const auto precision = common::writers::DEFAULT_WRITER_SINGLE_VALUE_PRECISION;
 
         auto err_msg = std::stringstream {};
         err_msg << "The Lennard-Jones particle size must be positive\nFound: ";

@@ -6,7 +6,6 @@
 #include <string>
 #include <string_view>
 
-#include <common/common_utils.hpp>
 #include <common/writers/double_value_writer.hpp>
 
 namespace pimc

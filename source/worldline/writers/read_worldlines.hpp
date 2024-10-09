@@ -31,7 +31,7 @@ auto read_cartesian(std::istream& stream) -> coord::Cartesian<FP, NDIM>
 template <std::floating_point FP, std::size_t NDIM>
 auto read_worldlines(std::istream& stream) -> std::vector<worldline::Worldline<FP, NDIM>>
 {
-    common_utils::writer_utils::skip_lines_starting_with(stream, '#');
+    common::writers::skip_lines_starting_with(stream, '#');
 
     // the first non-comment line is the block index; we don't really need it
     // not enough lines for std::istream::ignore to be worth it

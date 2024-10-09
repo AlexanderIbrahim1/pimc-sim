@@ -6,7 +6,7 @@
 #include <sstream>
 #include <stdexcept>
 
-namespace impl_common_utils_io
+namespace impl_common
 {
 
 inline auto open_output_filestream_checked_(const std::filesystem::path& filepath, std::ios::openmode mode)
@@ -22,19 +22,22 @@ inline auto open_output_filestream_checked_(const std::filesystem::path& filepat
     return out_stream;
 }
 
-}  // namespace impl_common_utils_io
+}  // namespace impl_common
 
-namespace common_utils
+namespace common
+{
+
+namespace io
 {
 
 inline auto open_output_filestream_checked(const std::filesystem::path& filepath) -> std::ofstream
 {
-    return impl_common_utils_io::open_output_filestream_checked_(filepath, std::ios::out);
+    return impl_common::open_output_filestream_checked_(filepath, std::ios::out);
 }
 
 auto open_append_filestream_checked(const std::filesystem::path& filepath) -> std::ofstream
 {
-    return impl_common_utils_io::open_output_filestream_checked_(filepath, std::ios::app);
+    return impl_common::open_output_filestream_checked_(filepath, std::ios::app);
 }
 
 auto open_input_filestream_checked(const std::filesystem::path& filepath) -> std::ifstream
@@ -49,4 +52,6 @@ auto open_input_filestream_checked(const std::filesystem::path& filepath) -> std
     return in_stream;
 }
 
-}  // namespace common_utils
+}  // namespace io
+
+}  // namespace common

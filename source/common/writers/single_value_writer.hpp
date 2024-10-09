@@ -17,7 +17,7 @@ namespace common
 namespace writers
 {
 
-template <common_utils::Numeric Number>
+template <common::Numeric Number>
 class SingleValueBlockWriter
 {
 public:
@@ -32,7 +32,7 @@ public:
         namespace fs = std::filesystem;
 
         auto temp_filepath = filepath_;
-        temp_filepath += common_utils::writer_utils::DEFAULT_TEMPORARY_SUFFIX;
+        temp_filepath += common::writers::DEFAULT_TEMPORARY_SUFFIX;
 
         if (!fs::exists(filepath_)) {
             write_first_();
@@ -54,9 +54,9 @@ public:
         write_(filepath_, i_block, value);
     }
 
-    int block_index_padding {common_utils::writer_utils::DEFAULT_WRITER_BLOCK_INDEX_PADDING};
-    int floating_point_precision {common_utils::writer_utils::DEFAULT_WRITER_SINGLE_VALUE_PRECISION};
-    int integer_padding {common_utils::writer_utils::DEFAULT_WRITER_INTEGER_PADDING};
+    int block_index_padding {common::writers::DEFAULT_WRITER_BLOCK_INDEX_PADDING};
+    int floating_point_precision {common::writers::DEFAULT_WRITER_SINGLE_VALUE_PRECISION};
+    int integer_padding {common::writers::DEFAULT_WRITER_INTEGER_PADDING};
 
 private:
     std::filesystem::path filepath_;
@@ -65,7 +65,7 @@ private:
 
     void write_(const std::filesystem::path& filepath, std::size_t i_block, Number value) const
     {
-        auto out_stream = common_utils::open_append_filestream_checked(filepath);
+        auto out_stream = common::io::open_append_filestream_checked(filepath);
 
         out_stream << std::setw(block_index_padding) << std::setfill('0') << std::right << i_block << spacing_;
 
@@ -80,7 +80,7 @@ private:
 
     void write_first_() const
     {
-        auto out_stream = common_utils::open_output_filestream_checked(filepath_);
+        auto out_stream = common::io::open_output_filestream_checked(filepath_);
         out_stream << header_contents_;
     }
 };

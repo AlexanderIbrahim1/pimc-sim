@@ -7,17 +7,15 @@
 #include <stdexcept>
 #include <string>
 
+#include <common/io_utils.hpp>
 #include <common/writers/writer_utils.hpp>
 #include <mathtools/histogram/histogram.hpp>
 
-namespace mathtools
-{
-
-namespace impl_io
+namespace impl_mathtools
 {
 
 template <std::floating_point FP>
-auto histogram_file_header_(const Histogram<FP>& histogram) -> std::string
+auto histogram_file_header_(const mathtools::Histogram<FP>& histogram) -> std::string
 {
     auto header = std::stringstream {};
     header << "# This file contains the state of a regularly-spaced histogram\n";
@@ -31,7 +29,7 @@ auto histogram_file_header_(const Histogram<FP>& histogram) -> std::string
     header << static_cast<int>(histogram.policy()) << '\n';
     header << histogram.bins().size() << '\n';
 
-    auto precision = common_utils::writer_utils::DEFAULT_WRITER_SINGLE_VALUE_PRECISION;
+    auto precision = common::writers::DEFAULT_WRITER_SINGLE_VALUE_PRECISION;
 
     header << std::scientific << std::setprecision(precision);
     header << histogram.min() << '\n';
@@ -41,7 +39,7 @@ auto histogram_file_header_(const Histogram<FP>& histogram) -> std::string
 }
 
 template <std::floating_point FP>
-void write_histogram_(std::ostream& out_stream, const Histogram<FP>& histogram)
+void write_histogram_(std::ostream& out_stream, const mathtools::Histogram<FP>& histogram)
 {
     // everything except the bin values is already in the file header
     out_stream << histogram_file_header_(histogram);
@@ -51,26 +49,17 @@ void write_histogram_(std::ostream& out_stream, const Histogram<FP>& histogram)
     }
 }
 
-auto open_filestream_checked_(const std::filesystem::path& filepath, std::ios::openmode mode) -> std::ofstream
-{
-    auto out_stream = std::ofstream {filepath, mode};
-    if (!out_stream.is_open()) {
-        auto err_msg = std::stringstream {};
-        err_msg << "Failed to open file: " << filepath.string() << '\n';
-        throw std::ios_base::failure {err_msg.str()};
-    }
-
-    return out_stream;
-}
-
 template <std::floating_point FP>
-void write_new_histogram_(const std::filesystem::path& savepath, const Histogram<FP>& histogram)
+void write_new_histogram_(const std::filesystem::path& savepath, const mathtools::Histogram<FP>& histogram)
 {
-    auto out_stream = open_filestream_checked_(savepath, std::ios::out);
+    auto out_stream = common::io::open_output_filestream_checked(savepath);
     write_histogram_(out_stream, histogram);
 }
 
-}  // namespace impl_io
+}  // namespace impl_mathtools
+
+namespace mathtools
+{
 
 namespace io
 {
@@ -78,7 +67,7 @@ namespace io
 template <std::floating_point FP>
 void write_histogram(std::ostream& out_stream, const Histogram<FP>& histogram)
 {
-    impl_io::write_histogram_(out_stream, histogram);
+    impl_mathtools::write_histogram_(out_stream, histogram);
 }
 
 template <std::floating_point FP>
@@ -87,21 +76,21 @@ void write_histogram(const std::filesystem::path& savepath, const Histogram<FP>&
     namespace fs = std::filesystem;
 
     auto temp_savepath = savepath;
-    temp_savepath += common_utils::writer_utils::DEFAULT_TEMPORARY_SUFFIX;
+    temp_savepath += common::writers::DEFAULT_TEMPORARY_SUFFIX;
 
     if (!fs::exists(savepath)) {
-        impl_io::write_new_histogram_(savepath, histogram);
+        impl_mathtools::write_new_histogram_(savepath, histogram);
     }
 
     fs::copy_file(savepath, temp_savepath, fs::copy_options::overwrite_existing);
-    impl_io::write_new_histogram_(temp_savepath, histogram);
+    impl_mathtools::write_new_histogram_(temp_savepath, histogram);
     fs::rename(temp_savepath, savepath);
 }
 
 template <std::floating_point FP>
 auto read_histogram(std::istream& in_stream) -> Histogram<FP>
 {
-    common_utils::writer_utils::skip_lines_starting_with(in_stream, '#');
+    common::writers::skip_lines_starting_with(in_stream, '#');
 
     auto policy_key = int {};
     auto n_bins = std::size_t {};

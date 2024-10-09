@@ -101,7 +101,7 @@ private:
     void parse_helper_(std::istream& toml_stream)
     {
         try {
-            using common_utils::cast_toml_to;
+            using common::io::cast_toml_to;
 
             const auto table = toml::parse(toml_stream);
 

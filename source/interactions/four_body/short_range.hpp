@@ -237,7 +237,7 @@ public:
     {
         auto linear_extrapolator = LinearEnergyExtrapolator(extrap_energies, extrap_dist_info);
 
-        if (!common_utils::is_same_sign(extrap_energies.lower, extrap_energies.upper)) {
+        if (!common::is_same_sign(extrap_energies.lower, extrap_energies.upper)) {
             return linear_extrapolator.energy();
         }
 
@@ -254,8 +254,7 @@ public:
             return linear_extrapolator.energy();
         }
         else {
-            const auto frac_linear =
-                common_utils::smooth_01_transition(expon_extrapolator.slope(), slope_min_, slope_max_);
+            const auto frac_linear = common::smooth_01_transition(expon_extrapolator.slope(), slope_min_, slope_max_);
             const auto frac_expon = FP {1.0} - frac_linear;
 
             const auto energy_linear = linear_extrapolator.energy();

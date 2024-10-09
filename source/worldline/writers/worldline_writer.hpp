@@ -19,18 +19,6 @@
 namespace worldline
 {
 
-namespace writer_utils
-{
-
-constexpr auto POSITION_SPACING = std::string_view {"   "};
-
-}  // namespace writer_utils
-
-}  // namespace worldline
-
-namespace worldline
-{
-
 template <std::floating_point FP, std::size_t NDIM>
 static auto worldline_file_header(std::size_t n_particles, std::size_t n_timeslices, std::size_t i_block) noexcept
     -> std::string
@@ -85,7 +73,7 @@ public:
 
         out_stream << header;
 
-        const auto precision = common_utils::writer_utils::DEFAULT_WRITER_SINGLE_VALUE_PRECISION;
+        const auto precision = common::writers::DEFAULT_WRITER_SINGLE_VALUE_PRECISION;
         out_stream << std::scientific << std::setprecision(precision);
 
         for (const auto& worldline : worldlines) {
@@ -101,7 +89,7 @@ public:
                     out_stream << value;
 
                     if (i_dim != NDIM - 1) {
-                        out_stream << writer_utils::POSITION_SPACING;
+                        out_stream << common::writers::DEFAULT_MULTICOLUMN_SPACES;
                     }
                 }
                 out_stream << '\n';
@@ -111,7 +99,7 @@ public:
 
     auto output_filepath(std::size_t i_block) const -> std::filesystem::path
     {
-        const auto padding = common_utils::writer_utils::DEFAULT_WRITER_BLOCK_INDEX_PADDING;
+        const auto padding = common::writers::DEFAULT_WRITER_BLOCK_INDEX_PADDING;
 
         auto filename = std::stringstream {};
         filename << prefix_;

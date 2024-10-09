@@ -31,7 +31,7 @@ auto three_body_ibrahim2022(
         throw std::ios_base::failure {err_msg.str()};
     }
 
-    common_utils::writer_utils::skip_lines_starting_with(instream, '#');
+    common::writers::skip_lines_starting_with(instream, '#');
 
     // arguments (r, s, u) correspond to coordinates (R, s, cos(phi)) in the published paper
     std::size_t r_size, s_size, u_size;

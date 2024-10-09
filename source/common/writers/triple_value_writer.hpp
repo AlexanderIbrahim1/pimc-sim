@@ -17,7 +17,7 @@ namespace common
 namespace writers
 {
 
-template <common_utils::Numeric Number1, common_utils::Numeric Number2, common_utils::Numeric Number3>
+template <common::Numeric Number1, common::Numeric Number2, common::Numeric Number3>
 class TripleValueBlockWriter
 {
 public:
@@ -32,7 +32,7 @@ public:
         namespace fs = std::filesystem;
 
         auto temp_filepath = filepath_;
-        temp_filepath += common_utils::writer_utils::DEFAULT_TEMPORARY_SUFFIX;
+        temp_filepath += common::writers::DEFAULT_TEMPORARY_SUFFIX;
 
         if (!fs::exists(filepath_)) {
             write_first_();
@@ -54,20 +54,20 @@ public:
         write_(filepath_, i_block, value1, value2, value3);
     }
 
-    int block_index_padding {common_utils::writer_utils::DEFAULT_WRITER_BLOCK_INDEX_PADDING};
-    int value1_integer_padding {common_utils::writer_utils::DEFAULT_WRITER_INTEGER_PADDING};
-    int value2_integer_padding {common_utils::writer_utils::DEFAULT_WRITER_INTEGER_PADDING};
-    int value3_integer_padding {common_utils::writer_utils::DEFAULT_WRITER_INTEGER_PADDING};
-    int value1_floating_point_precision {common_utils::writer_utils::DEFAULT_WRITER_SINGLE_VALUE_PRECISION};
-    int value2_floating_point_precision {common_utils::writer_utils::DEFAULT_WRITER_SINGLE_VALUE_PRECISION};
-    int value3_floating_point_precision {common_utils::writer_utils::DEFAULT_WRITER_SINGLE_VALUE_PRECISION};
+    int block_index_padding {common::writers::DEFAULT_WRITER_BLOCK_INDEX_PADDING};
+    int value1_integer_padding {common::writers::DEFAULT_WRITER_INTEGER_PADDING};
+    int value2_integer_padding {common::writers::DEFAULT_WRITER_INTEGER_PADDING};
+    int value3_integer_padding {common::writers::DEFAULT_WRITER_INTEGER_PADDING};
+    int value1_floating_point_precision {common::writers::DEFAULT_WRITER_SINGLE_VALUE_PRECISION};
+    int value2_floating_point_precision {common::writers::DEFAULT_WRITER_SINGLE_VALUE_PRECISION};
+    int value3_floating_point_precision {common::writers::DEFAULT_WRITER_SINGLE_VALUE_PRECISION};
 
 private:
     std::filesystem::path filepath_;
     std::string header_contents_;
     std::string spacing_ {"   "};
 
-    template <common_utils::Numeric Number>
+    template <common::Numeric Number>
     auto output_value_(std::ofstream& out_stream, Number value, int fp_precision, int int_padding) const
     {
         if constexpr (std::is_floating_point_v<Number>) {
@@ -86,7 +86,7 @@ private:
         Number3 value3
     ) const
     {
-        auto out_stream = common_utils::open_append_filestream_checked(filepath);
+        auto out_stream = common::io::open_append_filestream_checked(filepath);
 
         out_stream << std::setw(block_index_padding) << std::setfill('0') << std::right << i_block;
         out_stream << spacing_;
@@ -100,7 +100,7 @@ private:
 
     void write_first_() const
     {
-        auto out_stream = common_utils::open_output_filestream_checked(filepath_);
+        auto out_stream = common::io::open_output_filestream_checked(filepath_);
         out_stream << header_contents_;
     }
 };
