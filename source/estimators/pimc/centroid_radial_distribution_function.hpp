@@ -14,7 +14,7 @@ namespace estim
 {
 
 template <std::floating_point FP, std::size_t NDIM>
-constexpr void update_centroid_radial_distribution_function_histogram(
+void update_centroid_radial_distribution_function_histogram(
     mathtools::Histogram<FP>& centroid_radial_dist_histo,
     const envir::Environment<FP>& environment,
     const coord::DistanceCalculator<FP, NDIM> auto& distance_calculator,

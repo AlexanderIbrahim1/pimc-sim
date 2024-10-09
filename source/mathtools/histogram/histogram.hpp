@@ -69,7 +69,7 @@ public:
         return policy_;
     }
 
-    constexpr auto add(FP value, std::uint64_t count = 1) -> bool
+    auto add(FP value, std::uint64_t count = 1) -> bool
     {
         if (policy_ == OutOfRangePolicy::THROW) {
             auto err_msg = std::stringstream {};
@@ -106,7 +106,7 @@ private:
     FP step_size_;
     OutOfRangePolicy policy_;
 
-    constexpr auto calculate_step_size_(FP min, FP max, std::size_t n_bins) const -> FP
+    auto calculate_step_size_(FP min, FP max, std::size_t n_bins) const -> FP
     {
         if (n_bins < 1) {
             throw std::runtime_error {"The histogram cannot be built with 0 bins\n"};

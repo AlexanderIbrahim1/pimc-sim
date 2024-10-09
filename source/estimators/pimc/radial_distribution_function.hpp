@@ -12,7 +12,7 @@ namespace estim
 {
 
 template <std::floating_point FP, std::size_t NDIM>
-constexpr void update_radial_distribution_function_histogram(
+void update_radial_distribution_function_histogram(
     mathtools::Histogram<FP>& radial_dist_histo,
     const coord::DistanceCalculator<FP, NDIM> auto& distance_calculator,
     const std::vector<worldline::Worldline<FP, NDIM>>& worldlines
