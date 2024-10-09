@@ -7,7 +7,6 @@
 
 // #include <torch/script.h>
 
-#include <common/writers/writer_utils.hpp>
 #include <coordinates/box_sides.hpp>
 #include <coordinates/measure_wrappers.hpp>
 #include <environment/environment.hpp>
