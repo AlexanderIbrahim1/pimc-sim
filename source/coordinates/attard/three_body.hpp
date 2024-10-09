@@ -1,13 +1,5 @@
 #pragma once
 
-/*
-This header contains code to calculate the three pair distances between three
-points in a lattice, using equations (4) and (5) in the paper by P. Attard.
-
-P. Attard. "Simulation results for a fluid with the Axilrod-Teller triple dipole
-potential", Phys. Rev. A, 45 (1992).
-*/
-
 #include <array>
 #include <cmath>
 #include <concepts>
@@ -17,7 +9,16 @@ potential", Phys. Rev. A, 45 (1992).
 #include <coordinates/cartesian.hpp>
 #include <coordinates/measure.hpp>
 
-namespace impl_geom
+/*
+This header contains code to calculate the three pair distances between three
+points in a space with periodic boundary conditions, using equations (4) and (5)
+in the paper by P. Attard.
+
+P. Attard. "Simulation results for a fluid with the Axilrod-Teller triple dipole
+potential", Phys. Rev. A, 45 (1992).
+*/
+
+namespace impl_coord_three_body
 {
 
 template <std::floating_point FP>
@@ -80,30 +81,30 @@ auto three_body_separation_points(
     return {separation01, separation02, separation12};
 }
 
-}  // namespace impl_geom
+}  // namespace impl_coord_three_body
 
-namespace geom
+namespace coord
 {
 
 template <std::floating_point FP, std::size_t NDIM>
 auto three_body_attard_side_lengths_squared(
-    const std::array<coord::Cartesian<FP, NDIM>, 3>& points,
-    const coord::BoxSides<FP, NDIM>& box
+    const std::array<Cartesian<FP, NDIM>, 3>& points,
+    const BoxSides<FP, NDIM>& box
 ) noexcept -> std::array<FP, 3>
 {
-    const auto separation_points = impl_geom::three_body_separation_points(points, box);
+    const auto separation_points = impl_coord_three_body::three_body_separation_points(points, box);
 
-    const auto dist01_sq = coord::norm_squared(separation_points[0]);
-    const auto dist02_sq = coord::norm_squared(separation_points[1]);
-    const auto dist12_sq = coord::norm_squared(separation_points[2]);
+    const auto dist01_sq = norm_squared(separation_points[0]);
+    const auto dist02_sq = norm_squared(separation_points[1]);
+    const auto dist12_sq = norm_squared(separation_points[2]);
 
     return {dist01_sq, dist02_sq, dist12_sq};
 }
 
 template <std::floating_point FP, std::size_t NDIM>
 auto three_body_attard_side_lengths(
-    const std::array<coord::Cartesian<FP, NDIM>, 3>& points,
-    const coord::BoxSides<FP, NDIM>& box
+    const std::array<Cartesian<FP, NDIM>, 3>& points,
+    const BoxSides<FP, NDIM>& box
 ) noexcept -> std::array<FP, 3>
 {
     const auto [dist01_sq, dist02_sq, dist12_sq] = three_body_attard_side_lengths_squared(points, box);
@@ -111,4 +112,4 @@ auto three_body_attard_side_lengths(
     return {std::sqrt(dist01_sq), std::sqrt(dist02_sq), std::sqrt(dist12_sq)};
 }
 
-}  // namespace geom
+}  // namespace coord

@@ -5,7 +5,7 @@
 #include <concepts>
 #include <vector>
 
-#include <coordinates/attard.hpp>
+#include <coordinates/attard/four_body.hpp>
 #include <coordinates/box_sides.hpp>
 #include <coordinates/cartesian.hpp>
 #include <coordinates/measure.hpp>
@@ -15,7 +15,7 @@
 #include <interactions/four_body/potential_concepts.hpp>
 #include <worldline/worldline.hpp>
 
-namespace impl_estim_four_body
+namespace impl_estim
 {
 
 // MODIFIED
@@ -103,7 +103,7 @@ auto calculate_total_four_body_potential_energy_via_shifting(
     return buffered_extrap_pot.extract_energy();
 }
 
-}  // namespace impl_estim_four_body
+}  // namespace impl_estim
 
 namespace estim
 {
@@ -119,7 +119,7 @@ auto calculate_total_four_body_potential_energy_via_shifting(
 {
     auto total_pot = FP {};
     for (const auto& worldline : worldlines) {
-        total_pot += impl_estim_four_body::calculate_total_four_body_potential_energy_via_shifting(
+        total_pot += impl_estim::calculate_total_four_body_potential_energy_via_shifting(
             worldline, buffered_extrap_pot, environment, periodic_box, cutoff_distance
         );
     }

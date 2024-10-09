@@ -2,7 +2,7 @@
 
 #include <concepts>
 
-#include <coordinates/attard.hpp>
+#include <coordinates/attard/four_body.hpp>
 #include <coordinates/cartesian.hpp>
 
 namespace interact

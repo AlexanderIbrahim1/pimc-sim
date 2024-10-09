@@ -8,7 +8,7 @@
 
 #include <torch/script.h>
 
-#include <coordinates/attard.hpp>
+#include <coordinates/attard/four_body.hpp>
 #include <coordinates/cartesian.hpp>
 #include <coordinates/measure.hpp>
 #include <interactions/four_body/constants.hpp>

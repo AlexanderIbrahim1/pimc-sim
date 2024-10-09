@@ -6,7 +6,7 @@
 #include <utility>
 #include <vector>
 
-#include <coordinates/attard.hpp>
+#include <coordinates/attard/four_body.hpp>
 #include <coordinates/box_sides.hpp>
 #include <coordinates/cartesian.hpp>
 #include <coordinates/measure.hpp>

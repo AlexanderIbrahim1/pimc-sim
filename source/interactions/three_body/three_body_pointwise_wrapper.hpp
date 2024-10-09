@@ -4,9 +4,9 @@
 #include <concepts>
 #include <cstddef>
 
+#include <coordinates/attard/three_body.hpp>
 #include <coordinates/cartesian.hpp>
 #include <coordinates/measure.hpp>
-#include <geometries/attard/three_body.hpp>
 #include <interactions/three_body/potential_concepts.hpp>
 #include <interactions/three_body/three_body_parah2.hpp>
 
@@ -57,7 +57,8 @@ public:
 
     auto within_box_cutoff(const Point& p0, const Point& p1, const Point& p2) const noexcept -> FP
     {
-        const auto [dist01_sq, dist02_sq, dist12_sq] = geom::three_body_attard_side_lengths_squared({p0, p1, p2}, box_);
+        const auto [dist01_sq, dist02_sq, dist12_sq] =
+            coord::three_body_attard_side_lengths_squared({p0, p1, p2}, box_);
 
         if (dist01_sq < cutoff_dist_sq_ && dist02_sq < cutoff_dist_sq_ && dist12_sq < cutoff_dist_sq_) {
             return pot_(std::sqrt(dist01_sq), std::sqrt(dist02_sq), std::sqrt(dist12_sq));

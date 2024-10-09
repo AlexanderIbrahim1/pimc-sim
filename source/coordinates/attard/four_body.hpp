@@ -7,7 +7,16 @@
 #include <coordinates/cartesian.hpp>
 #include <coordinates/measure.hpp>
 
-namespace impl_coord
+/*
+This header contains code to calculate the six pair distances between four
+points in a space with periodic boundary conditions. It extends the method
+provided in the following paper from three points to four points.
+
+P. Attard. "Simulation results for a fluid with the Axilrod-Teller triple dipole
+potential", Phys. Rev. A, 45 (1992).
+*/
+
+namespace impl_coord_four_body
 {
 
 template <std::floating_point FP>
@@ -41,7 +50,7 @@ constexpr auto cartesian_translation(FP x_i, FP x_j, FP box_side, FP center_shif
 }
 
 template <std::floating_point FP>
-constexpr auto separation_coordinates(FP x0, FP x1, FP x2, FP x3, FP box_side) -> impl_coord::SixAxisCoordinates<FP>
+constexpr auto separation_coordinates(FP x0, FP x1, FP x2, FP x3, FP box_side) -> SixAxisCoordinates<FP>
 {
     const auto trans01 = cartesian_translation(x0, x1, box_side);
     const auto trans02 = cartesian_translation(x0, x2, box_side);
@@ -61,7 +70,7 @@ constexpr auto separation_coordinates(FP x0, FP x1, FP x2, FP x3, FP box_side) -
     };
 }
 
-}  // namespace impl_coord
+}  // namespace impl_coord_four_body
 
 namespace coord
 {
@@ -77,9 +86,6 @@ struct FourBodySideLengths
     FP dist23;
 };
 
-template <std::floating_point FP>
-constexpr auto FAILED_ATTARD_SIDELENGTHS = FourBodySideLengths<FP> {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0};
-
 enum class EarlyResultType
 {
     valid,
@@ -94,6 +100,9 @@ struct EarlyFourBodyAttardResult
     EarlyResultType type;
     FourBodySideLengths<FP> sides;
 };
+
+template <std::floating_point FP>
+constexpr auto FAILED_ATTARD_SIDELENGTHS = FourBodySideLengths<FP> {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0};
 
 template <std::floating_point FP, std::size_t NDIM>
 auto four_body_attard_side_lengths_preshift(
@@ -156,9 +165,12 @@ auto four_body_attard_side_lengths_early(
     FP cutoff_distance_sq
 ) -> EarlyFourBodyAttardResult<FP>
 {
-    const auto x_sep = impl_coord::separation_coordinates(point0[0], point1[0], point2[0], point3[0], periodic_box[0]);
-    const auto y_sep = impl_coord::separation_coordinates(point0[1], point1[1], point2[1], point3[1], periodic_box[1]);
-    const auto z_sep = impl_coord::separation_coordinates(point0[2], point1[2], point2[2], point3[2], periodic_box[2]);
+    const auto x_sep =
+        impl_coord_four_body::separation_coordinates(point0[0], point1[0], point2[0], point3[0], periodic_box[0]);
+    const auto y_sep =
+        impl_coord_four_body::separation_coordinates(point0[1], point1[1], point2[1], point3[1], periodic_box[1]);
+    const auto z_sep =
+        impl_coord_four_body::separation_coordinates(point0[2], point1[2], point2[2], point3[2], periodic_box[2]);
 
     const auto norm01_sq = norm_squared(x_sep.coord01, y_sep.coord01, z_sep.coord01);
     if (norm01_sq > cutoff_distance_sq) {

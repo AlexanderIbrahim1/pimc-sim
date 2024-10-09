@@ -9,7 +9,7 @@
 
 #include <torch/script.h>
 
-#include <coordinates/attard.hpp>
+#include <coordinates/attard/four_body.hpp>
 #include <interactions/four_body/constants.hpp>
 #include <interactions/four_body/extrapolated_potential.hpp>
 #include <interactions/four_body/interaction_ranges.hpp>
