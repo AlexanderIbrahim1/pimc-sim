@@ -1,8 +1,5 @@
 #pragma once
 
-// TEMPORARY
-#include <iostream>
-
 #include <concepts>
 #include <cstddef>
 #include <vector>
@@ -55,8 +52,7 @@ requires interact::PeriodicTripletPointPotential<PointPotential, FP, NDIM>
 constexpr auto total_triplet_potential_energy_periodic_per_worldline(
     const worldline::Worldline<FP, NDIM>& worldline,
     const PointPotential& potential,
-    const envir::Environment<FP>& environment,
-    bool is_printed
+    const envir::Environment<FP>& environment
 ) noexcept -> FP
 {
     auto worldline_triplet_pot_energy = FP {0.0};
@@ -69,13 +65,8 @@ constexpr auto total_triplet_potential_energy_periodic_per_worldline(
             const auto p1 = points[ip1];
             for (std::size_t ip2 {ip1 + 1}; ip2 < points.size(); ++ip2) {
                 const auto p2 = points[ip2];
-                if (is_printed) {
-                    const auto triplet_energy = potential.within_box_cutoff_printed(p0, p1, p2);
-                    worldline_triplet_pot_energy += triplet_energy;
-                } else {
-                    const auto triplet_energy = potential.within_box_cutoff(p0, p1, p2);
-                    worldline_triplet_pot_energy += triplet_energy;
-                }
+                const auto triplet_energy = potential.within_box_cutoff(p0, p1, p2);
+                worldline_triplet_pot_energy += triplet_energy;
             }
         }
     }
@@ -101,10 +92,8 @@ constexpr auto total_triplet_potential_energy_periodic(
 
     auto total_triplet_pot_energy = FP {0.0};
 
-    bool is_printed = false;
     for (const auto& wline : worldlines) {
-        const auto wline_energy = total_triplet_potential_energy_periodic_per_worldline(wline, potential, environment, is_printed);
-        is_printed = false;
+        const auto wline_energy = total_triplet_potential_energy_periodic_per_worldline(wline, potential, environment);
         total_triplet_pot_energy += wline_energy;
     }
 

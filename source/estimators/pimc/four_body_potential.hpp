@@ -65,7 +65,8 @@ auto calculate_four_body_potential_energy_preshift_inner_loops(
                 const auto dist13 = std::sqrt(dist13_sq);
                 const auto dist23 = std::sqrt(dist23_sq);
 
-                buffered_extrap_pot.add_sample(coord::FourBodySideLengths<FP>{dist01, dist02, dist03, dist12, dist13, dist23});
+                buffered_extrap_pot.add_sample(coord::FourBodySideLengths<FP> {
+                    dist01, dist02, dist03, dist12, dist13, dist23});
             }
         }
     }
@@ -104,7 +105,8 @@ auto calculate_total_four_body_potential_energy_via_shifting(
 
 }  // namespace impl_estim_four_body
 
-namespace estim {
+namespace estim
+{
 
 template <std::floating_point FP, std::size_t NDIM>
 auto calculate_total_four_body_potential_energy_via_shifting(
@@ -117,7 +119,9 @@ auto calculate_total_four_body_potential_energy_via_shifting(
 {
     auto total_pot = FP {};
     for (const auto& worldline : worldlines) {
-        total_pot += impl_estim_four_body::calculate_total_four_body_potential_energy_via_shifting(worldline, buffered_extrap_pot, environment, periodic_box, cutoff_distance);
+        total_pot += impl_estim_four_body::calculate_total_four_body_potential_energy_via_shifting(
+            worldline, buffered_extrap_pot, environment, periodic_box, cutoff_distance
+        );
     }
 
     return total_pot / static_cast<FP>(environment.n_timeslices());
@@ -136,19 +140,19 @@ auto calculate_total_four_body_potential_energy_via_shifting(
 //     if (particles.size() < 4) {
 //         return FloatingType {0.0};
 //     }
-// 
+//
 //     const auto shifted_particles = [&]()
 //     {
 //         auto particles_ = coord::shift_points_together(i0, periodic_box, particles);
 //         std::iter_swap(particles_.begin(), particles_.begin() + i0);
 //         return particles_;
 //     }();
-// 
+//
 //     const auto cutoff_distance_sq = cutoff_distance * cutoff_distance;
 //     const auto four_body_energy = calculate_four_body_potential_energy_preshift_inner_loops(
 //         0, buffered_extrap_pot, shifted_particles, cutoff_distance_sq
 //     );
-// 
+//
 //     return four_body_energy;
 // }
 
@@ -162,18 +166,18 @@ auto calculate_total_four_body_potential_energy_via_shifting(
 // ) -> FP
 // {
 //     using ERT = attard::EarlyResultType;
-// 
+//
 //     if (particles.size() < 4) {
 //         return FloatingType {0.0};
 //     }
-// 
+//
 //     std::size_t i0_final = particles.size() - 3;
 //     std::size_t i1_final = particles.size() - 2;
 //     std::size_t i2_final = particles.size() - 1;
 //     std::size_t i3_final = particles.size();
-// 
+//
 //     const auto cutoff_distance_sq = cutoff_distance * cutoff_distance;
-// 
+//
 //     for (std::size_t i0 {}; i0 < i0_final; ++i0)
 //         for (std::size_t i1 {i0 + 1}; i1 < i1_final; ++i1)
 //             for (std::size_t i2 {i1 + 1}; i2 < i2_final; ++i2)
@@ -181,7 +185,7 @@ auto calculate_total_four_body_potential_energy_via_shifting(
 //                     const auto attard_result = coord::four_body_attard_side_lengths_early(
 //                         particles[i0], particles[i1], particles[i2], particles[i3], periodic_box, cutoff_distance_sq
 //                     );
-// 
+//
 //                     // depending on the condition, possibly switch to the end condition for an inner loop
 //                     // to jump to the start of the wrapping loops
 //                     switch (attard_result.type) {
@@ -203,13 +207,13 @@ auto calculate_total_four_body_potential_energy_via_shifting(
 //                         }
 //                     }
 //                 }
-// 
+//
 //     return buffered_extrap_pot.extract_energy();
 // }
-// 
+//
 // template <std::floating_point FP, std::size_t NDIM>
 // auto total_quadruplet_potential_energy_periodic(
-// 
+//
 // ) -> FP
 // {}
 

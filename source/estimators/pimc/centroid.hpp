@@ -2,7 +2,6 @@
 
 #include <cmath>
 #include <concepts>
-#include <iostream>
 #include <numeric>
 #include <stdexcept>
 #include <vector>

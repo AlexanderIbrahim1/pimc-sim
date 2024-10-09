@@ -4,7 +4,6 @@
 
 #include <interactions/two_body/two_body_pointwise.hpp>
 
-
 namespace interact
 {
 

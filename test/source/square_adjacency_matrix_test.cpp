@@ -103,7 +103,9 @@ TEST_CASE("update adjacency matrix")
     REQUIRE(adjmat.neighbours(4).size() == 0);
 
     const auto periodic_dist_sq_calculator = coord::PeriodicDistanceSquaredMeasureWrapper<double, 2> {box};
-    interact::update_centroid_adjacency_matrix<double, 2>(worldlines, periodic_dist_sq_calculator, adjmat, cutoff_distance);
+    interact::update_centroid_adjacency_matrix<double, 2>(
+        worldlines, periodic_dist_sq_calculator, adjmat, cutoff_distance
+    );
 
     REQUIRE(collect_neighbours(adjmat, 0) == std::vector<std::size_t> {1, 2});
     REQUIRE(collect_neighbours(adjmat, 1) == std::vector<std::size_t> {0, 2, 4});

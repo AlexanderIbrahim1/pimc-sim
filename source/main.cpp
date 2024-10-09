@@ -17,8 +17,8 @@
 #include <estimators/pimc/centroid_radial_distribution_function.hpp>
 #include <estimators/pimc/primitive_kinetic.hpp>
 #include <estimators/pimc/radial_distribution_function.hpp>
-#include <estimators/pimc/two_body_potential.hpp>
 #include <estimators/pimc/three_body_potential.hpp>
+#include <estimators/pimc/two_body_potential.hpp>
 // #include <estimators/pimc/four_body_potential.hpp>
 #include <estimators/writers/default_writers.hpp>
 #include <geometries/bravais.hpp>
@@ -87,12 +87,15 @@ auto main(int argc, char** argv) -> int
 
     const auto last_block_index = parser.last_block_index;
     const auto first_block_index = read_simulation_first_block_index(continue_file_manager, parser);
-    const auto most_recent_completed_block_index = read_simulation_most_recent_completed_block_index(continue_file_manager, parser);
+    const auto most_recent_completed_block_index =
+        read_simulation_most_recent_completed_block_index(continue_file_manager, parser);
 
-    const auto [n_particles, minimage_box, lattice_site_positions] = build_hcp_lattice_structure(parser.density, parser.n_unit_cells);
+    const auto [n_particles, minimage_box, lattice_site_positions] =
+        build_hcp_lattice_structure(parser.density, parser.n_unit_cells);
 
     const auto periodic_distance_calculator = coord::PeriodicDistanceMeasureWrapper<float, NDIM> {minimage_box};
-    const auto periodic_distance_squared_calculator = coord::PeriodicDistanceSquaredMeasureWrapper<float, NDIM> {minimage_box};
+    const auto periodic_distance_squared_calculator =
+        coord::PeriodicDistanceSquaredMeasureWrapper<float, NDIM> {minimage_box};
 
     // clang-format off
 
@@ -161,8 +164,10 @@ auto main(int argc, char** argv) -> int
     const auto com_move_adjuster = create_com_move_adjuster(0.3f, 0.4f);
     const auto bisect_move_adjuster = create_bisect_move_adjuster(0.3f, 0.4f);
 
-    const auto com_step_size_writer = pimc::default_centre_of_mass_position_move_step_size_writer<float>(output_dirpath);
-    const auto multi_bead_move_info_writer = pimc::default_bisection_multibead_position_move_info_writer<float>(output_dirpath);
+    const auto com_step_size_writer =
+        pimc::default_centre_of_mass_position_move_step_size_writer<float>(output_dirpath);
+    const auto multi_bead_move_info_writer =
+        pimc::default_bisection_multibead_position_move_info_writer<float>(output_dirpath);
 
     /* create the move acceptance rate trackers for the move performers */
     auto com_tracker = pimc::MoveSuccessTracker {};
@@ -241,8 +246,7 @@ auto main(int argc, char** argv) -> int
 
             /* run estimators */
             const auto total_kinetic_energy = estim::total_primitive_kinetic_energy(worldlines, environment);
-            // const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic(worldlines, pot, environment);
-            const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic_with_centroid_cutoff(worldlines, pot, environment, periodic_distance_squared_calculator, pair_cutoff_distance);
+            const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic(worldlines, pot, environment);
             const auto total_triplet_potential_energy = estim::total_triplet_potential_energy_periodic(worldlines, threebody_pot, environment);
             // const auto total_quadruplet_potential_energy = estim::calculate_total_four_body_potential_energy_via_shifting(worldlines, fourbody_pot, environment, minimage_box, coord::box_cutoff_distance(minimage_box));
             const auto rms_centroid_dist = estim::rms_centroid_distance(worldlines, environment);

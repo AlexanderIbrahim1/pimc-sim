@@ -69,7 +69,6 @@ public:
         return thermodynamic_lambda_;
     }
 
-
     constexpr auto n_particles() const noexcept -> std::size_t
     {
         return n_particles_;

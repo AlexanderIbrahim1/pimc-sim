@@ -26,7 +26,10 @@
 #include <worldline/worldline.hpp>
 #include <worldline/writers/worldline_writer.hpp>
 
-constexpr auto build_hcp_lattice_structure(auto density, auto n_unit_cells) //, std::size_t xsize, std::size_t ysize, std::size_t zsize)
+constexpr auto build_hcp_lattice_structure(
+    auto density,
+    auto n_unit_cells
+)  //, std::size_t xsize, std::size_t ysize, std::size_t zsize)
 {
     /* create the lattice positions and the periodic box */
     const auto lattice_type = geom::LatticeType::HCP;
@@ -106,7 +109,6 @@ auto read_simulation_most_recent_completed_block_index(
     }
 }
 
-
 auto read_simulation_first_block_index(
     const sim::ContinueFileManager& continue_file_manager,
     const argparse::ArgParser<float>& parser
@@ -132,8 +134,7 @@ auto create_prngw(
         rng::load_prng_state(prngw.prng(), prng_state_filepath);
         return prngw;
     }
-    else if (std::holds_alternative<rng::RandomSeedFlag>(initial_seed_state))
-    {
+    else if (std::holds_alternative<rng::RandomSeedFlag>(initial_seed_state)) {
         const auto flag = std::get<rng::RandomSeedFlag>(initial_seed_state);
 
         if (flag == rng::RandomSeedFlag::RANDOM) {
@@ -146,8 +147,7 @@ auto create_prngw(
             throw std::logic_error("unreachable path; PRNG flags exhausted");
         }
     }
-    else
-    {
+    else {
         const auto value = std::get<std::uint64_t>(initial_seed_state);
         return rng::RandomNumberGeneratorWrapper<std::mt19937>::from_uint64(value);
     }

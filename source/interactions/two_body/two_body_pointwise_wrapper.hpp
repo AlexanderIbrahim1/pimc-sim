@@ -1,9 +1,5 @@
 #pragma once
 
-// TODO: remove after done
-#include <iostream>
-#include <iomanip>
-
 #include <concepts>
 #include <cstddef>
 
@@ -100,25 +96,6 @@ public:
         else {
             return FP {0.0};
         }
-    }
-
-    constexpr auto within_box_cutoff_printed(const Point& p0, const Point& p1) const noexcept -> FP
-    {
-        const auto distance_squared = coord::distance_squared_periodic(p0, p1, box_);
-        const auto energy = pot_(distance_squared);
-
-        // FP energy;
-        // if (distance_squared < cutoff_distance_squared_) {
-        //     energy = pot_(distance_squared);
-        // }
-        // else {
-        //     energy = FP {0.0};
-        // }
-
-        std::cout << std::fixed << std::setprecision(12);
-        std::cout << "POT2B(" << distance_squared << ") = " << energy << '\n';
-
-        return energy;
     }
 
 private:

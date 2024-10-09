@@ -40,17 +40,18 @@ inline auto timer_file_header() -> std::string
 
 }  // namespace impl_timer_sim
 
-
 namespace sim
 {
 
-struct Duration {
+struct Duration
+{
     std::size_t seconds;
     std::size_t milliseconds;
     std::size_t microseconds;
 };
 
-class Timer {
+class Timer
+{
 public:
     using clock = std::chrono::steady_clock;
 
@@ -58,7 +59,8 @@ public:
         : start_time_point_ {clock::now()}
     {}
 
-    void start() {
+    void start()
+    {
         start_time_point_ = clock::now();
     }
 
@@ -77,17 +79,15 @@ public:
 
         const auto microseconds = chr::duration_cast<chr::microseconds>(duration);
 
-        return Duration{
+        return Duration {
             static_cast<std::size_t>(seconds.count()),
             static_cast<std::size_t>(milliseconds.count()),
-            static_cast<std::size_t>(microseconds.count())
-        };
+            static_cast<std::size_t>(microseconds.count())};
     }
 
 private:
     clock::time_point start_time_point_;
 };
-
 
 inline auto default_timer_writer(const std::filesystem::path& output_dirpath)
     -> common::writers::TripleValueBlockWriter<std::size_t, std::size_t, std::size_t>

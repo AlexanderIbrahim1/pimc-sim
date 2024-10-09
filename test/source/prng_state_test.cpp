@@ -8,8 +8,8 @@
 #include "rng/generator.hpp"
 #include "rng/prng_state.hpp"
 
-
-auto generate_n_integers(rng::RandomNumberGeneratorWrapper<std::mt19937>& prngw, std::size_t size, int max) -> std::vector<int>
+auto generate_n_integers(rng::RandomNumberGeneratorWrapper<std::mt19937>& prngw, std::size_t size, int max)
+    -> std::vector<int>
 {
     std::vector<int> output;
     output.reserve(size);
@@ -23,7 +23,8 @@ auto generate_n_integers(rng::RandomNumberGeneratorWrapper<std::mt19937>& prngw,
     return output;
 }
 
-TEST_CASE("save and load std::mt19937 state", "[rng]") {
+TEST_CASE("save and load std::mt19937 state", "[rng]")
+{
     auto prngw0 = rng::RandomNumberGeneratorWrapper<std::mt19937>::from_random_uint64();
     auto prngw1 = rng::RandomNumberGeneratorWrapper<std::mt19937>::from_uint64(0);
     const auto size = std::size_t {10};
@@ -33,7 +34,6 @@ TEST_CASE("save and load std::mt19937 state", "[rng]") {
 
     state_stream << prngw0.prng();
     const auto output0 = generate_n_integers(prngw0, size, max);
-
 
     state_stream >> prngw1.prng();
     const auto output1 = generate_n_integers(prngw1, size, max);

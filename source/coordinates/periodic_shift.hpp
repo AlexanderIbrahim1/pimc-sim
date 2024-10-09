@@ -7,9 +7,9 @@
 #include <cstdlib>
 #include <vector>
 
+#include <common/common_utils.hpp>
 #include <coordinates/box_sides.hpp>
 #include <coordinates/cartesian.hpp>
-#include <common/common_utils.hpp>
 
 namespace coord
 {
@@ -26,7 +26,7 @@ constexpr auto number_of_box_shifts(FP pair_separation, FP side_length) -> FP
         return sign * n_shifts;
     }
     else {
-        return FP{0.0};
+        return FP {0.0};
     }
 }
 

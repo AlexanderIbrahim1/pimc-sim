@@ -23,7 +23,6 @@ struct SimulationContinueInfo
 
 }  // namespace sim
 
-
 namespace impl_continue_sim
 {
 
@@ -47,10 +46,7 @@ public:
         const auto most_recent_block_index = cast_toml_to<std::size_t>(table, most_recent_block_index_name_);
         const auto is_equilibration_complete = cast_toml_to<bool>(table, is_equilibration_complete_name_);
 
-        return sim::SimulationContinueInfo {
-            most_recent_block_index,
-            is_equilibration_complete
-        };
+        return sim::SimulationContinueInfo {most_recent_block_index, is_equilibration_complete};
     }
 
     void serialize(std::ostream& toml_stream, const sim::SimulationContinueInfo& continue_info) const
@@ -62,7 +58,7 @@ public:
         const auto most_recent_block_index = static_cast<std::int64_t>(continue_info.most_recent_block_index);
 
         const auto table = toml::table {
-            {most_recent_block_index_name_, most_recent_block_index},
+            {most_recent_block_index_name_,   most_recent_block_index                },
             {is_equilibration_complete_name_, continue_info.is_equilibration_complete}
         };
 
@@ -75,7 +71,6 @@ private:
 };
 
 }  // namespace impl_continue_sim
-
 
 namespace sim
 {

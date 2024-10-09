@@ -9,7 +9,8 @@
 namespace impl_common_utils_io
 {
 
-inline auto open_output_filestream_checked_(const std::filesystem::path& filepath, std::ios::openmode mode) -> std::ofstream
+inline auto open_output_filestream_checked_(const std::filesystem::path& filepath, std::ios::openmode mode)
+    -> std::ofstream
 {
     auto out_stream = std::ofstream {filepath, mode};
     if (!out_stream.is_open()) {

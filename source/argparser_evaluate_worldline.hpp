@@ -10,8 +10,8 @@
 #include <string_view>
 #include <tuple>
 
-#include <tomlplusplus/toml.hpp>
 #include <common/toml_utils.hpp>
+#include <tomlplusplus/toml.hpp>
 
 namespace argparse
 {
@@ -41,7 +41,8 @@ public:
 
             parse_success_flag_ = false;
             error_message_ = err_msg.str();
-        } else {
+        }
+        else {
             parse_helper_(toml_stream);
         }
     }
@@ -72,7 +73,8 @@ private:
     bool parse_success_flag_ {};
     std::string error_message_ {};
 
-    void parse_helper_(std::istream& toml_stream) {
+    void parse_helper_(std::istream& toml_stream)
+    {
         try {
             using common_utils::cast_toml_to;
 

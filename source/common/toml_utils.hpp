@@ -34,7 +34,7 @@ auto cast_toml_to(const toml::table& table, std::string_view name) -> std::files
         throw std::runtime_error {err_msg.str()};
     }
 
-    return std::filesystem::path{*maybe_value};
+    return std::filesystem::path {*maybe_value};
 }
 
-}   // namespace common_utils
+}  // namespace common_utils

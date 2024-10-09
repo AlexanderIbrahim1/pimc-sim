@@ -35,7 +35,8 @@ auto conventional_hcp_unit_cell(FP lattice_constant) -> UnitCell<FP, 3>
         lattice_constant* Point {0.0, 0.0,                   0.0                 },
         lattice_constant* Point {0.5, std::sqrt(3.0 / 4.0),  0.0                 },
         lattice_constant* Point {0.5, std::sqrt(1.0 / 12.0), std::sqrt(2.0 / 3.0)},
-        lattice_constant* Point {0.0, std::sqrt(4.0 / 3.0),  std::sqrt(2.0 / 3.0)}  // x-value can be 0.0 or 1.0, both work
+        lattice_constant* Point {
+                                 0.0, std::sqrt(4.0 / 3.0),  std::sqrt(2.0 / 3.0)}  // x-value can be 0.0 or 1.0, both work
     };
 
     return UnitCell<FP, 3> {std::move(basis_lattice_vectors), std::move(basis_unit_cell_sites)};

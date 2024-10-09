@@ -1,8 +1,5 @@
 #pragma once
 
-// TODO: remove
-#include <iostream>
-
 #include <concepts>
 #include <cstdlib>
 #include <filesystem>
@@ -14,15 +11,18 @@
 #include <common/writers/writer_utils.hpp>
 #include <constants/constants.hpp>
 #include <interactions/three_body/three_body_parah2.hpp>
-#include <mathtools/mathtools_utils.hpp>
 #include <mathtools/grid/grid3d.hpp>
 #include <mathtools/interpolate/trilinear_interp.hpp>
+#include <mathtools/mathtools_utils.hpp>
 
 namespace interact
 {
 
 template <std::floating_point FP>
-auto three_body_ibrahim2022(const std::filesystem::path& data_filepath, const std::optional<FP>& c9_coefficient = std::nullopt)
+auto three_body_ibrahim2022(
+    const std::filesystem::path& data_filepath,
+    const std::optional<FP>& c9_coefficient = std::nullopt
+)
 {
     auto instream = std::ifstream(data_filepath, std::ios::in);
     if (!instream.is_open()) {
@@ -47,14 +47,6 @@ auto three_body_ibrahim2022(const std::filesystem::path& data_filepath, const st
     instream >> u_min;
     instream >> u_max;
 
-    std::cout << "(r_size, s_size, u_size) = (" << r_size << ", " << s_size << ", " << u_size << ")\n";
-    std::cout << "r_min = " << r_min << '\n';
-    std::cout << "r_max = " << r_max << '\n';
-    std::cout << "s_min = " << s_min << '\n';
-    std::cout << "s_max = " << s_max << '\n';
-    std::cout << "u_min = " << u_min << '\n';
-    std::cout << "u_max = " << u_max << '\n';
-
     const auto shape = mathtools::Shape3D {r_size, s_size, u_size};
     const auto r_limits = mathtools_utils::AxisLimits {r_min, r_max};
     const auto s_limits = mathtools_utils::AxisLimits {s_min, s_max};
@@ -70,9 +62,6 @@ auto three_body_ibrahim2022(const std::filesystem::path& data_filepath, const st
         instream >> energy;
         energies.push_back(energy);
     }
-
-    std::cout << "energies[0] = " << energies[0] << '\n';
-    std::cout << "energies[n_elements - 1] = " << energies[n_elements - 1] << '\n';
 
     // create the 3D grid of energies to perform trilinear interpolation on
     auto grid = mathtools::Grid3D {std::move(energies), shape};

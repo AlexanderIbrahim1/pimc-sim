@@ -1,9 +1,5 @@
 #pragma once
 
-// TODO: remove after done
-#include <iostream>
-#include <iomanip>
-
 #include <concepts>
 #include <filesystem>
 #include <fstream>
@@ -134,7 +130,7 @@ auto two_body_schmidt2015(const std::filesystem::path& fsh_filepath) -> FSHTwoBo
     if (!instream.is_open()) {
         auto err_msg = std::stringstream {};
         err_msg << "Error: Unable to open file " << fsh_filepath.string() << ".\n";
-        throw std::runtime_error(err_msg.str());
+        throw std::runtime_error {err_msg.str()};
     }
 
     const auto size = number_of_lines(fsh_filepath);
@@ -162,13 +158,6 @@ auto two_body_schmidt2015(const std::filesystem::path& fsh_filepath) -> FSHTwoBo
     // interested in the last value of the pair distance squared
     const auto [r2_max, energy_last] = read_one_distance_squared_and_energy<FP>(instream);
     energies.push_back(energy_last);
-
-    std::cout << std::fixed << std::setprecision(12);
-    std::cout << "r2_min = " << r2_min << '\n';
-    std::cout << "r2_max = " << r2_max << '\n';
-    std::cout << "size = " << size << '\n';
-    std::cout << "energies[0] = " << energies[0] << '\n';
-    std::cout << "energies[size - 1] = " << energies[size - 1] << '\n';
 
     return FSHTwoBodyPotential<FP> {std::move(energies), r2_min, r2_max};
 }

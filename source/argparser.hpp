@@ -14,16 +14,13 @@
 
 #include <rng/prng_state.hpp>
 
-#include <tomlplusplus/toml.hpp>
 #include <common/toml_utils.hpp>
+#include <tomlplusplus/toml.hpp>
 
 namespace argparse
 {
 
-constexpr auto SEED_STRING_FLAG_OPTIONS = std::array<std::string_view, 2> {
-    "RANDOM",
-    "TIME_SINCE_EPOCH"
-};
+constexpr auto SEED_STRING_FLAG_OPTIONS = std::array<std::string_view, 2> {"RANDOM", "TIME_SINCE_EPOCH"};
 
 constexpr auto map_seed_string_flag_options(std::string_view flag) -> rng::RandomSeedFlag
 {
@@ -64,7 +61,8 @@ public:
 
             parse_success_flag_ = false;
             error_message_ = err_msg.str();
-        } else {
+        }
+        else {
             parse_helper_(toml_stream);
         }
     }
@@ -100,7 +98,8 @@ private:
     bool parse_success_flag_ {};
     std::string error_message_ {};
 
-    void parse_helper_(std::istream& toml_stream) {
+    void parse_helper_(std::istream& toml_stream)
+    {
         try {
             using common_utils::cast_toml_to;
 
@@ -138,7 +137,8 @@ private:
         }
     }
 
-    void parse_seed_(const toml::table& table) {
+    void parse_seed_(const toml::table& table)
+    {
         const auto maybe_uint64t = table["initial_seed"].value<std::uint64_t>();
         if (maybe_uint64t) {
             initial_seed_state = *maybe_uint64t;
@@ -152,9 +152,7 @@ private:
             const auto found = std::any_of(
                 std::begin(SEED_STRING_FLAG_OPTIONS),
                 std::end(SEED_STRING_FLAG_OPTIONS),
-                [&seed_string] (std::string_view sv) {
-                    return seed_string == sv;
-                }
+                [&seed_string](std::string_view sv) { return seed_string == sv; }
             );
 
             if (!found) {

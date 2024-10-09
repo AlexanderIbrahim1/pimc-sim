@@ -78,7 +78,13 @@ private:
         }
     }
 
-    void write_(const std::filesystem::path& filepath, std::size_t i_block, Number1 value1, Number2 value2, Number3 value3) const
+    void write_(
+        const std::filesystem::path& filepath,
+        std::size_t i_block,
+        Number1 value1,
+        Number2 value2,
+        Number3 value3
+    ) const
     {
         auto out_stream = common_utils::open_append_filestream_checked(filepath);
 
