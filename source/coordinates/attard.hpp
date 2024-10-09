@@ -7,7 +7,7 @@
 #include <coordinates/cartesian.hpp>
 #include <coordinates/measure.hpp>
 
-namespace coord
+namespace impl_coord
 {
 
 template <std::floating_point FP>
@@ -20,24 +20,6 @@ struct SixAxisCoordinates
     FP coord13;
     FP coord23;
 };
-
-template <std::floating_point FP>
-struct FourBodySideLengths
-{
-    FP dist01;
-    FP dist02;
-    FP dist03;
-    FP dist12;
-    FP dist13;
-    FP dist23;
-};
-
-template <std::floating_point FP>
-constexpr auto failed_attard_sidelengths() -> FourBodySideLengths<FP>
-{
-    const auto n1 = FP {-1.0};
-    return {n1, n1, n1, n1, n1, n1};
-}
 
 template <std::floating_point FP>
 constexpr auto cartesian_translation(FP x_i, FP x_j, FP box_side, FP center_shift = static_cast<FP>(1.0e-6)) -> FP
@@ -59,7 +41,7 @@ constexpr auto cartesian_translation(FP x_i, FP x_j, FP box_side, FP center_shif
 }
 
 template <std::floating_point FP>
-constexpr auto separation_coordinates(FP x0, FP x1, FP x2, FP x3, FP box_side) -> SixAxisCoordinates<FP>
+constexpr auto separation_coordinates(FP x0, FP x1, FP x2, FP x3, FP box_side) -> impl_coord::SixAxisCoordinates<FP>
 {
     const auto trans01 = cartesian_translation(x0, x1, box_side);
     const auto trans02 = cartesian_translation(x0, x2, box_side);
@@ -78,6 +60,25 @@ constexpr auto separation_coordinates(FP x0, FP x1, FP x2, FP x3, FP box_side) -
         x2 - x3 - trans23,
     };
 }
+
+}  // namespace impl_coord
+
+namespace coord
+{
+
+template <std::floating_point FP>
+struct FourBodySideLengths
+{
+    FP dist01;
+    FP dist02;
+    FP dist03;
+    FP dist12;
+    FP dist13;
+    FP dist23;
+};
+
+template <std::floating_point FP>
+constexpr auto FAILED_ATTARD_SIDELENGTHS = FourBodySideLengths<FP> {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0};
 
 enum class EarlyResultType
 {
@@ -105,32 +106,32 @@ auto four_body_attard_side_lengths_preshift(
 {
     const auto dist01_sq = distance_squared(point0, point1);
     if (dist01_sq > cutoff_distance_sq) {
-        return {EarlyResultType::next1, failed_attard_sidelengths<FP>()};
+        return {EarlyResultType::next1, FAILED_ATTARD_SIDELENGTHS<FP>};
     }
 
     const auto dist02_sq = distance_squared(point0, point2);
     if (dist02_sq > cutoff_distance_sq) {
-        return {EarlyResultType::next2, failed_attard_sidelengths<FP>()};
+        return {EarlyResultType::next2, FAILED_ATTARD_SIDELENGTHS<FP>};
     }
 
     const auto dist03_sq = distance_squared(point0, point3);
     if (dist03_sq > cutoff_distance_sq) {
-        return {EarlyResultType::next3, failed_attard_sidelengths<FP>()};
+        return {EarlyResultType::next3, FAILED_ATTARD_SIDELENGTHS<FP>};
     }
 
     const auto dist12_sq = distance_squared(point1, point2);
     if (dist12_sq > cutoff_distance_sq) {
-        return {EarlyResultType::next2, failed_attard_sidelengths<FP>()};
+        return {EarlyResultType::next2, FAILED_ATTARD_SIDELENGTHS<FP>};
     }
 
     const auto dist13_sq = distance_squared(point1, point3);
     if (dist13_sq > cutoff_distance_sq) {
-        return {EarlyResultType::next3, failed_attard_sidelengths<FP>()};
+        return {EarlyResultType::next3, FAILED_ATTARD_SIDELENGTHS<FP>};
     }
 
     const auto dist23_sq = distance_squared(point2, point3);
     if (dist23_sq > cutoff_distance_sq) {
-        return {EarlyResultType::next3, failed_attard_sidelengths<FP>()};
+        return {EarlyResultType::next3, FAILED_ATTARD_SIDELENGTHS<FP>};
     }
 
     const auto dist01 = std::sqrt(dist01_sq);
@@ -155,38 +156,38 @@ auto four_body_attard_side_lengths_early(
     FP cutoff_distance_sq
 ) -> EarlyFourBodyAttardResult<FP>
 {
-    const auto x_sep = separation_coordinates(point0[0], point1[0], point2[0], point3[0], periodic_box[0]);
-    const auto y_sep = separation_coordinates(point0[1], point1[1], point2[1], point3[1], periodic_box[1]);
-    const auto z_sep = separation_coordinates(point0[2], point1[2], point2[2], point3[2], periodic_box[2]);
+    const auto x_sep = impl_coord::separation_coordinates(point0[0], point1[0], point2[0], point3[0], periodic_box[0]);
+    const auto y_sep = impl_coord::separation_coordinates(point0[1], point1[1], point2[1], point3[1], periodic_box[1]);
+    const auto z_sep = impl_coord::separation_coordinates(point0[2], point1[2], point2[2], point3[2], periodic_box[2]);
 
     const auto norm01_sq = norm_squared(x_sep.coord01, y_sep.coord01, z_sep.coord01);
     if (norm01_sq > cutoff_distance_sq) {
-        return {EarlyResultType::next1, failed_attard_sidelengths<FP>()};
+        return {EarlyResultType::next1, FAILED_ATTARD_SIDELENGTHS<FP>};
     }
 
     const auto norm02_sq = norm_squared(x_sep.coord02, y_sep.coord02, z_sep.coord02);
     if (norm02_sq > cutoff_distance_sq) {
-        return {EarlyResultType::next2, failed_attard_sidelengths<FP>()};
+        return {EarlyResultType::next2, FAILED_ATTARD_SIDELENGTHS<FP>};
     }
 
     const auto norm03_sq = norm_squared(x_sep.coord03, y_sep.coord03, z_sep.coord03);
     if (norm03_sq > cutoff_distance_sq) {
-        return {EarlyResultType::next3, failed_attard_sidelengths<FP>()};
+        return {EarlyResultType::next3, FAILED_ATTARD_SIDELENGTHS<FP>};
     }
 
     const auto norm12_sq = norm_squared(x_sep.coord12, y_sep.coord12, z_sep.coord12);
     if (norm12_sq > cutoff_distance_sq) {
-        return {EarlyResultType::next2, failed_attard_sidelengths<FP>()};
+        return {EarlyResultType::next2, FAILED_ATTARD_SIDELENGTHS<FP>};
     }
 
     const auto norm13_sq = norm_squared(x_sep.coord13, y_sep.coord13, z_sep.coord13);
     if (norm13_sq > cutoff_distance_sq) {
-        return {EarlyResultType::next3, failed_attard_sidelengths<FP>()};
+        return {EarlyResultType::next3, FAILED_ATTARD_SIDELENGTHS<FP>};
     }
 
     const auto norm23_sq = norm_squared(x_sep.coord23, y_sep.coord23, z_sep.coord23);
     if (norm23_sq > cutoff_distance_sq) {
-        return {EarlyResultType::next3, failed_attard_sidelengths<FP>()};
+        return {EarlyResultType::next3, FAILED_ATTARD_SIDELENGTHS<FP>};
     }
 
     const auto norm01 = std::sqrt(norm01_sq);

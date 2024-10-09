@@ -8,7 +8,6 @@
 
 #include <common/common_utils.hpp>
 #include <coordinates/cartesian.hpp>
-#include <coordinates/constants.hpp>
 #include <coordinates/operations.hpp>
 
 #include <interactions/four_body/dispersion_potential.hpp>
@@ -44,20 +43,16 @@ public:
     template <typename Container>
     constexpr auto dispersion(const Container& pair_distances) const -> FP
     {
-        const auto tolerance = coord::SIX_SIDE_LENGTHS_TO_CARTESIAN_EPSILON_TOLERANCE<FP>;
         const auto& [r01, r02, r03, r12, r13, r23] = unpack_six_side_lengths_<Container>(pair_distances);
-        const auto& [p0, p1, p2, p3] =
-            coord::six_side_lengths_to_cartesian<FP, NDIM>(r01, r02, r03, r12, r13, r23, tolerance);
+        const auto& [p0, p1, p2, p3] = coord::six_side_lengths_to_cartesian<FP, NDIM>(r01, r02, r03, r12, r13, r23);
         return dispersion(p0, p1, p2, p3);
     }
 
     template <typename Container>
     constexpr auto mixed(FP abinitio_energy, const Container& pair_distances) const -> FP
     {
-        const auto tolerance = coord::SIX_SIDE_LENGTHS_TO_CARTESIAN_EPSILON_TOLERANCE<FP>;
         const auto& [r01, r02, r03, r12, r13, r23] = unpack_six_side_lengths_<Container>(pair_distances);
-        const auto& [p0, p1, p2, p3] =
-            coord::six_side_lengths_to_cartesian<FP, NDIM>(r01, r02, r03, r12, r13, r23, tolerance);
+        const auto& [p0, p1, p2, p3] = coord::six_side_lengths_to_cartesian<FP, NDIM>(r01, r02, r03, r12, r13, r23);
         const auto average_sidelength = common::calculate_mean(r01, r02, r03, r12, r13, r23);
 
         return mixed_energy_(p0, p1, p2, p3, abinitio_energy, average_sidelength);

@@ -17,7 +17,7 @@ potential", Phys. Rev. A, 45 (1992).
 #include <coordinates/cartesian.hpp>
 #include <coordinates/measure.hpp>
 
-namespace priv_geom
+namespace impl_geom
 {
 
 template <std::floating_point FP>
@@ -80,7 +80,7 @@ auto three_body_separation_points(
     return {separation01, separation02, separation12};
 }
 
-}  // namespace priv_geom
+}  // namespace impl_geom
 
 namespace geom
 {
@@ -91,7 +91,7 @@ auto three_body_attard_side_lengths_squared(
     const coord::BoxSides<FP, NDIM>& box
 ) noexcept -> std::array<FP, 3>
 {
-    const auto separation_points = priv_geom::three_body_separation_points(points, box);
+    const auto separation_points = impl_geom::three_body_separation_points(points, box);
 
     const auto dist01_sq = coord::norm_squared(separation_points[0]);
     const auto dist02_sq = coord::norm_squared(separation_points[1]);

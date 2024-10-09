@@ -23,7 +23,7 @@ constexpr auto distance_squared(const Cartesian<FP, NDIM>& point0, const Cartesi
 {
     FP dist_sq = 0.0;
     for (std::size_t i_dim = 0; i_dim < NDIM; ++i_dim) {
-        auto separation = point0[i_dim] - point1[i_dim];
+        const auto separation = point0[i_dim] - point1[i_dim];
         dist_sq += separation * separation;
     }
 
@@ -71,7 +71,7 @@ constexpr auto norm_squared(const Cartesian<FP, NDIM>& point) noexcept -> FP
 {
     FP norm_sq = 0.0;
     for (std::size_t i_dim = 0; i_dim < NDIM; ++i_dim) {
-        auto coord = point[i_dim];
+        const auto coord = point[i_dim];
         norm_sq += coord * coord;
     }
 
@@ -86,8 +86,7 @@ constexpr auto norm_squared_periodic(
 {
     FP norm_sq = 0.0;
     for (std::size_t i_dim = 0; i_dim < NDIM; ++i_dim) {
-        auto coord = point[i_dim];
-
+        const auto coord = point[i_dim];
         const auto n_boxshifts = std::rint(coord / box[i_dim]);
         coord -= (box[i_dim] * n_boxshifts);
 
@@ -113,7 +112,7 @@ template <std::floating_point FP, std::size_t NDIM>
 constexpr auto approx_eq(
     const Cartesian<FP, NDIM>& point0,
     const Cartesian<FP, NDIM>& point1,
-    FP tolerance_sq = EPSILON_APPROX_EQ_SEPARATION_SQUARED<FP>  //
+    FP tolerance_sq = impl_coord::EPSILON_APPROX_EQ_SEPARATION_SQUARED<FP>  //
 ) noexcept -> bool
 {
     const auto separation_dist_sq = distance_squared(point0, point1);
@@ -125,7 +124,7 @@ constexpr auto approx_eq_periodic(
     const Cartesian<FP, NDIM>& point0,
     const Cartesian<FP, NDIM>& point1,
     const BoxSides<FP, NDIM>& box,
-    FP tolerance_sq = EPSILON_APPROX_EQ_SEPARATION_SQUARED<FP>  //
+    FP tolerance_sq = impl_coord::EPSILON_APPROX_EQ_SEPARATION_SQUARED<FP>  //
 ) noexcept -> bool
 {
     const auto separation_dist_sq = distance_squared_periodic(point0, point1, box);
@@ -136,7 +135,7 @@ template <std::floating_point FP, std::size_t NDIM>
 auto approx_eq_containers(
     const std::span<const Cartesian<FP, NDIM>> span1,
     const std::span<const Cartesian<FP, NDIM>> span2,
-    FP tolerance_sq = EPSILON_APPROX_EQ_SEPARATION_SQUARED<FP>  //
+    FP tolerance_sq = impl_coord::EPSILON_APPROX_EQ_SEPARATION_SQUARED<FP>  //
 ) noexcept -> bool
 {
     if (span1.size() != span2.size()) {
@@ -159,7 +158,7 @@ constexpr auto calculate_centroid(const std::span<const coord::Cartesian<FP, NDI
     using Point = coord::Cartesian<FP, NDIM>;
 
     if (points.size() == 0) {
-        throw std::runtime_error("Cannot calculate centroid of empty sequence of points.");
+        throw std::runtime_error {"Cannot calculate centroid of empty sequence of points."};
     }
 
     const auto total_point = std::accumulate(std::begin(points), std::end(points), Point::origin());

@@ -2,7 +2,7 @@
 
 #include <concepts>
 
-namespace coord
+namespace impl_coord
 {
 
 template <std::floating_point FP>
@@ -43,4 +43,4 @@ constexpr float SIX_SIDE_LENGTHS_TO_CARTESIAN_EPSILON_TOLERANCE<float> = 1.0e-4f
 template <>
 constexpr double SIX_SIDE_LENGTHS_TO_CARTESIAN_EPSILON_TOLERANCE<double> = 1.0e-8;
 
-}  // namespace coord
+}  // namespace impl_coord

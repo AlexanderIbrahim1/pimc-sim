@@ -54,7 +54,7 @@ public:
     {
         // non-modifying access coordinates with bounds checking always on
         if (index >= NDIM) {
-            throw std::runtime_error("Out of bounds access. Tried to access index " + std::to_string(index));
+            throw std::runtime_error {"Out of bounds access. Tried to access index " + std::to_string(index)};
         }
 
         return m_coords[index];
@@ -62,7 +62,7 @@ public:
 
     [[nodiscard]] auto as_string() const -> std::string
     {
-        const auto prec = CARTESIAN_OSTREAM_PRECISION;
+        const auto prec = impl_coord::CARTESIAN_OSTREAM_PRECISION;
         std::stringstream coord_str;
         coord_str << "BoxSides(";
         for (std::size_t i_dim = 0; i_dim < NDIM; ++i_dim) {
@@ -98,12 +98,11 @@ private:
     }
 };
 
-// NOTE: write a unit test for this!
 template <std::floating_point FP, std::size_t NDIM>
 constexpr auto approx_eq(
     const BoxSides<FP, NDIM>& box0,
     const BoxSides<FP, NDIM>& box1,
-    FP tolerance_sq = EPSILON_BOX_SEPARATION<FP>  //
+    FP tolerance_sq = impl_coord::EPSILON_BOX_SEPARATION<FP>  //
 ) noexcept -> bool
 {
     FP total_diff_sq {};

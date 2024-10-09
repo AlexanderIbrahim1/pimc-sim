@@ -94,7 +94,7 @@ public:
 
     [[nodiscard]] auto as_string() const -> std::string
     {
-        const auto prec = CARTESIAN_OSTREAM_PRECISION;
+        const auto prec = impl_coord::CARTESIAN_OSTREAM_PRECISION;
         std::stringstream coord_str;
         coord_str << "(";
         for (std::size_t i_dim = 0; i_dim < NDIM; ++i_dim) {
@@ -147,7 +147,7 @@ public:
         //
         // it would be a *bad* idea (or at least very limiting) to check for equality
         // between 'other' and 0.0; I opt not to do that here
-        assert(std::fabs(other) >= EPSILON_CARTESIAN_ZERO_DIVIDE<FP>);
+        assert(std::fabs(other) >= impl_coord::EPSILON_CARTESIAN_ZERO_DIVIDE<FP>);
 
         for (std::size_t i_dim = 0; i_dim < NDIM; ++i_dim) {
             m_coords[i_dim] = m_coords[i_dim] / other;
