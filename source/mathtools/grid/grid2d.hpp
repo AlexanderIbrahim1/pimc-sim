@@ -29,7 +29,7 @@ public:
         data_.resize(n_rows_ * n_cols_);
     }
 
-    constexpr auto get(std::size_t i_row, std::size_t i_col) const noexcept -> T
+    constexpr auto get(std::size_t i_row, std::size_t i_col) const noexcept -> const T&
     {
         const auto index = i_col + i_row * n_cols_;
         return data_[index];
@@ -38,7 +38,7 @@ public:
     constexpr void set(std::size_t i_row, std::size_t i_col, T value)
     {
         const auto index = i_col + i_row * n_cols_;
-        data_[index] = value;
+        data_[index] = std::move(value);
     }
 
     constexpr auto data() const noexcept -> const std::vector<T>&

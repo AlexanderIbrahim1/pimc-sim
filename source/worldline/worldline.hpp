@@ -7,38 +7,69 @@
 
 #include <coordinates/coordinates.hpp>
 #include <mathtools/grid/grid2d.hpp>
+#include <mathtools/grid/grid_iterator.hpp>
 
 namespace worldline
 {
 
-// template <std::floating_point FP, std::size_t NDIM>
-// class Worldlines
-// {
-// public:
-//     using Point = coord::Cartesian<FP, NDIM>;
-//
-//     explicit Worldlines(mathtools::Grid2D<Point> coordinates)
-//         : coordinates_ {std::move(coordinates)}
-//     {}
-//
-//     // for performance reasons, beads on the same timeslice are contiguous
-//     explicit Worldlines(std::size_t n_timeslices_v, std::size_t n_particles_v)
-//         : coordinates_ {n_particles_v, n_timeslices_v}
-//     {}
-//
-//     constexpr auto n_particles() const noexcept -> std::size_t
-//     {
-//         return coordinates_.n_rows();
-//     }
-//
-//     constexpr auto n_timeslices() const noexcept -> std::size_t
-//     {
-//         return coordiantes_.n_cols();
-//     }
-//
-// private:
-//     mathtools::Grid2D<Point> coordinates_ {};
-// };
+template <std::floating_point FP, std::size_t NDIM>
+class Worldlines
+{
+public:
+    using Point = coord::Cartesian<FP, NDIM>;
+
+    explicit Worldlines(mathtools::Grid2D<Point> coordinates)
+        : coordinates_ {std::move(coordinates)}
+    {}
+
+    // for performance reasons, beads on the same timeslice are contiguous
+    explicit Worldlines(std::size_t n_timeslices_v, std::size_t n_worldlines_v)
+        : coordinates_ {n_worldlines_v, n_timeslices_v}
+    {}
+
+    constexpr auto n_worldlines() const noexcept -> std::size_t
+    {
+        return coordinates_.n_rows();
+    }
+
+    constexpr auto n_timeslices() const noexcept -> std::size_t
+    {
+        return coordiantes_.n_cols();
+    }
+
+    constexpr auto get(std::size_t i_worldline, std::size_t i_timeslice) const noexcept -> const Point&
+    {
+        return grid.get(i_worldline, i_timeslice);
+    }
+
+    constexpr void set(std::size_t i_worldline, std::size_t i_timeslice, Point point) noexcept
+    {
+        grid.set(i_worldline, i_timeslice, std::move(point));
+    }
+
+    constexpr auto timeslice(std::size_t i_timeslice) noexcept -> mathtools::GridIteratorPair<Point>
+    {
+        return coordinates_.iterator_along_col(i_timeslice);
+    }
+
+    constexpr auto timeslice(std::size_t i_timeslice) const noexcept -> mathtools::ConstGridIteratorPair<Point>
+    {
+        return coordinates_.iterator_along_col(i_timeslice);
+    }
+
+    constexpr auto worldline(std::size_t i_worldline) noexcept -> mathtools::GridIteratorPair<Point>
+    {
+        return coordinates_.iterator_along_col(i_worldline);
+    }
+
+    constexpr auto worldline(std::size_t i_worldline) const noexcept -> mathtools::ConstGridIteratorPair<Point>
+    {
+        return coordinates_.iterator_along_col(i_worldline);
+    }
+
+private:
+    mathtools::Grid2D<Point> coordinates_ {};
+};
 
 template <std::floating_point FP, std::size_t NDIM>
 class Worldline
