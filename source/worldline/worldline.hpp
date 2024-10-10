@@ -6,9 +6,39 @@
 #include <vector>
 
 #include <coordinates/coordinates.hpp>
+#include <mathtools/grid/grid2d.hpp>
 
 namespace worldline
 {
+
+// template <std::floating_point FP, std::size_t NDIM>
+// class Worldlines
+// {
+// public:
+//     using Point = coord::Cartesian<FP, NDIM>;
+//
+//     explicit Worldlines(mathtools::Grid2D<Point> coordinates)
+//         : coordinates_ {std::move(coordinates)}
+//     {}
+//
+//     // for performance reasons, beads on the same timeslice are contiguous
+//     explicit Worldlines(std::size_t n_timeslices_v, std::size_t n_particles_v)
+//         : coordinates_ {n_particles_v, n_timeslices_v}
+//     {}
+//
+//     constexpr auto n_particles() const noexcept -> std::size_t
+//     {
+//         return coordinates_.n_rows();
+//     }
+//
+//     constexpr auto n_timeslices() const noexcept -> std::size_t
+//     {
+//         return coordiantes_.n_cols();
+//     }
+//
+// private:
+//     mathtools::Grid2D<Point> coordinates_ {};
+// };
 
 template <std::floating_point FP, std::size_t NDIM>
 class Worldline

@@ -409,6 +409,9 @@ paths
 classical_image
   - better, but a bit wordy?
 
+timeslice
+  - lecture notes from Ceperley actually mention it specifically
+
 
 ## Changing the Worldline interface
 Right now, the (incorrectly named) "worldline" is a vector of points all at the same timeslice
