@@ -22,39 +22,47 @@ public:
         : coordinates_ {std::move(coordinates)}
     {}
 
-    // for performance reasons, beads on the same timeslice are contiguous
-    explicit Worldlines(std::size_t n_timeslices_v, std::size_t n_worldlines_v)
-        : coordinates_ {n_worldlines_v, n_timeslices_v}
+    /*
+        For performance reasons, we want all the beads on the same imaginary time step
+        to be contiguous in memory.
+
+        So `n_particles_v`, should be the number of columns in the grid. This allows the
+        particles to be next to each other in memory.
+
+        This leaves `n_timeslices_v` as the number of rows.
+    */
+    explicit Worldlines(std::size_t n_timeslices_v, std::size_t n_particles_v)
+        : coordinates_ {n_timeslices_v, n_particles_v}
     {}
 
     constexpr auto n_worldlines() const noexcept -> std::size_t
     {
-        return coordinates_.n_rows();
+        return coordinates_.n_cols();
     }
 
     constexpr auto n_timeslices() const noexcept -> std::size_t
     {
-        return coordiantes_.n_cols();
+        return coordinates_.n_rows();
     }
 
-    constexpr auto get(std::size_t i_worldline, std::size_t i_timeslice) const noexcept -> const Point&
+    constexpr auto get(std::size_t i_timeslice, std::size_t i_worldline) const noexcept -> const Point&
     {
-        return grid.get(i_worldline, i_timeslice);
+        return coordinates_.get(i_timeslice, i_worldline);
     }
 
-    constexpr void set(std::size_t i_worldline, std::size_t i_timeslice, Point point) noexcept
+    constexpr void set(std::size_t i_timeslice, std::size_t i_worldline, Point point) noexcept
     {
-        grid.set(i_worldline, i_timeslice, std::move(point));
+        coordinates_.set(i_timeslice, i_worldline, std::move(point));
     }
 
     constexpr auto timeslice(std::size_t i_timeslice) noexcept -> mathtools::GridIteratorPair<Point>
     {
-        return coordinates_.iterator_along_col(i_timeslice);
+        return coordinates_.iterator_along_row(i_timeslice);
     }
 
     constexpr auto timeslice(std::size_t i_timeslice) const noexcept -> mathtools::ConstGridIteratorPair<Point>
     {
-        return coordinates_.iterator_along_col(i_timeslice);
+        return coordinates_.iterator_along_row(i_timeslice);
     }
 
     constexpr auto worldline(std::size_t i_worldline) noexcept -> mathtools::GridIteratorPair<Point>
