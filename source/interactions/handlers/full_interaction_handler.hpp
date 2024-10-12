@@ -2,12 +2,13 @@
 
 #include <concepts>
 #include <cstddef>
+#include <span>
 #include <utility>
 
+#include <coordinates/cartesian.hpp>
 #include <interactions/handlers/interaction_handler_concepts.hpp>
 #include <interactions/three_body/potential_concepts.hpp>
 #include <interactions/two_body/potential_concepts.hpp>
-#include <worldline/worldline.hpp>
 
 namespace interact
 {
@@ -16,24 +17,26 @@ template <typename PointPotential, std::floating_point FP, std::size_t NDIM>
 requires PairPointPotential<PointPotential, FP, NDIM>
 class FullPairInteractionHandler
 {
-    using Worldline = worldline::Worldline<FP, NDIM>;
-
 public:
     explicit FullPairInteractionHandler(PointPotential pot)
         : pot_ {std::move(pot)}
     {}
 
-    constexpr auto operator()(std::size_t i_particle, const Worldline& worldline) const noexcept -> FP
+    /*
+        Calculate the total pair interaction energy between the particle at index `i_particle` and all
+        other particles, taking into account that we should avoid the self-interaction.
+    */
+    constexpr auto operator()(std::size_t i_particle, std::span<const coord::Cartesian<FP, NDIM>> points) const noexcept -> FP
     {
-        auto pot_energy = FP {};
+        const auto& particle = points[i_particle];
 
-        const auto& points = worldline.points();
-        for (std::size_t i {0}; i < worldline.size(); ++i) {
+        auto pot_energy = FP {};
+        for (std::size_t i {0}; i < points.size(); ++i) {
             if (i == i_particle) {
                 continue;
             }
 
-            pot_energy += pot_(points[i_particle], points[i]);
+            pot_energy += pot_(particle, points[i]);
         }
 
         return pot_energy;
@@ -52,28 +55,29 @@ template <typename PointPotential, std::floating_point FP, std::size_t NDIM>
 requires TripletPointPotential<PointPotential, FP, NDIM>
 class FullTripletInteractionHandler
 {
-    using Worldline = worldline::Worldline<FP, NDIM>;
-
 public:
     explicit FullTripletInteractionHandler(PointPotential pot)
         : pot_ {std::move(pot)}
     {}
 
-    constexpr auto operator()(std::size_t i_particle, const Worldline& worldline) const noexcept -> FP
+    /*
+        Calculate the total triplet interaction energy between the particle at index `i_particle` and all
+        other particles, taking into account that we should avoid the self-interaction.
+    */
+    constexpr auto operator()(std::size_t i_particle, std::span<const coord::Cartesian<FP, NDIM>> points) const noexcept -> FP
     {
+        const auto& particle = points[i_particle];
+
         auto pot_energy = FP {};
-
-        const auto& points = worldline.points();
-
-        for (std::size_t i0 {0}; i0 < worldline.size() - 1; ++i0) {
+        for (std::size_t i0 {0}; i0 < points.size() - 1; ++i0) {
             if (i0 == i_particle) {
                 continue;
             }
-            for (std::size_t i1 {i0 + 1}; i1 < worldline.size(); ++i1) {
+            for (std::size_t i1 {i0 + 1}; i1 < points.size(); ++i1) {
                 if (i1 == i_particle) {
                     continue;
                 }
-                pot_energy += pot_(points[i_particle], points[i0], points[i1]);
+                pot_energy += pot_(particle, points[i0], points[i1]);
             }
         }
 

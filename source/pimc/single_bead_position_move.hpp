@@ -27,8 +27,6 @@ class SingleBeadPositionMovePerformer
 {
 public:
     using Point = coord::Cartesian<FP, NDIM>;
-    using Worldline = worldline::Worldline<FP, NDIM>;
-    using Worldlines = std::vector<Worldline>;
 
     SingleBeadPositionMovePerformer() = delete;
 
@@ -40,7 +38,7 @@ public:
     constexpr void operator()(
         std::size_t i_particle,
         std::size_t i_timeslice,
-        Worldlines& worldlines,
+        worldline::Worldlines<FP, NDIM>& worldlines,
         rng::PRNGWrapper auto& prngw,
         interact::InteractionHandler auto& interact_handler,
         const envir::Environment<FP>& environment,
@@ -111,14 +109,14 @@ private:
     constexpr auto proposed_bead_position_mean_(
         std::size_t i_particle,
         std::size_t i_timeslice,
-        const Worldlines& worldlines
+        const Worldlines<FP, NDIM>& worldlines
     ) const noexcept -> Point
     {
         const auto it_before = (i_timeslice + n_timeslices_ - 1) % n_timeslices_;
         const auto it_after = (i_timeslice + 1) % n_timeslices_;
 
-        const auto bead_before = worldlines[it_before][i_particle];
-        const auto bead_after = worldlines[it_after][i_particle];
+        const auto& bead_before = worldlines.get(it_before, i_particle);
+        const auto& bead_after = worldlines.get(i_after, i_particle);
 
         return FP {0.5} * (bead_before + bead_after);
     }

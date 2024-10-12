@@ -2,13 +2,14 @@
 
 #include <concepts>
 #include <cstddef>
+#include <span>
 #include <tuple>
 #include <type_traits>
 #include <utility>
 
+#include <coordinates/cartesian.hpp>
 #include <interactions/handlers/interaction_handler_concepts.hpp>
 #include <mathtools/grid/square_adjacency_matrix.hpp>
-#include <worldline/worldline.hpp>
 
 /*
 TODO: create a class that takes a variadic number of other interaction handlers and combines
@@ -24,8 +25,6 @@ template <std::floating_point FP, std::size_t NDIM, typename... Handlers>
 class CompositeFullInteractionHandler
 {
 public:
-    using Worldline = worldline::Worldline<FP, NDIM>;
-
     CompositeFullInteractionHandler(Handlers... handlers)
         : handlers_ {std::move(handlers)...}
     {
@@ -36,10 +35,10 @@ public:
         static_assert(std::conjunction<std::bool_constant<InteractionHandler<Handlers>>...>::value, "");
     }
 
-    constexpr auto operator()(std::size_t i_particle, const Worldline& worldline) const noexcept -> FP
+    constexpr auto operator()(std::size_t i_particle, std::span<const coord::Cartesian<FP, NDIM>> points) const noexcept -> FP
     {
         auto pot_energy = FP {};
-        const auto handler_looper = [&](auto&&... handler) { ((pot_energy += handler(i_particle, worldline)), ...); };
+        const auto handler_looper = [&](auto&&... handler) { ((pot_energy += handler(i_particle, points)), ...); };
 
         std::apply(handler_looper, handlers_);
 
@@ -54,8 +53,6 @@ template <std::floating_point FP, std::size_t NDIM, typename... Handlers>
 class CompositeNearestNeighbourInteractionHandler
 {
 public:
-    using Worldline = worldline::Worldline<FP, NDIM>;
-
     CompositeNearestNeighbourInteractionHandler(Handlers... handlers)
         : handlers_ {std::move(handlers)...}
     {
@@ -65,10 +62,10 @@ public:
         static_assert(std::conjunction<std::bool_constant<NearestNeighbourInteractionHandler<Handlers>>...>::value, "");
     }
 
-    constexpr auto operator()(std::size_t i_particle, const Worldline& worldline) noexcept -> FP
+    constexpr auto operator()(std::size_t i_particle, std::span<const coord::Cartesian<FP, NDIM>> points) noexcept -> FP
     {
         auto pot_energy = FP {};
-        const auto handler_looper = [&](auto&&... handler) { ((pot_energy += handler(i_particle, worldline)), ...); };
+        const auto handler_looper = [&](auto&&... handler) { ((pot_energy += handler(i_particle, points)), ...); };
 
         std::apply(handler_looper, handlers_);
 

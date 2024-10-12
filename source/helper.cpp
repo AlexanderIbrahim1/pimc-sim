@@ -153,20 +153,20 @@ auto create_prngw(
     }
 }
 
-template <std::size_t NDIM>
+template <std::floating_point FP, std::size_t NDIM>
 auto read_simulation_worldlines(
     const sim::ContinueFileManager& continue_file_manager,
-    const worldline::WorldlineWriter<float, NDIM>& worldline_writer,
+    const worldline::WorldlineWriter<FP, NDIM>& worldline_writer,
     std::size_t most_recent_completed_block_index,
     std::size_t n_timeslices,
-    const std::vector<coord::Cartesian<float, NDIM>>& lattice_site_positions
-) -> std::vector<worldline::Worldline<float, NDIM>>
+    const std::vector<coord::Cartesian<FP, NDIM>>& lattice_site_positions
+) -> worldline::Worldlines<FP, NDIM>
 {
     if (continue_file_manager.is_continued()) {
         const auto worldline_filepath = worldline_writer.output_filepath(most_recent_completed_block_index);
-        return worldline::read_worldlines<float, NDIM>(worldline_filepath);
+        return worldline::read_worldlines<FP, NDIM>(worldline_filepath);
     }
     else {
-        return worldline::worldlines_from_positions<float, NDIM>(lattice_site_positions, n_timeslices);
+        return worldline::worldlines_from_positions<FP, NDIM>(lattice_site_positions, n_timeslices);
     }
 }

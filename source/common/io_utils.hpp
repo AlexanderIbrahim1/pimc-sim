@@ -35,12 +35,12 @@ inline auto open_output_filestream_checked(const std::filesystem::path& filepath
     return impl_common::open_output_filestream_checked_(filepath, std::ios::out);
 }
 
-auto open_append_filestream_checked(const std::filesystem::path& filepath) -> std::ofstream
+inline auto open_append_filestream_checked(const std::filesystem::path& filepath) -> std::ofstream
 {
     return impl_common::open_output_filestream_checked_(filepath, std::ios::app);
 }
 
-auto open_input_filestream_checked(const std::filesystem::path& filepath) -> std::ifstream
+inline auto open_input_filestream_checked(const std::filesystem::path& filepath) -> std::ifstream
 {
     auto in_stream = std::ifstream {filepath};
     if (!in_stream.is_open()) {

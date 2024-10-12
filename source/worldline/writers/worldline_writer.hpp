@@ -11,16 +11,45 @@
 #include <utility>
 #include <vector>
 
+#include <common/io_utils.hpp>
 #include <common/writers/writer_utils.hpp>
 #include <coordinates/box_sides.hpp>
+#include <coordinates/cartesian.hpp>
 #include <environment/environment.hpp>
 #include <worldline/worldline.hpp>
 
-namespace worldline
+namespace impl_worldline
 {
 
 template <std::floating_point FP, std::size_t NDIM>
-static auto worldline_file_header(std::size_t n_particles, std::size_t n_timeslices, std::size_t i_block) noexcept
+auto formatted_cartesian_line_for_worldline_file_(const coord::Cartesian<FP, NDIM>& point) -> std::string
+{
+    const auto precision = common::writers::DEFAULT_WRITER_SINGLE_VALUE_PRECISION;
+
+    auto formatted_cartesian = std::stringstream {};
+    formatted_cartesian << std::scientific << std::setprecision(precision);
+
+    for (std::size_t i_dim {0}; i_dim < NDIM; ++i_dim) {
+        const auto value = point[i_dim];
+
+        // replicates the "space or negative sign" formatting from Python
+        if (value >= FP {0.0}) {
+            formatted_cartesian << ' ';
+        }
+
+        formatted_cartesian << value;
+
+        if (i_dim != NDIM - 1) {
+            formatted_cartesian << common::writers::DEFAULT_MULTICOLUMN_SPACES;
+        }
+    }
+    formatted_cartesian << '\n';
+
+    return formatted_cartesian.str();
+}
+
+template <std::floating_point FP, std::size_t NDIM>
+static auto worldline_file_header_(std::size_t n_particles, std::size_t n_timeslices, std::size_t i_block) noexcept
     -> std::string
 {
     auto header = std::stringstream {};
@@ -45,11 +74,16 @@ static auto worldline_file_header(std::size_t n_particles, std::size_t n_timesli
     return header.str();
 }
 
+}  // namespace impl_worldline
+
+namespace worldline
+{
+
 template <std::floating_point FP, std::size_t NDIM>
-class _WorldlineWriterImpl
+class WorldlineWriter
 {
 public:
-    explicit _WorldlineWriterImpl(
+    explicit WorldlineWriter(
         std::filesystem::path output_dirpath,
         std::string prefix = std::string {"worldline"},
         std::string suffix = std::string {".dat"}
@@ -59,40 +93,20 @@ public:
         , suffix_ {std::move(suffix)}
     {}
 
-    void write(std::size_t i_block, std::string header, const std::vector<worldline::Worldline<FP, NDIM>>& worldlines)
-        const
+    void write(std::size_t i_block, const Worldlines<FP, NDIM>& worldlines) const
     {
-        const auto output_filepath_ = output_filepath(i_block);
+        const auto n_particles = worldlines.n_worldlines();
+        const auto n_timeslices = worldlines.n_timeslices();
+        const auto header = impl_worldline::worldline_file_header_(n_particles, n_timeslices, i_block);
 
-        auto out_stream = std::ofstream {output_filepath_, std::ios::out};
-        if (!out_stream.is_open()) {
-            auto err_msg = std::stringstream {};
-            err_msg << "Failed to open file: " << output_filepath_.string() << '\n';
-            throw std::ios_base::failure {err_msg.str()};
-        }
+        const auto output_filepath_ = output_filepath(i_block);
+        auto out_stream = common::io::open_output_filestream_checked(output_filepath_);
 
         out_stream << header;
 
-        const auto precision = common::writers::DEFAULT_WRITER_SINGLE_VALUE_PRECISION;
-        out_stream << std::scientific << std::setprecision(precision);
-
-        for (const auto& worldline : worldlines) {
-            for (auto point : worldline.points()) {
-                for (std::size_t i_dim {0}; i_dim < NDIM; ++i_dim) {
-                    const auto value = point[i_dim];
-
-                    // replicates the "space or negative sign" formatting from Python
-                    if (value >= FP {0.0}) {
-                        out_stream << ' ';
-                    }
-
-                    out_stream << value;
-
-                    if (i_dim != NDIM - 1) {
-                        out_stream << common::writers::DEFAULT_MULTICOLUMN_SPACES;
-                    }
-                }
-                out_stream << '\n';
+        for (std::size_t i_tslice {0}; i_tslice < n_timeslices; ++i_tslice) {
+            for (const auto& point = worldlines.timeslice(i_tslice)) {
+                out_stream << impl_worldline::formatted_cartesian_line_for_worldline_file_(point);
             }
         }
     }
@@ -113,40 +127,6 @@ private:
     std::filesystem::path output_dirpath_;
     std::string prefix_;
     std::string suffix_;
-};
-
-template <std::floating_point FP, std::size_t NDIM>
-class WorldlineWriter
-{
-public:
-    explicit WorldlineWriter(
-        std::filesystem::path output_dirpath,
-        std::string prefix = std::string {"worldline"},
-        std::string suffix = std::string {".dat"}
-    )
-        : worldline_writer_ {std::move(output_dirpath), std::move(prefix), std::move(suffix)}
-    {}
-
-    void write(
-        std::size_t i_block,
-        const std::vector<worldline::Worldline<FP, NDIM>>& worldlines,
-        const envir::Environment<FP> environment
-    ) const
-    {
-        const auto n_particles = environment.n_particles();
-        const auto n_timeslices = environment.n_timeslices();
-        auto header = worldline_file_header<FP, NDIM>(n_particles, n_timeslices, i_block);
-
-        worldline_writer_.write(i_block, std::move(header), worldlines);
-    }
-
-    auto output_filepath(std::size_t i_block) const -> std::filesystem::path
-    {
-        return worldline_writer_.output_filepath(i_block);
-    }
-
-private:
-    _WorldlineWriterImpl<FP, NDIM> worldline_writer_;
 };
 
 }  // namespace worldline
