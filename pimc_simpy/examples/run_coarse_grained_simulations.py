@@ -11,8 +11,8 @@ import numpy as np
 from numpy.typing import NDArray
 
 from pimc_simpy.manage import get_abs_slurm_output_filename
-from pimc_simpy.manage import get_abs_job_output_dirpath
-from pimc_simpy.manage import get_slurm_filepath
+from pimc_simpy.manage import get_abs_simulations_job_output_dirpath
+from pimc_simpy.manage import get_slurm_bashfile_filepath
 from pimc_simpy.manage import get_toml_filepath
 from pimc_simpy.manage import mkdir_subproject_dirpaths
 from pimc_simpy.manage import mkdir_job_and_output_dirpaths
@@ -113,7 +113,7 @@ def example(densities: NDArray) -> None:
         mkdir_job_and_output_dirpaths(info, sim_id)
 
         # create the toml file
-        toml_info_map["abs_output_dirpath"] = get_abs_job_output_dirpath(info, sim_id)
+        toml_info_map["abs_output_dirpath"] = get_abs_simulations_job_output_dirpath(info, sim_id)
         toml_info_map["density"] = density
 
         toml_file_contents = get_toml_file_contents(toml_info_map)
@@ -126,7 +126,7 @@ def example(densities: NDArray) -> None:
         slurm_info_map["abs_slurm_output_filename"] = get_abs_slurm_output_filename(info, sim_id)
 
         slurm_file_contents = get_slurm_file_contents(slurm_info_map)
-        abs_slurm_filepath = get_slurm_filepath(info, sim_id)
+        abs_slurm_filepath = get_slurm_bashfile_filepath(info, sim_id)
         with open(abs_slurm_filepath, "w") as fout:
             fout.write(slurm_file_contents)
 
@@ -135,7 +135,7 @@ def run_slurm_files(densities: NDArray) -> None:
     info = ProjectInfo()
 
     for sim_id in range(1, len(densities)):
-        abs_slurm_filepath = get_slurm_filepath(info, sim_id)
+        abs_slurm_filepath = get_slurm_bashfile_filepath(info, sim_id)
 
         cmd = ["sbatch", str(abs_slurm_filepath)]
         subprocess.run(cmd, check=True)

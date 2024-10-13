@@ -11,7 +11,7 @@ from project_info import ProjectInfo
 from pimc_simpy.data import read_property_data
 from pimc_simpy.data import PropertyData
 from pimc_simpy.data import between_epochs
-from pimc_simpy.manage import get_abs_job_output_dirpath
+from pimc_simpy.manage import get_abs_simulations_job_output_dirpath
 from pimc_simpy.manage import SimulationProjectInfo
 from pimc_simpy.plotting import plot_property_rescaled
 from pimc_simpy.statistics import autocorrelation_time_from_data
@@ -57,8 +57,8 @@ def parse_sim_id(argv: list[str]) -> int:
 def get_potential_and_kinetic_data(sim_id: int) -> tuple[PropertyData, PropertyData]:
     info = ProjectInfo()
 
-    potential_filepath = get_abs_job_output_dirpath(info, sim_id) / POTENTIAL_ENERGY_FILENAME
-    kinetic_filepath = get_abs_job_output_dirpath(info, sim_id) / KINETIC_ENERGY_FILENAME
+    potential_filepath = get_abs_simulations_job_output_dirpath(info, sim_id) / POTENTIAL_ENERGY_FILENAME
+    kinetic_filepath = get_abs_simulations_job_output_dirpath(info, sim_id) / KINETIC_ENERGY_FILENAME
 
     potential_data = read_property_data(potential_filepath)
     kinetic_data = read_property_data(kinetic_filepath)
