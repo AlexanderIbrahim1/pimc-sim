@@ -7,9 +7,9 @@
 #include <type_traits>
 #include <utility>
 
-#include <coordinates/cartesian.hpp>
 #include <interactions/handlers/interaction_handler_concepts.hpp>
 #include <mathtools/grid/square_adjacency_matrix.hpp>
+#include <worldline/worldline.hpp>
 
 /*
 TODO: create a class that takes a variadic number of other interaction handlers and combines
@@ -35,10 +35,10 @@ public:
         static_assert(std::conjunction<std::bool_constant<InteractionHandler<Handlers>>...>::value, "");
     }
 
-    constexpr auto operator()(std::size_t i_particle, std::span<const coord::Cartesian<FP, NDIM>> points) const noexcept -> FP
+    constexpr auto operator()(std::size_t i_timeslice, std::size_t i_particle, const worldline::Worldlines<FP, NDIM>& worldlines) const noexcept -> FP
     {
         auto pot_energy = FP {};
-        const auto handler_looper = [&](auto&&... handler) { ((pot_energy += handler(i_particle, points)), ...); };
+        const auto handler_looper = [&](auto&&... handler) { ((pot_energy += handler(i_timeslice, i_particle, worldlines)), ...); };
 
         std::apply(handler_looper, handlers_);
 
@@ -62,10 +62,10 @@ public:
         static_assert(std::conjunction<std::bool_constant<NearestNeighbourInteractionHandler<Handlers>>...>::value, "");
     }
 
-    constexpr auto operator()(std::size_t i_particle, std::span<const coord::Cartesian<FP, NDIM>> points) noexcept -> FP
+    constexpr auto operator()(std::size_t i_timeslice, std::size_t i_particle, const worldline::Worldlines<FP, NDIM>& worldlines) noexcept -> FP
     {
         auto pot_energy = FP {};
-        const auto handler_looper = [&](auto&&... handler) { ((pot_energy += handler(i_particle, points)), ...); };
+        const auto handler_looper = [&](auto&&... handler) { ((pot_energy += handler(i_timeslice, i_particle, worldlines)), ...); };
 
         std::apply(handler_looper, handlers_);
 

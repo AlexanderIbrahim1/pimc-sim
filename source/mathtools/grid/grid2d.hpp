@@ -81,17 +81,6 @@ public:
         };
     }
 
-//     constexpr auto neighbours(std::size_t i_source) const noexcept -> std::span<const std::size_t>
-//     {
-//         const auto data_begin = std::begin(index_grid_.data());
-//         const auto start_offset = static_cast<std::ptrdiff_t>(i_source * n_particles_);
-//         const auto end_offset = static_cast<std::ptrdiff_t>(sizes_[i_source]);
-//         const auto neighbours_start = std::next(data_begin, start_offset);
-//         const auto neighbours_end = std::next(neighbours_start, end_offset);
-// 
-//         return {neighbours_start, neighbours_end};
-//     }
-
     constexpr auto iterator_along_row(std::size_t i_row) noexcept -> std::span<T>
     {
         const auto begin_offset = static_cast<std::ptrdiff_t>(i_row * n_cols_);
@@ -100,16 +89,6 @@ public:
         const auto end = std::next(begin, end_offset);
 
         return {begin, end};
-//         const auto end = std::next(begin, n_cols_);
-//         return std::span<T> {begin, n_cols_};
-//        const auto begin = static_cast<T*>(&data_[0] + i_row * n_cols_);
-//        const auto end = static_cast<T*>(begin + n_cols_);
-//        const auto stride = std::size_t {1};
-//
-//        return {
-//            GridIterator<T> {begin, stride},
-//             GridIterator<T> {end,   stride}
-//        };
     }
 
     constexpr auto iterator_along_row(std::size_t i_row) const noexcept -> std::span<const T>
@@ -120,19 +99,6 @@ public:
         const auto end = std::next(begin, end_offset);
 
         return {begin, end};
-//         const auto begin = std::next(data_.begin(), static_cast<std::ptrdiff_t>(i_row * n_cols_));
-//         const auto end = std::next(begin, n_cols_);
-
-//         return std::span<T> {begin, n_cols_};
-//         const auto begin = static_cast<const T*>(&data_[0] + i_row * n_cols_);
-//         const auto end = static_cast<const T*>(begin + n_cols_);
-//
-//         const auto stride = std::size_t {1};
-// 
-//         return {
-//             ConstGridIterator<T> {begin, stride},
-//              ConstGridIterator<T> {end,   stride}
-//         };
     }
 
 private:

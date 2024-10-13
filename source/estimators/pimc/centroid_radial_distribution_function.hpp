@@ -2,11 +2,8 @@
 
 #include <concepts>
 #include <cstddef>
-#include <vector>
 
-#include <coordinates/coordinates.hpp>
-#include <environment/environment.hpp>
-#include <estimators/pimc/centroid.hpp>
+#include <coordinates/measure_concepts.hpp>
 #include <mathtools/histogram/histogram.hpp>
 #include <worldline/worldline.hpp>
 
@@ -16,21 +13,12 @@ namespace estim
 template <std::floating_point FP, std::size_t NDIM>
 void update_centroid_radial_distribution_function_histogram(
     mathtools::Histogram<FP>& centroid_radial_dist_histo,
-    const envir::Environment<FP>& environment,
     const coord::DistanceCalculator<FP, NDIM> auto& distance_calculator,
-    const std::vector<worldline::Worldline<FP, NDIM>>& worldlines
+    const worldline::Worldlines<FP, NDIM>& worldlines
 )
 {
-    using Point = coord::Cartesian<FP, NDIM>;
-
-    const auto n_particles = environment.n_particles();
-
-    auto centroids = std::vector<Point> {};
-    centroids.reserve(n_particles);
-    for (std::size_t i_part {0}; i_part < n_particles; ++i_part) {
-        auto centroid = worldline::calculate_centroid(worldlines, i_part);
-        centroids.emplace_back(centroid);
-    }
+    const auto n_particles = worldlines.n_worldlines();
+    const auto centroids = worldline::calculate_all_centroids(worldlines);
 
     for (std::size_t ip0 {0}; ip0 < n_particles - 1; ++ip0) {
         const auto p0 = centroids[ip0];

@@ -55,12 +55,12 @@ public:
         coordinates_.set(i_timeslice, i_worldline, std::move(point));
     }
 
-    constexpr auto timeslice(std::size_t i_timeslice) noexcept -> mathtools::GridIteratorPair<Point>
+    constexpr auto timeslice(std::size_t i_timeslice) noexcept -> std::span<Point>
     {
         return coordinates_.iterator_along_row(i_timeslice);
     }
 
-    constexpr auto timeslice(std::size_t i_timeslice) const noexcept -> mathtools::ConstGridIteratorPair<Point>
+    constexpr auto timeslice(std::size_t i_timeslice) const noexcept -> std::span<const Point>
     {
         return coordinates_.iterator_along_row(i_timeslice);
     }

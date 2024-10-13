@@ -10,14 +10,14 @@ namespace interact
 template <typename T>
 concept InteractionHandler = requires(T t) {
     {
-        t(0, {})
+        t(0, 0, {})
     } -> std::floating_point;
 };
 
 template <typename T>
 concept NearestNeighbourInteractionHandler = requires(T t) {
     {
-        t(0, {})
+        t(0, 0, {})
     } -> std::floating_point;
 
     {

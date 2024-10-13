@@ -28,8 +28,6 @@ class CentreOfMassMovePerformer
 {
 public:
     using Point = coord::Cartesian<FP, NDIM>;
-    using Worldline = worldline::Worldline<FP, NDIM>;
-    using Worldlines = std::vector<Worldline>;
 
     CentreOfMassMovePerformer() = delete;
 
@@ -55,7 +53,7 @@ public:
     //       an exception is thrown
     constexpr void operator()(
         std::size_t i_particle,
-        Worldlines& worldlines,
+        worldline::Worldlines<FP, NDIM>& worldlines,
         rng::PRNGWrapper auto& prngw,
         interact::InteractionHandler auto& interact_handler,
         const envir::Environment<FP>& environment,
@@ -66,20 +64,23 @@ public:
 
         // calculate energy for the current configuration
         auto pot_energy_before = FP {};
-        for (const auto& wline : worldlines) {
-            pot_energy_before += interact_handler(i_particle, wline);
+        for (std::size_t i_timeslice {0}; i_timeslice < worldlines.n_timeslices(); ++i_timeslice) {
+            pot_energy_before += interact_handler(i_timeslice, i_particle, worldlines);
         }
 
         // save the current positions, and set the new ones
-        for (std::size_t i_tslice {0}; i_tslice < worldlines.size(); ++i_tslice) {
-            position_cache_[i_tslice] = worldlines[i_tslice][i_particle];
-            worldlines[i_tslice][i_particle] += step;
+        for (std::size_t i_tslice {0}; i_tslice < worldlines.n_timeslices(); ++i_tslice) {
+            const auto current_position = worldlines.get(i_tslice, i_particle);
+            const auto new_position = current_position + step;
+
+            position_cache_[i_tslice] = current_position;
+            worldlines.set(i_tslice, i_particle, new_position);
         }
 
         // calculate energy for the new configuration
         auto pot_energy_after = FP {};
-        for (const auto& wline : worldlines) {
-            pot_energy_after += interact_handler(i_particle, wline);
+        for (std::size_t i_timeslice {0}; i_timeslice < worldlines.n_timeslices(); ++i_timeslice) {
+            pot_energy_after += interact_handler(i_timeslice, i_particle, worldlines);
         }
 
         const auto pot_energy_diff = pot_energy_after - pot_energy_before;
@@ -90,8 +91,8 @@ public:
 
             if (boltz_factor < rand01) {
                 // the proposed move is rejected, restore the positions
-                for (std::size_t i_tslice {0}; i_tslice < worldlines.size(); ++i_tslice) {
-                    worldlines[i_tslice][i_particle] = position_cache_[i_tslice];
+                for (std::size_t i_tslice {0}; i_tslice < worldlines.n_timeslices(); ++i_tslice) {
+                    worldlines.set(i_tslice, i_particle, position_cache_[i_tslice]);
                 }
 
                 if (move_tracker) {
@@ -121,7 +122,7 @@ private:
         if (step_size < FP {0.0}) {
             auto err_msg = std::stringstream {};
             err_msg << "The step size entered to the CentreOfMassMovePerformer must be non-negative.\n";
-            err_msg << "Found: " << std::setprecision(6) << step_size << '\n';
+            err_msg << "Found: " << std::setprecision(12) << step_size << '\n';
             throw std::runtime_error(err_msg.str());
         }
     }

@@ -45,19 +45,19 @@ public:
         MoveSuccessTracker* move_tracker = nullptr
     ) noexcept
     {
-        const auto proposed_bead_mean = proposed_bead_position_mean_(i_particle, i_timeslice, worldlines);
+        const auto proposed_bead_mean = proposed_bead_position_mean_(i_timeslice, i_particle, worldlines);
         const auto step = generate_step_(environment, prngw);
         const auto proposed_bead = proposed_bead_mean + step;
 
         // calculate energy for the current configuration
-        const auto pot_energy_before = interact_handler(i_particle, worldlines[i_timeslice]);
+        const auto pot_energy_before = interact_handler(i_timesice, i_particle, worldlines);
 
         // save the current position, and set the new one
-        const auto current_bead = worldlines[i_timeslice][i_particle];
-        worldlines[i_timeslice][i_particle] = proposed_bead;
+        const auto current_bead = worldlines.get(i_timeslice, i_particle);
+        worldlines.set(i_timeslice, i_particle, proposed_bead);
 
         // calculate energy for the proposed configuration
-        const auto pot_energy_after = interact_handler(i_particle, worldlines[i_timeslice]);
+        const auto pot_energy_after = interact_handler(i_timeslice, i_particle, worldlines);
 
         const auto pot_energy_diff = pot_energy_after - pot_energy_before;
         if (pot_energy_diff >= FP {0.0}) {
@@ -67,7 +67,7 @@ public:
 
             if (boltz_factor < rand01) {
                 // the proposed move is rejected, restore the positions
-                worldlines[i_timeslice][i_particle] = current_bead;
+                worldlines.set(i_timeslice, i_particle, current_bead);
 
                 if (move_tracker) {
                     move_tracker->add_reject();
@@ -107,8 +107,8 @@ private:
     }
 
     constexpr auto proposed_bead_position_mean_(
-        std::size_t i_particle,
         std::size_t i_timeslice,
+        std::size_t i_particle,
         const Worldlines<FP, NDIM>& worldlines
     ) const noexcept -> Point
     {

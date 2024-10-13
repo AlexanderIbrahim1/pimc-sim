@@ -46,7 +46,6 @@ class BisectionMultibeadPositionMovePerformer
 {
 public:
     using Point = coord::Cartesian<FP, NDIM>;
-    using Worldline = worldline::Worldline<FP, NDIM>;
 
     BisectionMultibeadPositionMovePerformer() = delete;
 
@@ -72,7 +71,7 @@ public:
     constexpr void operator()(
         std::size_t i_particle,
         std::size_t i_timeslice,
-        std::vector<Worldline>& worldlines,
+        worldline::Worldlines<FP, NDIM>& worldlines,
         rng::PRNGWrapper auto& prngw,
         interact::InteractionHandler auto& interact_handler,
         const envir::Environment<FP>& environment,
@@ -89,24 +88,24 @@ public:
             // calculate energy for current configuration
             auto pot_energy_before = FP {0.0};
             for (const auto bisect_trip : bisection_level_manager.triplets(sublevel)) {
-                pot_energy_before += interact_handler(i_particle, worldlines[bisect_trip.mid]);
+                pot_energy_before += interact_handler(i_timeslice, i_particle, worldlines);
             }
 
             // set proposed positions
             const auto step_stddev = step_stddev_(environment, level, sublevel);
             for (const auto bisect_trip : bisection_level_manager.triplets(sublevel)) {
-                const auto left = worldlines[bisect_trip.left][i_particle];
-                const auto right = worldlines[bisect_trip.right][i_particle];
+                const auto left = worldlines.get(bisect_trip.left, i_particle);
+                const auto right = worldlines.get(bisect_trip.right, i_particle);
                 const auto step = generate_step_(prngw, step_stddev);
                 const auto proposed = FP {0.5} * (left + right) + step;
 
-                worldlines[bisect_trip.mid][i_particle] = proposed;
+                worldlines.set(bisect_trip.mid, i_particle, proposed);
             }
 
             // calculate energy for proposed configuration
             auto pot_energy_after = FP {0.0};
             for (const auto bisect_trip : bisection_level_manager.triplets(sublevel)) {
-                pot_energy_after += interact_handler(i_particle, worldlines[bisect_trip.mid]);
+                pot_energy_after += interact_handler(i_timeslice, i_particle, worldlines);
             }
 
             const auto pot_energy_diff = pot_energy_after - pot_energy_before;
@@ -128,7 +127,7 @@ public:
             // the proposed steps in-between
             for (std::size_t i {1}; i < original_position_cache.size() - 1; ++i) {
                 const auto i_tslice = (i + i_timeslice) % environment.n_timeslices();
-                worldlines[i_tslice][i_particle] = original_position_cache[i];
+                worldlines.set(i_tslice, i_particle, original_position_cache[i]);
             }
 
             if (move_tracker) {
@@ -151,10 +150,10 @@ private:
         std::size_t i_timeslice,
         std::size_t i_particle,
         std::size_t level,
-        const std::vector<Worldline>& worldlines
+        const worldline::Worldlines<FP, NDIM>& worldlines
     ) const noexcept -> std::vector<Point>
     {
-        const auto n_timeslices = worldlines.size();  // I think somewhere else we guarantee that n_timeslices > 0?
+        const auto n_timeslices = worldlines.n_timeslices();  // I think somewhere else we guarantee that n_timeslices > 0?
         const auto size = level_segment_size(level) + 1;
 
         auto cache = std::vector<Point> {};
@@ -162,7 +161,7 @@ private:
 
         for (std::size_t i {0}; i < size; ++i) {
             const auto it = (i_timeslice + i) % n_timeslices;
-            cache.push_back(worldlines[it][i_particle]);
+            cache.push_back(worldlines.get(it, i_particle));
         }
 
         return cache;
