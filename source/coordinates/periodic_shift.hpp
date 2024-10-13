@@ -5,6 +5,7 @@
 #include <cmath>
 #include <concepts>
 #include <cstdlib>
+#include <span>
 #include <vector>
 
 #include <common/common_utils.hpp>
@@ -48,11 +49,11 @@ template <std::floating_point FP, std::size_t NDIM>
 constexpr auto shift_points_together(
     std::size_t i_origin,
     const BoxSides<FP, NDIM>& box,
-    const std::vector<Cartesian<FP, NDIM>>& particles
+    std::span<const Cartesian<FP, NDIM>> particles
 ) -> std::vector<Cartesian<FP, NDIM>>
 {
-    if (particles.size() <= 1) {
-        return particles;
+    if (particles.size() == 0) {
+        return std::vector<Cartesian<FP, NDIM>> {};
     }
 
     const auto origin = particles[i_origin];
