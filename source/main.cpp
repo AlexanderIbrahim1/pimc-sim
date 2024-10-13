@@ -245,11 +245,11 @@ auto main(int argc, char** argv) -> int
 
             /* run estimators */
             const auto total_kinetic_energy = estim::total_primitive_kinetic_energy(worldlines, environment);
-            const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic(worldlines, pot, environment);
-            const auto total_triplet_potential_energy = estim::total_triplet_potential_energy_periodic(worldlines, threebody_pot, environment);
+            const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic(worldlines, pot);
+            const auto total_triplet_potential_energy = estim::total_triplet_potential_energy_periodic(worldlines, threebody_pot);
             // const auto total_quadruplet_potential_energy = estim::calculate_total_four_body_potential_energy_via_shifting(worldlines, fourbody_pot, environment, minimage_box, coord::box_cutoff_distance(minimage_box));
-            const auto rms_centroid_dist = estim::rms_centroid_distance(worldlines, environment);
-            const auto abs_centroid_dist = estim::absolute_centroid_distance(worldlines, environment);
+            const auto rms_centroid_dist = estim::rms_centroid_distance(worldlines);
+            const auto abs_centroid_dist = estim::absolute_centroid_distance(worldlines);
 
             /* save estimators */
             kinetic_writer.write(i_block, total_kinetic_energy);
@@ -263,11 +263,11 @@ auto main(int argc, char** argv) -> int
             estim::update_radial_distribution_function_histogram(radial_dist_histo, periodic_distance_calculator, worldlines);
             mathtools::io::write_histogram(radial_dist_histo_filepath, radial_dist_histo);
 
-            estim::update_centroid_radial_distribution_function_histogram(centroid_dist_histo, environment, periodic_distance_calculator, worldlines);
+            estim::update_centroid_radial_distribution_function_histogram(centroid_dist_histo, periodic_distance_calculator, worldlines);
             mathtools::io::write_histogram(centroid_dist_histo_filepath, centroid_dist_histo);
 
             /* save the worldlines */
-            worldline_writer.write(i_block, worldlines, environment);
+            worldline_writer.write(i_block, worldlines);
         }
 
         /* Update the step sizes during equilibration */

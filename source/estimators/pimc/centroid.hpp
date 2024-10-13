@@ -18,7 +18,7 @@ constexpr auto rms_centroid_distance(
     const worldline::Worldlines<FP, NDIM>& worldlines
 ) -> FP
 {
-    const auto n_particles = worldlines.n_particles();
+    const auto n_particles = worldlines.n_worldlines();
     const auto n_timeslices = worldlines.n_timeslices();
 
     auto total = FP {0.0};
@@ -44,7 +44,7 @@ constexpr auto absolute_centroid_distance(
     const worldline::Worldlines<FP, NDIM>& worldlines
 ) -> FP
 {
-    const auto n_particles = worldlines.n_particles();
+    const auto n_particles = worldlines.n_worldlines();
     const auto n_timeslices = worldlines.n_timeslices();
 
     auto total = FP {0.0};

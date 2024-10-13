@@ -55,7 +55,7 @@ public:
         std::size_t i_particle,
         worldline::Worldlines<FP, NDIM>& worldlines,
         rng::PRNGWrapper auto& prngw,
-        interact::InteractionHandler auto& interact_handler,
+        interact::InteractionHandler<FP, NDIM> auto& interact_handler,
         const envir::Environment<FP>& environment,
         MoveSuccessTracker* move_tracker = nullptr
     ) noexcept

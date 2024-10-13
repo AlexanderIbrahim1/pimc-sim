@@ -97,7 +97,7 @@ public:
     {
         const auto n_particles = worldlines.n_worldlines();
         const auto n_timeslices = worldlines.n_timeslices();
-        const auto header = impl_worldline::worldline_file_header_(n_particles, n_timeslices, i_block);
+        const auto header = impl_worldline::worldline_file_header_<FP, NDIM>(n_particles, n_timeslices, i_block);
 
         const auto output_filepath_ = output_filepath(i_block);
         auto out_stream = common::io::open_output_filestream_checked(output_filepath_);

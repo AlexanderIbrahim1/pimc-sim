@@ -32,7 +32,7 @@ public:
             sizeof...(handlers) >= 1, "There must be at least one handler in the CompositeInteractionHandler"
         );
         // static_assert(InteractionHandler<Handlers>..., "All inputs must be InteractionHandlers");
-        static_assert(std::conjunction<std::bool_constant<InteractionHandler<Handlers>>...>::value, "");
+        static_assert(std::conjunction<std::bool_constant<InteractionHandler<Handlers, FP, NDIM>>...>::value, "");
     }
 
     constexpr auto operator()(std::size_t i_timeslice, std::size_t i_particle, const worldline::Worldlines<FP, NDIM>& worldlines) const noexcept -> FP
@@ -59,7 +59,7 @@ public:
         static_assert(
             sizeof...(handlers) >= 1, "There must be at least one handler in the CompositeInteractionHandler"
         );
-        static_assert(std::conjunction<std::bool_constant<NearestNeighbourInteractionHandler<Handlers>>...>::value, "");
+        static_assert(std::conjunction<std::bool_constant<NearestNeighbourInteractionHandler<Handlers, FP, NDIM>>...>::value, "");
     }
 
     constexpr auto operator()(std::size_t i_timeslice, std::size_t i_particle, const worldline::Worldlines<FP, NDIM>& worldlines) noexcept -> FP
@@ -80,7 +80,7 @@ public:
     }
 
     template <std::size_t Index>
-    constexpr auto get() noexcept -> NearestNeighbourInteractionHandler auto&
+    constexpr auto get() noexcept -> NearestNeighbourInteractionHandler<FP, NDIM> auto&
     {
         return std::get<Index>(handlers_);
     }

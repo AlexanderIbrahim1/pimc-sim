@@ -46,7 +46,7 @@ constexpr auto total_primitive_kinetic_energy(
 {
     auto total_dist_squared = FP {};
 
-    const auto n_particles = worldlines.n_particles();
+    const auto n_particles = worldlines.n_worldlines();
     const auto n_timeslices = worldlines.n_timeslices();
 
     for (std::size_t i_part {0}; i_part < n_particles; ++i_part) {

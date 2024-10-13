@@ -1,24 +1,28 @@
 #pragma once
 
+#include <cstddef>
 #include <concepts>
 
 #include <mathtools/grid/square_adjacency_matrix.hpp>
+#include <worldline/worldline.hpp>
 
 namespace interact
 {
 
-template <typename T>
-concept InteractionHandler = requires(T t) {
+template <typename Handler, typename FP, std::size_t NDIM>
+concept InteractionHandler = requires(Handler t) {
+    requires std::is_floating_point_v<FP>;
     {
-        t(0, 0, {})
-    } -> std::floating_point;
+        t(std::size_t {}, std::size_t {}, worldline::Worldlines<FP, NDIM> {std::size_t {}, std::size_t {}})
+    } -> std::same_as<FP>;
 };
 
-template <typename T>
-concept NearestNeighbourInteractionHandler = requires(T t) {
+template <typename Handler, typename FP, std::size_t NDIM>
+concept NearestNeighbourInteractionHandler = requires(Handler t) {
+    requires std::is_floating_point_v<FP>;
     {
-        t(0, 0, {})
-    } -> std::floating_point;
+        t(std::size_t {}, std::size_t {}, worldline::Worldlines<FP, NDIM> {std::size_t {}, std::size_t {}})
+    } -> std::same_as<FP>;
 
     {
         t.adjacency_matrix()
