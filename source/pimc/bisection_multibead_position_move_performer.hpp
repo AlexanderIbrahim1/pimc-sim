@@ -153,7 +153,8 @@ private:
         const worldline::Worldlines<FP, NDIM>& worldlines
     ) const noexcept -> std::vector<Point>
     {
-        const auto n_timeslices = worldlines.n_timeslices();  // I think somewhere else we guarantee that n_timeslices > 0?
+        const auto n_timeslices =
+            worldlines.n_timeslices();  // I think somewhere else we guarantee that n_timeslices > 0?
         const auto size = level_segment_size(level) + 1;
 
         auto cache = std::vector<Point> {};

@@ -84,7 +84,7 @@ TEST_CASE("update adjacency matrix")
              Point {0.3,  0.0}
         };
 
-        auto wlines = worldline::Worldlines<double, 2>{n_timeslices, n_particles};
+        auto wlines = worldline::Worldlines<double, 2> {n_timeslices, n_particles};
         for (std::size_t it {0}; it < n_timeslices; ++it) {
             for (std::size_t ip {0}; ip < n_particles; ++ip) {
                 wlines.set(it, ip, positions[ip]);

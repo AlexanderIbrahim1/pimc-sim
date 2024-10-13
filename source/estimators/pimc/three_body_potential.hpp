@@ -57,7 +57,6 @@ constexpr auto total_triplet_potential_energy_maybe_periodic(
 
 }  // namespace impl_estim
 
-
 namespace estim
 {
 
@@ -85,11 +84,11 @@ constexpr auto total_triplet_potential_energy_periodic(
     );
 }
 
-}
+}  // namespace estim
 
 // namespace estim
 // {
-// 
+//
 // template <typename PointPotential, std::floating_point FP, std::size_t NDIM>
 // requires interact::PeriodicTripletPointPotential<PointPotential, FP, NDIM>
 // constexpr auto total_triplet_potential_energy_periodic_per_worldline(
@@ -98,9 +97,9 @@ constexpr auto total_triplet_potential_energy_periodic(
 // ) noexcept -> FP
 // {
 //     auto worldline_triplet_pot_energy = FP {0.0};
-// 
+//
 //     const auto& points = worldline.points();
-// 
+//
 //     for (std::size_t ip0 {0}; ip0 < points.size() - 2; ++ip0) {
 //         const auto p0 = points[ip0];
 //         for (std::size_t ip1 {ip0 + 1}; ip1 < points.size() - 1; ++ip1) {
@@ -112,10 +111,10 @@ constexpr auto total_triplet_potential_energy_periodic(
 //             }
 //         }
 //     }
-// 
+//
 //     return worldline_triplet_pot_energy;
 // }
-// 
+//
 // // a lot of code duplication for a single line, but I tried the if-constexpr approach and it was a bit worse IMO
 // // - the concepts overlap, etc.
 // // - there's a lot of opportunity for confusion
@@ -131,16 +130,16 @@ constexpr auto total_triplet_potential_energy_periodic(
 //     if (worldlines.empty()) {
 //         return FP {0.0};
 //     }
-// 
+//
 //     auto total_triplet_pot_energy = FP {0.0};
-// 
+//
 //     for (const auto& wline : worldlines) {
-//         const auto wline_energy = total_triplet_potential_energy_periodic_per_worldline(wline, potential, environment);
-//         total_triplet_pot_energy += wline_energy;
+//         const auto wline_energy = total_triplet_potential_energy_periodic_per_worldline(wline, potential,
+//         environment); total_triplet_pot_energy += wline_energy;
 //     }
-// 
+//
 //     total_triplet_pot_energy /= static_cast<FP>(environment.n_timeslices());
-// 
+//
 //     return total_triplet_pot_energy;
 // }
 //

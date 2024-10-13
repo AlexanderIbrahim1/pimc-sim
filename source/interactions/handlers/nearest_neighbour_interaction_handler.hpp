@@ -68,7 +68,11 @@ public:
         , centroid_adjmat_ {n_particles}
     {}
 
-    constexpr auto operator()(std::size_t i_timeslice, std::size_t i_particle, const worldline::Worldlines<FP, NDIM>& worldlines) noexcept -> FP
+    constexpr auto operator()(
+        std::size_t i_timeslice,
+        std::size_t i_particle,
+        const worldline::Worldlines<FP, NDIM>& worldlines
+    ) noexcept -> FP
     {
         const auto timeslice = worldlines.timeslice(i_timeslice);
         const auto particle = timeslice[i_particle];
@@ -108,7 +112,11 @@ public:
         , centroid_adjmat_ {n_particles}
     {}
 
-    constexpr auto operator()(std::size_t i_timeslice, std::size_t i_particle, const worldline::Worldlines<FP, NDIM>& worldlines) noexcept -> FP
+    constexpr auto operator()(
+        std::size_t i_timeslice,
+        std::size_t i_particle,
+        const worldline::Worldlines<FP, NDIM>& worldlines
+    ) noexcept -> FP
     {
         // NOTE
         // this member function doesn't actually take periodicity into account; so the Attard
@@ -159,7 +167,11 @@ public:
         , centroid_adjmat_ {n_particles}
     {}
 
-    constexpr auto operator()(std::size_t i_timeslice, std::size_t i_particle, const worldline::Worldlines<FP, NDIM>& worldlines) noexcept -> FP
+    constexpr auto operator()(
+        std::size_t i_timeslice,
+        std::size_t i_particle,
+        const worldline::Worldlines<FP, NDIM>& worldlines
+    ) noexcept -> FP
     {
         // NOTE
         // this member function doesn't actually take periodicity into account; so the Attard

@@ -17,8 +17,7 @@ void update_radial_distribution_function_histogram(
     const worldline::Worldlines<FP, NDIM>& worldlines
 )
 {
-    for (std::size_t i_tslice {0}; i_tslice < worldlines.n_timeslices(); ++i_tslice)
-    {
+    for (std::size_t i_tslice {0}; i_tslice < worldlines.n_timeslices(); ++i_tslice) {
         const auto timeslice = worldlines.timeslice(i_tslice);
         for (std::size_t ip0 {0}; ip0 < timeslice.size() - 1; ++ip0) {
             const auto p0 = timeslice[ip0];

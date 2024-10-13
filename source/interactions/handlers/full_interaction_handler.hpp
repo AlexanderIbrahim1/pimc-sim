@@ -26,7 +26,11 @@ public:
         Calculate the total pair interaction energy between the particle at index `i_particle` and all
         other particles, taking into account that we should avoid the self-interaction.
     */
-    constexpr auto operator()(std::size_t i_timeslice, std::size_t i_particle, const worldline::Worldlines<FP, NDIM>& worldlines) const noexcept -> FP
+    constexpr auto operator()(
+        std::size_t i_timeslice,
+        std::size_t i_particle,
+        const worldline::Worldlines<FP, NDIM>& worldlines
+    ) const noexcept -> FP
     {
         const auto timeslice = worldlines.timeslice(i_timeslice);
         const auto particle = timeslice[i_particle];
@@ -65,7 +69,11 @@ public:
         Calculate the total triplet interaction energy between the particle at index `i_particle` and all
         other particles, taking into account that we should avoid the self-interaction.
     */
-    constexpr auto operator()(std::size_t i_timeslice, std::size_t i_particle, const worldline::Worldlines<FP, NDIM>& worldlines) const noexcept -> FP
+    constexpr auto operator()(
+        std::size_t i_timeslice,
+        std::size_t i_particle,
+        const worldline::Worldlines<FP, NDIM>& worldlines
+    ) const noexcept -> FP
     {
         const auto timeslice = worldlines.timeslice(i_timeslice);
         const auto& particle = timeslice[i_particle];

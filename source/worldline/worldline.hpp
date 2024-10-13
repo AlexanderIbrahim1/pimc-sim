@@ -98,7 +98,8 @@ constexpr auto worldlines_from_positions(
 }
 
 template <std::floating_point FP, std::size_t NDIM>
-constexpr auto calculate_centroid(const Worldlines<FP, NDIM>& worldlines, std::size_t i_particle) -> coord::Cartesian<FP, NDIM>
+constexpr auto calculate_centroid(const Worldlines<FP, NDIM>& worldlines, std::size_t i_particle)
+    -> coord::Cartesian<FP, NDIM>
 {
     auto accumulated_centroid = coord::Cartesian<FP, NDIM>::origin();
     for (const auto& bead : worldlines.worldline(i_particle)) {

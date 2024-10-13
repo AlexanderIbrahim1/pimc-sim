@@ -14,9 +14,7 @@ namespace estim
 {
 
 template <std::floating_point FP, std::size_t NDIM>
-constexpr auto rms_centroid_distance(
-    const worldline::Worldlines<FP, NDIM>& worldlines
-) -> FP
+constexpr auto rms_centroid_distance(const worldline::Worldlines<FP, NDIM>& worldlines) -> FP
 {
     const auto n_particles = worldlines.n_worldlines();
     const auto n_timeslices = worldlines.n_timeslices();
@@ -40,9 +38,7 @@ constexpr auto rms_centroid_distance(
 }
 
 template <std::floating_point FP, std::size_t NDIM>
-constexpr auto absolute_centroid_distance(
-    const worldline::Worldlines<FP, NDIM>& worldlines
-) -> FP
+constexpr auto absolute_centroid_distance(const worldline::Worldlines<FP, NDIM>& worldlines) -> FP
 {
     const auto n_particles = worldlines.n_worldlines();
     const auto n_timeslices = worldlines.n_timeslices();

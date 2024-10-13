@@ -35,10 +35,15 @@ public:
         static_assert(std::conjunction<std::bool_constant<InteractionHandler<Handlers, FP, NDIM>>...>::value, "");
     }
 
-    constexpr auto operator()(std::size_t i_timeslice, std::size_t i_particle, const worldline::Worldlines<FP, NDIM>& worldlines) const noexcept -> FP
+    constexpr auto operator()(
+        std::size_t i_timeslice,
+        std::size_t i_particle,
+        const worldline::Worldlines<FP, NDIM>& worldlines
+    ) const noexcept -> FP
     {
         auto pot_energy = FP {};
-        const auto handler_looper = [&](auto&&... handler) { ((pot_energy += handler(i_timeslice, i_particle, worldlines)), ...); };
+        const auto handler_looper = [&](auto&&... handler)
+        { ((pot_energy += handler(i_timeslice, i_particle, worldlines)), ...); };
 
         std::apply(handler_looper, handlers_);
 
@@ -59,13 +64,20 @@ public:
         static_assert(
             sizeof...(handlers) >= 1, "There must be at least one handler in the CompositeInteractionHandler"
         );
-        static_assert(std::conjunction<std::bool_constant<NearestNeighbourInteractionHandler<Handlers, FP, NDIM>>...>::value, "");
+        static_assert(
+            std::conjunction<std::bool_constant<NearestNeighbourInteractionHandler<Handlers, FP, NDIM>>...>::value, ""
+        );
     }
 
-    constexpr auto operator()(std::size_t i_timeslice, std::size_t i_particle, const worldline::Worldlines<FP, NDIM>& worldlines) noexcept -> FP
+    constexpr auto operator()(
+        std::size_t i_timeslice,
+        std::size_t i_particle,
+        const worldline::Worldlines<FP, NDIM>& worldlines
+    ) noexcept -> FP
     {
         auto pot_energy = FP {};
-        const auto handler_looper = [&](auto&&... handler) { ((pot_energy += handler(i_timeslice, i_particle, worldlines)), ...); };
+        const auto handler_looper = [&](auto&&... handler)
+        { ((pot_energy += handler(i_timeslice, i_particle, worldlines)), ...); };
 
         std::apply(handler_looper, handlers_);
 

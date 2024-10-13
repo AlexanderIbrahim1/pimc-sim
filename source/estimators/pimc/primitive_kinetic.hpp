@@ -51,11 +51,13 @@ constexpr auto total_primitive_kinetic_energy(
 
     for (std::size_t i_part {0}; i_part < n_particles; ++i_part) {
         // take care of the boundary case, where the 0th timeslice touches the last one
-        total_dist_squared += coord::distance_squared(worldlines.get(0, i_part), worldlines.get(n_timeslices - 1, i_part));
+        total_dist_squared +=
+            coord::distance_squared(worldlines.get(0, i_part), worldlines.get(n_timeslices - 1, i_part));
 
         // take care of the uninterrupted chain separately
         for (std::size_t i_tslice {0}; i_tslice < n_timeslices - 1; ++i_tslice) {
-            total_dist_squared += coord::distance_squared(worldlines.get(i_tslice, i_part), worldlines.get(i_tslice + 1, i_part));
+            total_dist_squared +=
+                coord::distance_squared(worldlines.get(i_tslice, i_part), worldlines.get(i_tslice + 1, i_part));
         }
     }
 

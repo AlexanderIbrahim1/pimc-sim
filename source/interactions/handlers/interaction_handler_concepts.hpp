@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cstddef>
 #include <concepts>
+#include <cstddef>
 
 #include <mathtools/grid/square_adjacency_matrix.hpp>
 #include <worldline/worldline.hpp>
