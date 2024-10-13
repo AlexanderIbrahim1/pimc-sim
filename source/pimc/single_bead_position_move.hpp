@@ -28,7 +28,6 @@ public:
 
     SingleBeadPositionMovePerformer() = delete;
 
-    // TODO: remove n_timeslices; not needed, can get the info from environment which gets passed anyways
     constexpr explicit SingleBeadPositionMovePerformer(std::size_t n_timeslices)
         : n_timeslices_ {n_timeslices}
     {}

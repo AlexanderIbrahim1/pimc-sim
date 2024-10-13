@@ -333,21 +333,6 @@ I used the ideal step size I found for the 3 x 2 x 2 matrix, for the 5 x 3 x 3 m
 
 I got an autocorrelation time of 10 passes for the 3 x 2 x 2 matrix, for (P = 64, density=0.026)
 
-### [INCORRECT] At density = 0.1
-At this density, the COM and multilevel moves are frozen!
-  - COM step size drops to 0
-  - multilevel moves reduce to single bead moves
-  - single bead moves have a success rate of ~10%
-
-As a result, the autocorrelation time increases to ~150 passes (box = 3x2x2, P = 64, density = 0.1)
-  - the only recourse here is:
-    - pick a larger value of P so larger multilevel moves are allowed
-    - remove the COM and multilevel moves, because they fail anyways
-    - increase the number of passes for the single bead moves
-
-[INCORRECT] it turns out this was a bug where I was undercounting the number of accepts
-  - not sure how it changes the optimal step sizes, but they should not freeze anymore
-
 
 ## 2024-08-28
 
@@ -379,53 +364,8 @@ It looks like I need a way to:
   - run the jobs via slurm (don't need to abstract this just yet)
 
 
-## Memory Requirements on Clusters
 
-### Some back of the envelope calculations
-With (N = 180, P = 64), a single wordline file is about 588 kB
-  - extending to (N = 180, P = 960), this will go up to about 7 MB
-  - if I have 300 of those, I'll end up with about 2 GB
-  - with 31 densities, this will be about 60 GB
-
-So the clusters should have enough memory on them
-  - IIRC, the variance of the 4B total energy is much lower than for the 2B and 3B total energies
-  - so I can use a random subset of the saved worldlines for the total 4B energy calculations
-
-
-## Renaming Worldlines
-Apparently I've been using the incorrect terminology the entire time
-  - a worldline is the ordered set of beads that all correspond to the same particle
-  - I've been using it to refer to the ordered set of beads that all correspond to the same timeslice,
-    for all the different particles
-
-I need to call them something else
-
-### Some names, and the pros and cons
-replicas
-  - apparently there's something called the "replica trick" in the context 
-
-paths
-  - too ambiguous
-  - I want something that makes it more obvious that it refers too all particles with the same timeslice index
-
-classical_image
-  - better, but a bit wordy?
-
-timeslice
-  - lecture notes from Ceperley actually mention it specifically
-
-
-## Changing the Worldline interface
-Right now, the (incorrectly named) "worldline" is a vector of points all at the same timeslice
-
-But I notice that:
-  - most of the time I pass a vector of worldlines
-  - it looks like the effects of other algorithms (like worm) make it so that it might not make
-    complete sense to refer to entirely separate particles
-
-So maybe I should just create a single "Worldlines" object, and pass it around
-  - and keep any information about the data layout encapsulated
-
-Right now, don't worry about extending the program to other particles with different data layouts
-  - I'll leave that for when I actually need it
-  - although it looks like many of the MC moves so far will only work on point particles, and not rotors
+## 2024-10-13
+Right now, I want to get the 4BPES working again
+  - I shut it off for development due to it having a very large compilation time
+  - but I should get it working again, with the new changes

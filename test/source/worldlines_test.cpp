@@ -1,4 +1,5 @@
 #include <iterator>
+#include <sstream>
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
@@ -6,6 +7,7 @@
 #include "coordinates/cartesian.hpp"
 #include "coordinates/measure.hpp"
 #include "worldline/worldline.hpp"
+#include "worldline/writers/read_worldlines.hpp"
 
 auto get_worldlines_2d_2timeslices_4particles() -> worldline::Worldlines<double, 2>
 {
@@ -143,4 +145,57 @@ TEST_CASE("Worldlines: beads on timeslice are contiguous")
     REQUIRE(distance_02_01 == 1);
     REQUIRE(distance_03_02 == 1);
     REQUIRE(distance_10_00 == 4);
+}
+
+TEST_CASE("basic read worldlines", "[Worldline]")
+{
+    auto stream = std::stringstream {};
+    stream << "# This file contains the positions of all the beads in all the particles in a simulation\n";
+    stream << "# The information after the comments is laid out in the following manner:               \n";
+    stream << "# - [integer] block index of the simulation this snapshot is taken at                   \n";
+    stream << "# - [integer] NDIM: number of dimensions the simulation was performed in                \n";
+    stream << "# - [integer] n_particles: total number of particles                                    \n";
+    stream << "# - [integer] n_timeslices: total number of timeslices                                  \n";
+    stream << "# ... followed by the bead positions...                                                 \n";
+    stream << "#                                                                                       \n";
+    stream << "# The positions of the beads are laid out in `NDIM` space-separated columns;            \n";
+    stream << "#   - the first `n_particle` lines correspond to the 0th worldline                      \n";
+    stream << "#   - the next `n_particle` lines correspond to the 1st worldline                       \n";
+    stream << "#   - the next `n_particle` lines correspond to the 2nd worldline, and so on            \n";
+    stream << "#   - there are `n_timeslices` worldlines in total                                      \n";
+    stream << "10                                                                                      \n";
+    stream << "3                                                                                       \n";
+    stream << "4                                                                                       \n";
+    stream << "2                                                                                       \n";
+    stream << "-2.43531882e-01   -1.82242452e-01    2.46618159e-01                                     \n";
+    stream << "-1.38601913e-01    3.30594232e+00   -1.91322270e-01                                     \n";
+    stream << " 1.82466528e+00    7.24260147e-01    3.19777664e+00                                     \n";
+    stream << "-7.06441454e-01    4.01323907e+00    3.30114762e+00                                     \n";
+    stream << " 3.97260972e+00   -1.85454391e-01    3.76458239e-01                                     \n";
+    stream << " 3.86765307e+00    3.51418714e+00    4.61786052e-02                                     \n";
+    stream << " 4.76010234e+00    1.62519369e+00    3.27951001e+00                                     \n";
+    stream << " 2.55859115e+00    4.46821617e+00    3.44368619e+00                                     \n";
+
+    const auto worldlines = worldline::read_worldlines<double, 3>(stream);
+
+    REQUIRE(worldlines.n_worldlines() == 4);
+    REQUIRE(worldlines.n_timeslices() == 2);
+
+    const auto point00 = coord::Cartesian<double, 3> {-2.43531882e-01, -1.82242452e-01, 2.46618159e-01};
+    const auto point01 = coord::Cartesian<double, 3> {-1.38601913e-01, 3.30594232e+00, -1.91322270e-01};
+    const auto point02 = coord::Cartesian<double, 3> {1.82466528e+00, 7.24260147e-01, 3.19777664e+00};
+    const auto point03 = coord::Cartesian<double, 3> {-7.06441454e-01, 4.01323907e+00, 3.30114762e+00};
+    const auto point10 = coord::Cartesian<double, 3> {3.97260972e+00, -1.85454391e-01, 3.76458239e-01};
+    const auto point11 = coord::Cartesian<double, 3> {3.86765307e+00, 3.51418714e+00, 4.61786052e-02};
+    const auto point12 = coord::Cartesian<double, 3> {4.76010234e+00, 1.62519369e+00, 3.27951001e+00};
+    const auto point13 = coord::Cartesian<double, 3> {2.55859115e+00, 4.46821617e+00, 3.44368619e+00};
+
+    REQUIRE(coord::approx_eq(worldlines.get(0, 0), point00));
+    REQUIRE(coord::approx_eq(worldlines.get(0, 1), point01));
+    REQUIRE(coord::approx_eq(worldlines.get(0, 2), point02));
+    REQUIRE(coord::approx_eq(worldlines.get(0, 3), point03));
+    REQUIRE(coord::approx_eq(worldlines.get(1, 0), point10));
+    REQUIRE(coord::approx_eq(worldlines.get(1, 1), point11));
+    REQUIRE(coord::approx_eq(worldlines.get(1, 2), point12));
+    REQUIRE(coord::approx_eq(worldlines.get(1, 3), point13));
 }
