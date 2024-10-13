@@ -29,7 +29,7 @@ public:
     constexpr auto operator()(std::size_t i_timeslice, std::size_t i_particle, const worldline::Worldlines<FP, NDIM>& worldlines) const noexcept -> FP
     {
         const auto timeslice = worldlines.timeslice(i_timeslice);
-        const auto& point = timeslice[i_particle];
+        const auto particle = timeslice[i_particle];
 
         auto pot_energy = FP {};
         for (std::size_t i {0}; i < timeslice.size(); ++i) {

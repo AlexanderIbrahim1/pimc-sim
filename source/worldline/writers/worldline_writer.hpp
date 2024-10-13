@@ -105,7 +105,7 @@ public:
         out_stream << header;
 
         for (std::size_t i_tslice {0}; i_tslice < n_timeslices; ++i_tslice) {
-            for (const auto& point = worldlines.timeslice(i_tslice)) {
+            for (const auto& point : worldlines.timeslice(i_tslice)) {
                 out_stream << impl_worldline::formatted_cartesian_line_for_worldline_file_(point);
             }
         }

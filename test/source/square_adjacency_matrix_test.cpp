@@ -6,7 +6,6 @@
 #include "coordinates/box_sides.hpp"
 #include "coordinates/cartesian.hpp"
 #include "coordinates/measure_wrappers.hpp"
-#include "environment/environment.hpp"
 #include "interactions/handlers/nearest_neighbour_interaction_handler.hpp"
 #include "mathtools/grid/square_adjacency_matrix.hpp"
 #include "worldline/worldline.hpp"
@@ -67,7 +66,6 @@ TEST_CASE("basic SquareAdjacencyMatrix test")
 TEST_CASE("update adjacency matrix")
 {
     using Point = coord::Cartesian<double, 2>;
-    using Worldline = worldline::Worldline<double, 2>;
 
     const auto box = coord::BoxSides<double, 2> {1.0, 1.0};
     const auto cutoff_distance = double {0.25};
@@ -86,11 +84,11 @@ TEST_CASE("update adjacency matrix")
              Point {0.3,  0.0}
         };
 
-        const auto worldline = Worldline {positions};
-
-        auto wlines = std::vector<Worldline> {};
-        for (std::size_t i_tslice {0}; i_tslice < n_timeslices; ++i_tslice) {
-            wlines.push_back(worldline);
+        auto wlines = worldline::Worldlines<double, 2>{n_timeslices, n_particles};
+        for (std::size_t it {0}; it < n_timeslices; ++it) {
+            for (std::size_t ip {0}; ip < n_particles; ++ip) {
+                wlines.set(it, ip, positions[ip]);
+            }
         }
 
         return wlines;

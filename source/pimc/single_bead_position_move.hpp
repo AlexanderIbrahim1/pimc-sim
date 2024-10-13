@@ -50,7 +50,7 @@ public:
         const auto proposed_bead = proposed_bead_mean + step;
 
         // calculate energy for the current configuration
-        const auto pot_energy_before = interact_handler(i_timesice, i_particle, worldlines);
+        const auto pot_energy_before = interact_handler(i_timeslice, i_particle, worldlines);
 
         // save the current position, and set the new one
         const auto current_bead = worldlines.get(i_timeslice, i_particle);
@@ -109,14 +109,14 @@ private:
     constexpr auto proposed_bead_position_mean_(
         std::size_t i_timeslice,
         std::size_t i_particle,
-        const Worldlines<FP, NDIM>& worldlines
+        const worldline::Worldlines<FP, NDIM>& worldlines
     ) const noexcept -> Point
     {
         const auto it_before = (i_timeslice + n_timeslices_ - 1) % n_timeslices_;
         const auto it_after = (i_timeslice + 1) % n_timeslices_;
 
         const auto& bead_before = worldlines.get(it_before, i_particle);
-        const auto& bead_after = worldlines.get(i_after, i_particle);
+        const auto& bead_after = worldlines.get(it_after, i_particle);
 
         return FP {0.5} * (bead_before + bead_after);
     }

@@ -100,7 +100,7 @@ auto main(int argc, char** argv) -> int
 
     /* create the worldlines and worldline writer*/
     auto worldline_writer = worldline::WorldlineWriter<float, NDIM> {output_dirpath};
-    auto worldlines = read_simulation_worldlines<NDIM>(continue_file_manager, worldline_writer, most_recent_completed_block_index, n_timeslices, lattice_site_positions);
+    auto worldlines = read_simulation_worldlines(continue_file_manager, worldline_writer, most_recent_completed_block_index, n_timeslices, lattice_site_positions);
 
     sim::write_box_sides(output_dirpath / "box_sides.dat", minimage_box);
 

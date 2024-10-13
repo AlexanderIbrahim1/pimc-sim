@@ -69,9 +69,9 @@ TEST_CASE("test composite full handler : equilateral triangle", "CompositeFullIn
         pair_interaction_handler, triplet_interaction_handler};
 
     // clang-format off
-    const auto actual = interaction_handler_2b3b(0, worldlines[0]);
+    const auto actual = interaction_handler_2b3b(0, 0, worldlines);
 
-    const auto expected_sep_handlers = pair_interaction_handler(0, worldlines[0]) + triplet_interaction_handler(0, worldlines[0]);
+    const auto expected_sep_handlers = pair_interaction_handler(0, 0, worldlines) + triplet_interaction_handler(0, 0, worldlines);
 
     const auto expected_direct =
         2.0 * pairpot(side_length) +
@@ -111,11 +111,11 @@ TEST_CASE("test composite full handler : square", "CompositeFullInteractionHandl
         pair_interaction_handler, triplet_interaction_handler};
 
     // clang-format off
-    const auto actual = interaction_handler_2b3b(0, worldlines[0]);
+    const auto actual = interaction_handler_2b3b(0, 0, worldlines);
 
     const auto expected_sep_handlers =
-        pair_interaction_handler(0, worldlines[0]) +
-        triplet_interaction_handler(0, worldlines[0]);
+        pair_interaction_handler(0, 0, worldlines) +
+        triplet_interaction_handler(0, 0, worldlines);
 
     const auto expected_direct =
         2.0f * pairpot(side_length) +

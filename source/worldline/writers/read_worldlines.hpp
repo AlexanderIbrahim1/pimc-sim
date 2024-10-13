@@ -61,9 +61,11 @@ auto read_worldlines(std::istream& stream) -> Worldlines<FP, NDIM>
     auto worldlines = Worldlines<FP, NDIM> {n_timeslices, n_particles};
     for (std::size_t i_tslice {0}; i_tslice < n_timeslices; ++i_tslice) {
         for (std::size_t i_part {0}; i_part < n_particles; ++i_part) {
-            worldlines.set(i_tslice, i_part, read_cartesian(stream));
+            worldlines.set(i_tslice, i_part, read_cartesian<FP, NDIM>(stream));
         }
     }
+
+    return worldlines;
 }
 
 template <std::floating_point FP, std::size_t NDIM>

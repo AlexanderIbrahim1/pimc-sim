@@ -8,7 +8,6 @@
 
 #include <coordinates/cartesian.hpp>
 #include <coordinates/measure.hpp>
-#include <environment/environment.hpp>
 #include <worldline/worldline.hpp>
 
 namespace estim
@@ -16,16 +15,11 @@ namespace estim
 
 template <std::floating_point FP, std::size_t NDIM>
 constexpr auto rms_centroid_distance(
-    const std::vector<worldline::Worldline<FP, NDIM>>& worldlines,
-    const envir::Environment<FP>& environment
+    const worldline::Worldlines<FP, NDIM>& worldlines
 ) -> FP
 {
-    if (worldlines.empty()) {
-        return FP {0.0};
-    }
-
-    const auto n_particles = environment.n_particles();
-    const auto n_timeslices = environment.n_timeslices();
+    const auto n_particles = worldlines.n_particles();
+    const auto n_timeslices = worldlines.n_timeslices();
 
     auto total = FP {0.0};
 
@@ -35,7 +29,7 @@ constexpr auto rms_centroid_distance(
         auto centroid = worldline::calculate_centroid(worldlines, i_part);
 
         for (std::size_t i_tslice {0}; i_tslice < n_timeslices; ++i_tslice) {
-            const auto point = worldlines[i_tslice][i_part];
+            const auto point = worldlines.get(i_tslice, i_part);
             total += coord::distance_squared(point, centroid);
         }
     }
@@ -47,16 +41,11 @@ constexpr auto rms_centroid_distance(
 
 template <std::floating_point FP, std::size_t NDIM>
 constexpr auto absolute_centroid_distance(
-    const std::vector<worldline::Worldline<FP, NDIM>>& worldlines,
-    const envir::Environment<FP>& environment
+    const worldline::Worldlines<FP, NDIM>& worldlines
 ) -> FP
 {
-    if (worldlines.empty()) {
-        return FP {0.0};
-    }
-
-    const auto n_particles = environment.n_particles();
-    const auto n_timeslices = environment.n_timeslices();
+    const auto n_particles = worldlines.n_particles();
+    const auto n_timeslices = worldlines.n_timeslices();
 
     auto total = FP {0.0};
 
@@ -66,7 +55,7 @@ constexpr auto absolute_centroid_distance(
         auto centroid = worldline::calculate_centroid(worldlines, i_part);
 
         for (std::size_t i_tslice {0}; i_tslice < n_timeslices; ++i_tslice) {
-            const auto point = worldlines[i_tslice][i_part];
+            const auto point = worldlines.get(i_tslice, i_part);
             total += coord::distance(point, centroid);
         }
     }

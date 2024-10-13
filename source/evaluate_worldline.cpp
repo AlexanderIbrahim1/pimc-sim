@@ -8,8 +8,6 @@
 // #include <torch/script.h>
 
 #include <coordinates/box_sides.hpp>
-#include <coordinates/measure_wrappers.hpp>
-#include <environment/environment.hpp>
 #include <estimators/pimc/three_body_potential.hpp>
 #include <estimators/pimc/two_body_potential.hpp>
 // #include <estimators/pimc/four_body_potential.hpp>
@@ -42,8 +40,6 @@ auto main(int argc, char** argv) -> int
     }
 
     const auto output_dirpath = parser.abs_output_dirpath;
-    const auto temperature = 1.0;  // temperature doesn't matter for worldline evaluation
-    const auto n_timeslices = parser.n_timeslices;
     const auto block_index = parser.block_index;
     const auto [n_particles, minimage_box, lattice_site_positions] =
         build_hcp_lattice_structure(parser.density, parser.n_unit_cells);
@@ -88,10 +84,6 @@ auto main(int argc, char** argv) -> int
     }();
     */
 
-    /* create the environment object */
-    const auto h2_mass = constants::H2_MASS_IN_AMU<double>;
-    const auto environment = envir::create_environment(temperature, h2_mass, n_timeslices, n_particles);
-
     /* create the file writers for the estimators */
     const auto pair_potential_writer = estim::default_pair_potential_writer<double>(output_dirpath);
     const auto triplet_potential_writer = estim::default_triplet_potential_writer<double>(output_dirpath);
@@ -106,19 +98,19 @@ auto main(int argc, char** argv) -> int
 
     /* run estimators */
     if (pot2b) {
-        const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic(worldlines, pot2b.value(), environment);
+        const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic(worldlines, pot2b.value());
         pair_potential_writer.write(block_index, total_pair_potential_energy);
     }
 
     if (pot3b) {
-        const auto total_triplet_potential_energy = estim::total_triplet_potential_energy_periodic(worldlines, pot3b.value(), environment);
+        const auto total_triplet_potential_energy = estim::total_triplet_potential_energy_periodic(worldlines, pot3b.value());
         triplet_potential_writer.write(block_index, total_triplet_potential_energy);
     }
 
     /*
     if (pot4b) {
         const auto cutoff = coord::box_cutoff_distance(minimage_box);
-        const auto total_quadruplet_potential_energy = estim::calculate_total_four_body_potential_energy_via_shifting(worldlines, pot4b.value(), environment, minimage_box, cutoff);
+        const auto total_quadruplet_potential_energy = estim::calculate_total_four_body_potential_energy_via_shifting(worldlines, pot4b.value(), minimage_box, cutoff);
         quadruplet_potential_writer.write(block_index, total_quadruplet_potential_energy);
     }
     */

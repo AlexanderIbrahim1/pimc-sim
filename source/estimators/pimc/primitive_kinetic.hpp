@@ -1,7 +1,6 @@
 #pragma once
 
 #include <concepts>
-#include <vector>
 
 #include <constants/conversions.hpp>
 #include <coordinates/measure.hpp>
@@ -16,6 +15,8 @@
 namespace estim
 {
 
+// TODO: simplify this, since we also have functions that get these quantities with units of wavenumbers
+// instead of Kelvin
 template <std::floating_point FP>
 constexpr auto primitive_kinetic_energy(
     const envir::Environment<FP>& environment,
@@ -39,27 +40,22 @@ constexpr auto primitive_kinetic_energy(
 
 template <std::floating_point FP, std::size_t NDIM>
 constexpr auto total_primitive_kinetic_energy(
-    const std::vector<worldline::Worldline<FP, NDIM>>& worldlines,
+    const worldline::Worldlines<FP, NDIM>& worldlines,
     const envir::Environment<FP>& environment
 ) noexcept -> FP
 {
-    if (worldlines.empty()) {
-        return FP {0.0};
-    }
-
     auto total_dist_squared = FP {};
 
-    const auto n_particles = environment.n_particles();
-    const auto n_timeslices = environment.n_timeslices();
+    const auto n_particles = worldlines.n_particles();
+    const auto n_timeslices = worldlines.n_timeslices();
 
     for (std::size_t i_part {0}; i_part < n_particles; ++i_part) {
         // take care of the boundary case, where the 0th timeslice touches the last one
-        total_dist_squared += coord::distance_squared(worldlines[0][i_part], worldlines[n_timeslices - 1][i_part]);
+        total_dist_squared += coord::distance_squared(worldlines.get(0, i_part), worldlines.get(n_timeslices - 1, i_part));
 
         // take care of the uninterrupted chain separately
         for (std::size_t i_tslice {0}; i_tslice < n_timeslices - 1; ++i_tslice) {
-            total_dist_squared +=
-                coord::distance_squared(worldlines[i_tslice][i_part], worldlines[i_tslice + 1][i_part]);
+            total_dist_squared += coord::distance_squared(worldlines.get(i_tslice, i_part), worldlines.get(i_tslice + 1, i_part));
         }
     }
 
