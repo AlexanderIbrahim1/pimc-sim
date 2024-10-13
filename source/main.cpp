@@ -105,7 +105,7 @@ auto main(int argc, char** argv) -> int
     sim::write_box_sides(output_dirpath / "box_sides.dat", minimage_box);
 
     const auto pot = fsh_potential<float>(minimage_box, parser.abs_two_body_filepath);
-    const auto pot3b = threebodyparah2_potential(minimage_box, parser.abs_three_body_filepath);
+    // const auto pot3b = threebodyparah2_potential(minimage_box, parser.abs_three_body_filepath);
 
     // const long int buffer_size = 1024;
     // auto pot4b = interact::get_published_buffered_four_body_potential<NDIM, interact::PermutationTransformerFlag::EXACT>(parser.abs_four_body_filepath, buffer_size);
@@ -241,12 +241,12 @@ auto main(int argc, char** argv) -> int
             // const auto& threebody_pot = interaction_handler.get<1>();
             // auto& fourbody_pot = interaction_handler.get<2>();
             // auto& fourbody_pot = pot4b;
-            auto& threebody_pot = pot3b;
+            // auto& threebody_pot = pot3b;
 
             /* run estimators */
             const auto total_kinetic_energy = estim::total_primitive_kinetic_energy(worldlines, environment);
             const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic(worldlines, pot);
-            const auto total_triplet_potential_energy = estim::total_triplet_potential_energy_periodic(worldlines, threebody_pot);
+            // const auto total_triplet_potential_energy = estim::total_triplet_potential_energy_periodic(worldlines, threebody_pot);
             // const auto total_quadruplet_potential_energy = estim::calculate_total_four_body_potential_energy_via_shifting(worldlines, fourbody_pot, environment, minimage_box, coord::box_cutoff_distance(minimage_box));
             const auto rms_centroid_dist = estim::rms_centroid_distance(worldlines);
             const auto abs_centroid_dist = estim::absolute_centroid_distance(worldlines);
@@ -254,7 +254,7 @@ auto main(int argc, char** argv) -> int
             /* save estimators */
             kinetic_writer.write(i_block, total_kinetic_energy);
             pair_potential_writer.write(i_block, total_pair_potential_energy);
-            triplet_potential_writer.write(i_block, total_triplet_potential_energy);
+            // triplet_potential_writer.write(i_block, total_triplet_potential_energy);
             // quadruplet_potential_writer.write(i_block, total_quadruplet_potential_energy);
             rms_centroid_writer.write(i_block, rms_centroid_dist);
             abs_centroid_writer.write(i_block, abs_centroid_dist);

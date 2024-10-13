@@ -88,7 +88,7 @@ public:
             // calculate energy for current configuration
             auto pot_energy_before = FP {0.0};
             for (const auto bisect_trip : bisection_level_manager.triplets(sublevel)) {
-                pot_energy_before += interact_handler(i_timeslice, i_particle, worldlines);
+                pot_energy_before += interact_handler(bisect_trip.mid, i_particle, worldlines);
             }
 
             // set proposed positions
@@ -105,7 +105,7 @@ public:
             // calculate energy for proposed configuration
             auto pot_energy_after = FP {0.0};
             for (const auto bisect_trip : bisection_level_manager.triplets(sublevel)) {
-                pot_energy_after += interact_handler(i_timeslice, i_particle, worldlines);
+                pot_energy_after += interact_handler(bisect_trip.mid, i_particle, worldlines);
             }
 
             const auto pot_energy_diff = pot_energy_after - pot_energy_before;
