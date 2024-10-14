@@ -366,6 +366,13 @@ It looks like I need a way to:
 
 
 ## 2024-10-13
-Right now, I want to get the 4BPES working again
+[DONE] Right now, I want to get the 4BPES working again
   - I shut it off for development due to it having a very large compilation time
   - but I should get it working again, with the new changes
+
+
+## 2024-10-14
+I should modify the ProjectInfo object to take the path to the directory where the executables are held
+  - rather than the path to the executable itself, which it does now
+  - then the python code that creates the bash files can decide which executable it wants to use
+    - because now there's more than one
