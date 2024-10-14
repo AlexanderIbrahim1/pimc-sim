@@ -91,7 +91,7 @@ def example(densities: NDArray) -> None:
     info = ProjectInfo()
 
     toml_info_map: dict[str, Any] = {}
-    toml_info_map["abs_repo_dirpath"] = info.abs_repo_dirpath
+    toml_info_map["abs_repo_dirpath"] = info.abs_external_dirpath
     toml_info_map["cell_dimensions"] = (3, 2, 2)
     toml_info_map["seed"] = '"RANDOM"'
     toml_info_map["last_block_index"] = 1000

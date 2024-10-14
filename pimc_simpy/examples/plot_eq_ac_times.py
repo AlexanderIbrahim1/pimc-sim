@@ -12,23 +12,23 @@ from pimc_simpy.data import read_property_data
 from pimc_simpy.data import PropertyData
 from pimc_simpy.data import between_epochs
 from pimc_simpy.manage import get_abs_simulations_job_output_dirpath
-from pimc_simpy.manage import SimulationProjectInfo
+from pimc_simpy.manage import ProjectInfo
 from pimc_simpy.plotting import plot_property_rescaled
 from pimc_simpy.statistics import autocorrelation_time_from_data
 
 
-class ProjectInfo(SimulationProjectInfo):
+class ProjectInfo(ProjectInfo):
     def __init__(self) -> None:
         self.abs_a68home = Path("/home/a68ibrah/research/simulations")
         self.abs_project_dirpath = self.abs_a68home / "cluster_data" / "files"
 
     @property
-    def abs_repo_dirpath(self) -> Path:
+    def abs_external_dirpath(self) -> Path:
         return self.abs_a68home / "pimc-sim"
 
     @property
     def abs_executable_filepath(self) -> Path:
-        return self.abs_repo_dirpath / "build" / "dev-highperf" / "source" / "pimc-sim"
+        return self.abs_external_dirpath / "build" / "dev-highperf" / "source" / "pimc-sim"
 
     @property
     def abs_subproject_dirpath(self) -> Path:

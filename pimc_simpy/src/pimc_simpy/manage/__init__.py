@@ -9,4 +9,4 @@ from pimc_simpy.manage.file_structure_names import get_slurm_bashfile_filepath
 from pimc_simpy.manage.file_structure_names import get_toml_filepath
 from pimc_simpy.manage.file_structure_names import mkdir_subproject_dirpaths
 from pimc_simpy.manage.file_structure_names import mkdir_job_and_output_dirpaths
-from pimc_simpy.manage.simulation_project_info import SimulationProjectInfo
+from pimc_simpy.manage.project_info import ProjectInfo

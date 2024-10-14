@@ -25,19 +25,19 @@ from pimc_simpy.manage import SimulationProjectInfo
 #     def __init__(self) -> None:
 #         self.abs_a68home = Path("/home/a68ibrah/research/simulations")
 #         self.abs_project_dirpath = self.abs_a68home / "pimc_simulations" / "simulations" / "twothreefour_body"
-# 
+#
 #     @property
 #     def abs_repo_dirpath(self) -> Path:
 #         return self.abs_a68home / "pimc-sim"
-# 
+#
 #     @property
 #     def abs_executable_filepath(self) -> Path:
 #         return self.abs_repo_dirpath / "build" / "dev-highperf" / "source" / "pimc-sim"
-# 
+#
 #     @property
 #     def abs_subproject_dirpath(self) -> Path:
 #         return self.abs_project_dirpath / "mcmc_param_search" / "p64_coarse"
-# 
+#
 #     @property
 #     def subproject_name(self) -> str:
 #         return "p64_coarse"
@@ -49,12 +49,12 @@ class ProjectInfo(SimulationProjectInfo):
         self.abs_project_dirpath = self.abs_a68home / "pimc_simulations" / "simulations" / "twothreefour_body"
 
     @property
-    def abs_repo_dirpath(self) -> Path:
+    def abs_external_dirpath(self) -> Path:
         return self.abs_a68home / "pimc_simulations" / "pimc-sim"
 
     @property
     def abs_executable_filepath(self) -> Path:
-        return self.abs_repo_dirpath / "build" / "dev-highperf" / "source" / "pimc-sim"
+        return self.abs_external_dirpath / "build" / "dev-highperf" / "source" / "pimc-sim"
 
     @property
     def abs_subproject_dirpath(self) -> Path:
