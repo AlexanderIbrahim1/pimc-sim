@@ -19,5 +19,6 @@ pimc_simpy/scripts/pes_files/
 pimc_simpy/scripts/models/
 pimc_simpy/project_info_toml_files/
 other/investigations/
+other/platform_paths/
 
 TEMPNOTES.md

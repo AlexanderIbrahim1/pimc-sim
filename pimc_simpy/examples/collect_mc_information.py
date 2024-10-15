@@ -76,13 +76,11 @@ def collect_all_bisection_step_size_info() -> None:
 
     out_filepath = Path("ideal_mc_steps", "ideal_bisection_step_sizes.dat")
 
-    with open(out_filepath, 'w') as fout:
+    with open(out_filepath, "w") as fout:
         for sim_id in range(n_densities):
             abs_job_output_dirpath = get_abs_job_output_dirpath(info, sim_id)
             upper_fraction, lower_level = collect_bisection_step_size_info(abs_job_output_dirpath, 100)
             fout.write(f"{upper_fraction: 12.8f}   {lower_level}\n")
-
-
 
 
 if __name__ == "__main__":

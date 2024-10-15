@@ -130,6 +130,13 @@ def between_epochs(i_epoch_left: int, i_epoch_right: int, data: PropertyData) ->
     return between_indices(i_left, i_right, data)
 
 
+def last_n_epochs(n_epochs: int, data: PropertyData) -> PropertyData:
+    i_epoch_right = data.epochs[-1]
+    i_epoch_left = i_epoch_right - n_epochs
+
+    return between_epochs(i_epoch_left, i_epoch_right, data)
+
+
 def _index_from_epoch_bisect(epoch: int, data: PropertyData, *, throw_if_at_end: bool = True) -> int:
     i_left_bisect = np.searchsorted(data.epochs, epoch)
     if i_left_bisect < data.epochs.size and data.epochs[i_left_bisect] == epoch:
