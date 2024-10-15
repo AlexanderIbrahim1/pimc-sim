@@ -13,7 +13,7 @@ def toml_contents_with_rel_paths() -> str:
         [
             'abs_home = "/home/a68ibrah/projects/def-pnroy/a68ibrah"',
             'rel_external_dirpath = "pimc_simulations/pimc-sim"',
-            'rel_executable_filepath = "pimc_simulations/pimc-sim/build/highperf/source/pimc-sim"',
+            'rel_executable_dirpath = "pimc_simulations/pimc-sim/build/highperf/source"',
             'rel_subproject_dirpath = "pimc_simulations/simulations/twothreefour_body/mcmc_param_search/p64_coarse"',
             'subproject_name = "p64_coarse"',
         ]
@@ -25,7 +25,7 @@ def toml_contents_with_abs_paths() -> str:
     return "\n".join(
         [
             'abs_external_dirpath = "/home/a68ibrah/projects/def-pnroy/a68ibrah/pimc_simulations/pimc-sim"',
-            'abs_executable_filepath = "/home/a68ibrah/projects/def-pnroy/a68ibrah/pimc_simulations/pimc-sim/build/highperf/source/pimc-sim"',
+            'abs_executable_dirpath = "/home/a68ibrah/projects/def-pnroy/a68ibrah/pimc_simulations/pimc-sim/build/highperf/source"',
             'abs_subproject_dirpath = "/home/a68ibrah/projects/def-pnroy/a68ibrah/pimc_simulations/simulations/twothreefour_body/mcmc_param_search/p64_coarse"',
             'subproject_name = "p64_coarse"',
         ]
@@ -43,16 +43,16 @@ class Test_parse_project_info:
         # fmt: off
         abs_home = Path("/home/a68ibrah/projects/def-pnroy/a68ibrah")
         expected_abs_external_dirpath = abs_home / "pimc_simulations" / "pimc-sim"
-        expected_abs_executable_filepath = abs_home / "pimc_simulations" / "pimc-sim" / "build" / "highperf" / "source" / "pimc-sim"
+        expected_abs_executable_filepath = abs_home / "pimc_simulations" / "pimc-sim" / "build" / "highperf" / "source"
         expected_abs_subproject_dirpath = abs_home / "pimc_simulations" / "simulations" / "twothreefour_body" / "mcmc_param_search" / "p64_coarse"
         expected_subproject_name = "p64_coarse"
         # fmt: on
 
         assert info_from_rel_paths.abs_external_dirpath == expected_abs_external_dirpath
-        assert info_from_rel_paths.abs_executable_filepath == expected_abs_executable_filepath
+        assert info_from_rel_paths.abs_executable_dirpath == expected_abs_executable_filepath
         assert info_from_rel_paths.abs_subproject_dirpath == expected_abs_subproject_dirpath
         assert info_from_rel_paths.subproject_name == expected_subproject_name
         assert info_from_abs_paths.abs_external_dirpath == expected_abs_external_dirpath
-        assert info_from_abs_paths.abs_executable_filepath == expected_abs_executable_filepath
+        assert info_from_abs_paths.abs_executable_dirpath == expected_abs_executable_filepath
         assert info_from_abs_paths.abs_subproject_dirpath == expected_abs_subproject_dirpath
         assert info_from_abs_paths.subproject_name == expected_subproject_name

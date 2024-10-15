@@ -23,7 +23,7 @@ import tomllib
 @dataclass
 class ProjectInfo:
     abs_external_dirpath: Path
-    abs_executable_filepath: Path
+    abs_executable_dirpath: Path
     abs_subproject_dirpath: Path
     subproject_name: str
 
@@ -43,11 +43,11 @@ TOML_ABS_HOME_KEY_: str = "abs_home"
 TOML_SUBPROJECT_NAME_KEY_: str = "subproject_name"
 
 TOML_REL_EXTERNAL_DIRPATH_KEY_: str = "rel_external_dirpath"
-TOML_REL_EXECUTABLE_FILEPATH_KEY_: str = "rel_executable_filepath"
+TOML_REL_EXECUTABLE_DIRPATH_KEY_: str = "rel_executable_dirpath"
 TOML_REL_SUBPROJECT_DIRPATH_KEY_: str = "rel_subproject_dirpath"
 
 TOML_ABS_EXTERNAL_DIRPATH_KEY_: str = "abs_external_dirpath"
-TOML_ABS_EXECUTABLE_FILEPATH_KEY_: str = "abs_executable_filepath"
+TOML_ABS_EXECUTABLE_DIRPATH_KEY_: str = "abs_executable_dirpath"
 TOML_ABS_SUBPROJECT_DIRPATH_KEY_: str = "abs_subproject_dirpath"
 
 
@@ -55,7 +55,7 @@ def parse_project_info_using_rel_paths_(toml_config: dict[str, Any]) -> ProjectI
     abs_home = Path(toml_config[TOML_ABS_HOME_KEY_])
 
     abs_external_dirpath: Path = abs_home / Path(toml_config[TOML_REL_EXTERNAL_DIRPATH_KEY_])
-    abs_executable_filepath: Path = abs_home / Path(toml_config[TOML_REL_EXECUTABLE_FILEPATH_KEY_])
+    abs_executable_filepath: Path = abs_home / Path(toml_config[TOML_REL_EXECUTABLE_DIRPATH_KEY_])
     abs_subproject_dirpath: Path = abs_home / Path(toml_config[TOML_REL_SUBPROJECT_DIRPATH_KEY_])
     subproject_name: str = toml_config[TOML_SUBPROJECT_NAME_KEY_]
 
@@ -64,7 +64,7 @@ def parse_project_info_using_rel_paths_(toml_config: dict[str, Any]) -> ProjectI
 
 def parse_project_info_using_abs_paths_(toml_config: dict[str, Any]) -> ProjectInfo:
     abs_external_dirpath: Path = Path(toml_config[TOML_ABS_EXTERNAL_DIRPATH_KEY_])
-    abs_executable_filepath: Path = Path(toml_config[TOML_ABS_EXECUTABLE_FILEPATH_KEY_])
+    abs_executable_filepath: Path = Path(toml_config[TOML_ABS_EXECUTABLE_DIRPATH_KEY_])
     abs_subproject_dirpath: Path = Path(toml_config[TOML_ABS_SUBPROJECT_DIRPATH_KEY_])
     subproject_name: str = toml_config[TOML_SUBPROJECT_NAME_KEY_]
 

@@ -62,7 +62,8 @@ def get_toml_file_contents(contents_map: dict[str, Any]) -> str:
 
 
 def get_slurm_file_contents(contents_map: dict[str, Any]) -> str:
-    abs_executable_filepath: Path | str = contents_map["abs_executable_filepath"]
+    executable: str = contents_map["executable"]
+    abs_executable_dirpath: Path | str = contents_map["abs_executable_dirpath"]
     abs_toml_filepath: Path | str = contents_map["abs_toml_filepath"]
     memory_gb: int = contents_map["memory_gb"]
     abs_slurm_output_filename: str = contents_map["abs_slurm_output_filename"]
@@ -77,7 +78,7 @@ def get_slurm_file_contents(contents_map: dict[str, Any]) -> str:
             "# #SBATCH --cpus-per-task=1",
             f"# #SBATCH --output={str(abs_slurm_output_filename)}",
             "",
-            f'executable="{str(abs_executable_filepath)}"',
+            f'executable="{str(abs_executable_dirpath)}/{executable}"',
             f'toml_file="{str(abs_toml_filepath)}"',
             "",
             "${executable} ${toml_file}",
@@ -102,7 +103,8 @@ def example(info: ProjectInfo, densities: NDArray) -> None:
     toml_info_map["bisection_ratio"] = 0.5
 
     slurm_info_map: dict[str, Any] = {}
-    slurm_info_map["abs_executable_filepath"] = info.abs_executable_filepath
+    slurm_info_map["executable"] = "pimc-sim"
+    slurm_info_map["abs_executable_dirpath"] = info.abs_executable_dirpath
     slurm_info_map["memory_gb"] = 4
 
     mkdir_subproject_dirpaths(info)
