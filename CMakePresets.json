@@ -140,7 +140,7 @@
       "inherits": ["ci-linux"],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "HighPerf",
-        "CMAKE_CXX_FLAGS_HIGHPERF": "-O3 -ffast-math -march=native",
+        "CMAKE_CXX_FLAGS_HIGHPERF": "-O3 -DNDEBUG -ffast-math -march=native",
         "CMAKE_MAP_IMPORTED_CONFIG_HIGHPERF": "HighPerf;RelWithDebInfo;Release;Debug;"
       }
     },
