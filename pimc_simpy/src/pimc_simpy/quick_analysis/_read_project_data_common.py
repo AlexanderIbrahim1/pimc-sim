@@ -3,26 +3,23 @@ This module contains functions for analyzing the optimal monte carlo step sizes
 from the output of a simulation.
 """
 
-from pathlib import Path
-from typing import Optional
-from typing import Type
-
 import numpy as np
 
 from pimc_simpy.manage import ProjectInfo
-from pimc_simpy.manage import get_abs_simulations_job_output_dirpath
 
+from pimc_simpy.data import BoxSides
+from pimc_simpy.data import HistogramInfo
 from pimc_simpy.data import PropertyData
 from pimc_simpy.data import PropertyStatistics
 from pimc_simpy.data import get_property_statistics
 from pimc_simpy.data import read_histogram
-from pimc_simpy.data import HistogramInfo
 from pimc_simpy.data import read_property_data
 from pimc_simpy.data import read_property_data_multiple
 from pimc_simpy.data import between_epochs
 from pimc_simpy.data import last_n_epochs
 
 import pimc_simpy.quick_analysis._default_filenames as _default_filenames
+from pimc_simpy.quick_analysis._read_project_data_helpers import _read_project_box_sides
 from pimc_simpy.quick_analysis._read_project_data_helpers import _read_project_histogram
 from pimc_simpy.quick_analysis._read_project_data_helpers import _read_project_property_data
 from pimc_simpy.quick_analysis._read_project_data_helpers import _read_project_property_data_multiple
@@ -154,9 +151,7 @@ def read_project_radial_dist_histogram(
     *,
     filename: str = _default_filenames._RADIAL_DIST_HISTO_FILENAME,
 ) -> HistogramInfo:
-    abs_job_output_dirpath = get_abs_simulations_job_output_dirpath(info, sim_id)
-    filepath = abs_job_output_dirpath / filename
-    return read_histogram(filepath)
+    return _read_project_histogram(info, sim_id, filename)
 
 
 def read_project_centroid_radial_dist_histogram(
@@ -165,17 +160,17 @@ def read_project_centroid_radial_dist_histogram(
     *,
     filename: str = _default_filenames._CENTROID_RADIAL_DIST_HISTO_FILENAME,
 ) -> HistogramInfo:
-    abs_job_output_dirpath = get_abs_simulations_job_output_dirpath(info, sim_id)
-    filepath = abs_job_output_dirpath / filename
-    return read_histogram(filepath)
+    return _read_project_histogram(info, sim_id, filename)
 
 
-# def read_project_box_sides(
-#     info: ProjectInfo,
-#     sim_id: int,
-#     *,
-#     filename: str = _default_filenames._CENTROID_RADIAL_DIST_HISTO_FILENAME,
-# ) ->
+def read_project_box_sides(
+    info: ProjectInfo,
+    sim_id: int,
+    *,
+    filename: str = _default_filenames._CENTROID_RADIAL_DIST_HISTO_FILENAME,
+) -> BoxSides:
+    return _read_project_box_sides(info, sim_id, filename)
+
 
 # def collect_centre_of_mass_step_size(
 #     info: ProjectInfo, sim_id: int, n_last: Optional[int] = None, *, com_step_size_filename: Optional[str] = None

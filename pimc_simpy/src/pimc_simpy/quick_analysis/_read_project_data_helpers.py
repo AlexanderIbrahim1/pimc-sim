@@ -9,9 +9,11 @@ from typing import Type
 from pimc_simpy.manage import ProjectInfo
 from pimc_simpy.manage import get_abs_simulations_job_output_dirpath
 
-from pimc_simpy.data import PropertyData
-from pimc_simpy.data import read_histogram
+from pimc_simpy.data import BoxSides
 from pimc_simpy.data import HistogramInfo
+from pimc_simpy.data import PropertyData
+from pimc_simpy.data import read_box_sides
+from pimc_simpy.data import read_histogram
 from pimc_simpy.data import read_property_data
 from pimc_simpy.data import read_property_data_multiple
 
@@ -49,3 +51,14 @@ def _read_project_histogram(
     filepath = abs_job_output_dirpath / filename
 
     return read_histogram(filepath)
+
+
+def _read_project_box_sides(
+    info: ProjectInfo,
+    sim_id: int,
+    filename: str,
+) -> BoxSides:
+    abs_job_output_dirpath = get_abs_simulations_job_output_dirpath(info, sim_id)
+    filepath = abs_job_output_dirpath / filename
+
+    return read_box_sides(filepath)
