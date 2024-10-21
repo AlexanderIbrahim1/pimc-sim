@@ -14,9 +14,9 @@ that specific simulation, and not others in the same subproject).
 """
 
 from dataclasses import dataclass
-from io import BytesIO
 from pathlib import Path
 from typing import Any
+from typing import BinaryIO
 import tomllib
 
 
@@ -28,7 +28,7 @@ class ProjectInfo:
     subproject_name: str
 
 
-def parse_project_info(toml_stream: BytesIO) -> ProjectInfo:
+def parse_project_info(toml_stream: BinaryIO) -> ProjectInfo:
     toml_config = tomllib.load(toml_stream)
 
     if TOML_ABS_HOME_KEY_ in toml_config:
