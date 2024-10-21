@@ -18,6 +18,7 @@ class BoxSides:
                 raise ValueError("Found a non-positive side for the BoxSides constructor.")
             self._sides.append(side)
 
+    @property
     def n_dimensions(self) -> int:
         return len(self._sides)
 
