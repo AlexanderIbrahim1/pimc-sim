@@ -28,7 +28,12 @@ class ProjectInfo:
     subproject_name: str
 
 
-def parse_project_info(toml_stream: BinaryIO) -> ProjectInfo:
+def parse_project_info(toml_filepath: Path) -> ProjectInfo:
+    with open(toml_filepath, "rb") as toml_stream:
+        return parse_project_info_stream(toml_stream)
+
+
+def parse_project_info_stream(toml_stream: BinaryIO) -> ProjectInfo:
     toml_config = tomllib.load(toml_stream)
 
     if TOML_ABS_HOME_KEY_ in toml_config:

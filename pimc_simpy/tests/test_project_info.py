@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from pimc_simpy.manage.project_info import ProjectInfo
-from pimc_simpy.manage.project_info import parse_project_info
+from pimc_simpy.manage.project_info import parse_project_info_stream
 
 
 @pytest.fixture
@@ -37,8 +37,8 @@ class Test_parse_project_info:
         toml_stream_rel_paths = BytesIO(toml_contents_with_rel_paths.encode("utf8"))
         toml_stream_abs_paths = BytesIO(toml_contents_with_abs_paths.encode("utf8"))
 
-        info_from_rel_paths = parse_project_info(toml_stream_rel_paths)
-        info_from_abs_paths = parse_project_info(toml_stream_abs_paths)
+        info_from_rel_paths = parse_project_info_stream(toml_stream_rel_paths)
+        info_from_abs_paths = parse_project_info_stream(toml_stream_abs_paths)
 
         # fmt: off
         abs_home = Path("/home/a68ibrah/projects/def-pnroy/a68ibrah")
