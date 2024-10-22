@@ -16,6 +16,10 @@ from pimc_simpy.quick_analysis import read_project_single_bead_position_move_acc
 from pimc_simpy.quick_analysis import read_project_centre_of_mass_position_move_acceptance
 from pimc_simpy.quick_analysis import read_project_bisection_multibead_position_move_info
 from pimc_simpy.quick_analysis import read_project_centre_of_mass_step_size
+from pimc_simpy.quick_analysis import write_converged_bisection_multibead_position_move_info_last
+from pimc_simpy.quick_analysis import write_converged_centre_of_mass_step_size_last
+from pimc_simpy.quick_analysis import read_converged_bisection_multibead_position_move_info
+from pimc_simpy.quick_analysis import read_converged_centre_of_mass_step_size
 from pimc_simpy.manage import ProjectInfo
 from pimc_simpy.manage import parse_project_info
 from pimc_simpy.plotting import plot_property
@@ -57,34 +61,25 @@ def converged_monte_carlo_steps(info: ProjectInfo, sim_id: int, between: tuple[i
     print_mean_and_sem(com_step_sizes)
 
 
-def write_converged_monte_carlo_steps(
-    info: ProjectInfo, between: tuple[int, int], output_filepath: Path, sim_ids: Sequence[int]
-) -> None:
-    def get_mean(data: PropertyData) -> float:
-        data = between_epochs(between[0], between[1], data)
-        stats = get_property_statistics(data)
-        return stats.mean
-
-    with open(output_filepath, "w") as fout:
-        for sim_id in sim_ids:
-            upper_fractions, lower_levels = read_project_bisection_multibead_position_move_info(info, sim_id)
-            com_step_sizes = read_project_centre_of_mass_step_size(info, sim_id)
-
-            upper_fraction_mean = get_mean(upper_fractions)
-            lower_level_mean = round(get_mean(lower_levels))
-            com_step_size_mean = get_mean(com_step_sizes)
-
-            fout.write(f"{sim_id:>2d}  {upper_fraction_mean: 12.8f}  {lower_level_mean:>2d}  {com_step_size_mean: 12.8f}\n")
-
-
 if __name__ == "__main__":
     project_info_toml_filepath = Path("..", "project_info_toml_files", "local_mcmc_param_search_p960.toml")
     project_info = parse_project_info(project_info_toml_filepath)
-    output_filepath = Path(".", "example_output.dat")
+    bisection_output_filepath = Path("..", "playground", "converged_bisection_move_info_p960.dat")
+    com_output_filepath = Path("..", "playground", "converged_centre_of_mass_step_size_p960.dat")
 
-    sim_id = int(sys.argv[1])
-    plot_monte_carlo_acceptance_rates(project_info, sim_id)
-    plot_monte_carlo_steps(project_info, sim_id)
-    converged_monte_carlo_steps(project_info, sim_id, (0, 300))
+    # sim_id = int(sys.argv[1])
+    # plot_monte_carlo_acceptance_rates(project_info, sim_id)
+    # plot_monte_carlo_steps(project_info, sim_id)
+    # converged_monte_carlo_steps(project_info, sim_id, (300, 500))
 
-    # write_converged_monte_carlo_steps(project_info, (0, 300), output_filepath, range(31))
+    # write_converged_bisection_multibead_position_move_info_last(project_info, bisection_output_filepath, range(31), 200)
+    # write_converged_centre_of_mass_step_size_last(project_info, com_output_filepath, range(31), 200)
+
+    # multibead_info_data = read_converged_bisection_multibead_position_move_info(bisection_output_filepath)
+
+    # for sim_id, multibead_info in multibead_info_data:
+    #     print(f"{sim_id}  :  {multibead_info.lower_level}  {multibead_info.upper_level_fraction}")
+
+    # com_info_data = read_converged_centre_of_mass_step_size(com_output_filepath)
+    # for sim_id, com_step_size in com_info_data:
+    #     print(f"{sim_id}  :  {com_step_size: 12.8f}")

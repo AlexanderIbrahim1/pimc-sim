@@ -12,8 +12,8 @@ from pimc_simpy.data import PropertyData
 from pimc_simpy.data import last_n_epochs
 from pimc_simpy.data import between_epochs
 from pimc_simpy.data import get_property_statistics
-from pimc_simpy.quick_analysis import read_project_bisection_multibead_position_move_info
-from pimc_simpy.quick_analysis import read_project_centre_of_mass_step_size
+from pimc_simpy.quick_analysis._read_project_data_common import read_project_bisection_multibead_position_move_info
+from pimc_simpy.quick_analysis._read_project_data_common import read_project_centre_of_mass_step_size
 from pimc_simpy.manage import ProjectInfo
 
 
