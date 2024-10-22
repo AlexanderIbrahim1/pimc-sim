@@ -9,6 +9,7 @@ from typing import Sequence
 
 from pimc_simpy.data import PropertyData
 from pimc_simpy.data import last_n_epochs
+from pimc_simpy.data import between_epochs
 from pimc_simpy.data import get_property_statistics
 from pimc_simpy.quick_analysis import read_project_bisection_multibead_position_move_acceptance
 from pimc_simpy.quick_analysis import read_project_single_bead_position_move_acceptance
@@ -41,12 +42,12 @@ def plot_monte_carlo_steps(info: ProjectInfo, sim_id: int) -> None:
     plot_property([upper_fractions, lower_levels, com_step_sizes], labels=["upper_fractions", "lower_levels", "com_step_sizes"])
 
 
-def converged_monte_carlo_steps(info: ProjectInfo, sim_id: int, n_last: int) -> None:
+def converged_monte_carlo_steps(info: ProjectInfo, sim_id: int, between: tuple[int, int]) -> None:
     upper_fractions, lower_levels = read_project_bisection_multibead_position_move_info(info, sim_id)
     com_step_sizes = read_project_centre_of_mass_step_size(info, sim_id)
 
     def print_mean_and_sem(data: PropertyData) -> None:
-        data = last_n_epochs(n_last, data)
+        data = between_epochs(between[0], between[1], data)
         stats = get_property_statistics(data)
 
         print(f"(mean, sem) = ({stats.mean}, {stats.stderrmean})")
@@ -56,9 +57,11 @@ def converged_monte_carlo_steps(info: ProjectInfo, sim_id: int, n_last: int) -> 
     print_mean_and_sem(com_step_sizes)
 
 
-def write_converged_monte_carlo_steps(info: ProjectInfo, n_last: int, output_filepath: Path, sim_ids: Sequence[int]) -> None:
+def write_converged_monte_carlo_steps(
+    info: ProjectInfo, between: tuple[int, int], output_filepath: Path, sim_ids: Sequence[int]
+) -> None:
     def get_mean(data: PropertyData) -> float:
-        data = last_n_epochs(n_last, data)
+        data = between_epochs(between[0], between[1], data)
         stats = get_property_statistics(data)
         return stats.mean
 
@@ -75,13 +78,13 @@ def write_converged_monte_carlo_steps(info: ProjectInfo, n_last: int, output_fil
 
 
 if __name__ == "__main__":
-    project_info_toml_filepath = Path("..", "project_info_toml_files", "local_mcmc_param_search_p64.toml")
+    project_info_toml_filepath = Path("..", "project_info_toml_files", "local_mcmc_param_search_p960.toml")
     project_info = parse_project_info(project_info_toml_filepath)
     output_filepath = Path(".", "example_output.dat")
 
     sim_id = int(sys.argv[1])
-    # plot_monte_carlo_acceptance_rates(project_info, sim_id)
-    # plot_monte_carlo_steps(project_info, sim_id)
-    # converged_monte_carlo_steps(project_info, sim_id, 200)
+    plot_monte_carlo_acceptance_rates(project_info, sim_id)
+    plot_monte_carlo_steps(project_info, sim_id)
+    converged_monte_carlo_steps(project_info, sim_id, (0, 300))
 
-    write_converged_monte_carlo_steps(project_info, 200, output_filepath, range(31))
+    # write_converged_monte_carlo_steps(project_info, (0, 300), output_filepath, range(31))
