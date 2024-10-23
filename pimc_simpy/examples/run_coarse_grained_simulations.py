@@ -10,6 +10,9 @@ from typing import Any
 import numpy as np
 from numpy.typing import NDArray
 
+from pimc_simpy.quick_analysis import read_converged_bisection_multibead_position_move_info
+from pimc_simpy.quick_analysis import read_converged_centre_of_mass_step_size
+
 from pimc_simpy.manage import get_abs_slurm_output_filename
 from pimc_simpy.manage import get_abs_simulations_job_output_dirpath
 from pimc_simpy.manage import get_slurm_bashfile_filepath
@@ -31,6 +34,7 @@ def get_toml_file_contents(contents_map: dict[str, Any]) -> str:
     n_equilibrium_blocks = contents_map["n_equilibrium_blocks"]
     n_passes = contents_map["n_passes"]
     n_timeslices = contents_map["n_timeslices"]
+    freeze_mc_steps: bool = contents_map["freeze_mc_steps"]
     centre_of_mass_step_size = contents_map["centre_of_mass_step_size"]
     bisection_level = contents_map["bisection_level"]
     bisection_ratio = contents_map["bisection_ratio"]
@@ -52,11 +56,13 @@ def get_toml_file_contents(contents_map: dict[str, Any]) -> str:
             f"n_cells_dim0 = {cell_dimensions[0]}",
             f"n_cells_dim1 = {cell_dimensions[1]}",
             f"n_cells_dim2 = {cell_dimensions[2]}",
+            f"freeze_monte_carlo_step_sizes_in_equilibrium = {freeze_mc_steps}",
             f"abs_two_body_filepath =   '{str(abs_repo_dirpath)}/potentials/fsh_potential_angstroms_wavenumbers.potext_sq'",
-            f"abs_three_body_filepath = '{str(abs_repo_dirpath)}/pimc_simpy/scripts/pes_files/threebody_126_101_51.dat'",
+            f"abs_three_body_filepath = '{str(abs_repo_dirpath)}/../../large_files/eng.tri'",
             f"abs_four_body_filepath =  '{str(abs_repo_dirpath)}/pimc_simpy/scripts/models/fourbodypara_8_16_16_8.pt'",
         ]
     )
+    # f"abs_three_body_filepath = '{str(abs_repo_dirpath)}/pimc_simpy/scripts/pes_files/threebody_126_101_51.dat'",
 
     return contents
 
@@ -72,11 +78,11 @@ def get_slurm_file_contents(contents_map: dict[str, Any]) -> str:
         [
             "#!/bin/bash",
             "",
-            "# #SBATCH --account=rrg-pnroy",
-            f"# #SBATCH --mem={memory_gb}G",
-            "# #SBATCH --time=0-06:00:00",
-            "# #SBATCH --cpus-per-task=1",
-            f"# #SBATCH --output={str(abs_slurm_output_filename)}",
+            "#SBATCH --account=rrg-pnroy",
+           f"#SBATCH --mem={memory_gb}G",
+            "#SBATCH --time=2-00:00:00",
+            "#SBATCH --cpus-per-task=1",
+           f"#SBATCH --output={str(abs_slurm_output_filename)}",
             "",
             f'executable="{str(abs_executable_dirpath)}/{executable}"',
             f'toml_file="{str(abs_toml_filepath)}"',
@@ -90,17 +96,23 @@ def get_slurm_file_contents(contents_map: dict[str, Any]) -> str:
 
 
 def example(info: ProjectInfo, densities: NDArray) -> None:
+    bisect_info_filepath = Path('..', 'playground', 'converged_bisection_move_info_p960.dat')
+    com_info_filepath = Path('..', 'playground', 'converged_centre_of_mass_step_size_p960.dat')
+
+    bisection_moves = read_converged_bisection_multibead_position_move_info(bisect_info_filepath)
+    bisection_moves = [move for _, move in bisection_moves]
+    com_moves = read_converged_centre_of_mass_step_size(com_info_filepath)
+    com_moves = [move for _, move in com_moves]
+
     toml_info_map: dict[str, Any] = {}
     toml_info_map["abs_repo_dirpath"] = info.abs_external_dirpath
-    toml_info_map["cell_dimensions"] = (3, 2, 2)
+    toml_info_map["cell_dimensions"] = (5, 3, 3)
     toml_info_map["seed"] = '"RANDOM"'
     toml_info_map["last_block_index"] = 1000
-    toml_info_map["n_equilibrium_blocks"] = 1000
-    toml_info_map["n_passes"] = 20
-    toml_info_map["n_timeslices"] = 64
-    toml_info_map["centre_of_mass_step_size"] = 0.3
-    toml_info_map["bisection_level"] = 3
-    toml_info_map["bisection_ratio"] = 0.5
+    toml_info_map["n_equilibrium_blocks"] = 10
+    toml_info_map["n_passes"] = 2
+    toml_info_map["n_timeslices"] = 960
+    toml_info_map["freeze_mc_steps"] = "true"
 
     slurm_info_map: dict[str, Any] = {}
     slurm_info_map["executable"] = "pimc-sim"
@@ -110,6 +122,11 @@ def example(info: ProjectInfo, densities: NDArray) -> None:
     mkdir_subproject_dirpaths(info)
 
     for sim_id, density in enumerate(densities):
+        # set the converged monte carlo step sizes
+        toml_info_map["centre_of_mass_step_size"] = com_moves[sim_id]
+        toml_info_map["bisection_level"] = bisection_moves[sim_id].lower_level
+        toml_info_map["bisection_ratio"] = bisection_moves[sim_id].upper_level_fraction
+
         # create the locations for the simulation and the output
         mkdir_job_and_output_dirpaths(info, sim_id)
 
@@ -133,11 +150,11 @@ def example(info: ProjectInfo, densities: NDArray) -> None:
 
 
 def run_slurm_files(info: ProjectInfo, n_densities: int) -> None:
-    # for sim_id in range(n_densities):
-    for sim_id in [0]:
+    # for sim_id in [0]:
+    for sim_id in range(1, n_densities):
         abs_slurm_filepath = get_slurm_bashfile_filepath(info, sim_id)
 
-        cmd = ["bash", str(abs_slurm_filepath)]
+        cmd = ["sbatch", str(abs_slurm_filepath)]
         subprocess.run(cmd, check=True)
 
 
@@ -145,9 +162,8 @@ if __name__ == "__main__":
     n_densities = 31
     densities = np.linspace(0.024, 0.1, n_densities)  # ANG^{-3}
 
-    project_info_toml_filepath = Path("..", "project_info_toml_files", "local_example.toml")
-    with open(project_info_toml_filepath, "rb") as toml_stream:
-        info = parse_project_info(toml_stream)
+    project_info_toml_filepath = Path("..", "project_info_toml_files", "p960_coarse_pert2b.toml")
+    info = parse_project_info(project_info_toml_filepath)
 
     # example(info, densities)
     run_slurm_files(info, n_densities)

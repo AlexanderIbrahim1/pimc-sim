@@ -200,7 +200,6 @@ auto main(int argc, char** argv) -> int
 
     /* perform the simulation loop */
     for (std::size_t i_block {first_block_index}; i_block < last_block_index; ++i_block) {
-        std::cout << "i_block = " << i_block << '\n';
         timer.start();
         /* the number of passes is chosen such that the autocorrelation time between blocks is passed */
         for (std::size_t i_pass {0}; i_pass < parser.n_passes; ++i_pass) {
@@ -274,7 +273,7 @@ auto main(int argc, char** argv) -> int
             }
         }
 
-        /* Update the step sizes during equilibration */
+        /* Maybe update the step sizes during equilibration */
         if (i_block < parser.n_equilibrium_blocks && !parser.freeze_monte_carlo_step_sizes_in_equilibrium) {
             const auto curr_com_step_size = com_mover.step_size();
             const auto new_com_step_size = com_move_adjuster.adjust_step(curr_com_step_size, com_tracker);
