@@ -119,8 +119,10 @@ def write_converged_centre_of_mass_step_size_last(
             fout.write(f"{sim_id:>2d}  {com_step_size_mean: 12.8f}\n")
 
 
-def read_converged_bisection_multibead_position_move_info(filepath: Path) -> list[tuple[int, MultibeadPositionMoveInfo]]:
-    output: list[tuple[int, MultibeadPositionMoveInfo]] = []
+def read_converged_bisection_multibead_position_move_info(filepath: Path) -> dict[int, MultibeadPositionMoveInfo]:
+    # NOTE: it is not guaranteed that the simulation IDs are from 0 to some maximum integer, which is
+    # why we use a dictionary instead of a list
+    output: dict[int, MultibeadPositionMoveInfo] = {}
 
     with open(filepath, "r") as in_stream:
         for line in in_stream:
@@ -129,13 +131,15 @@ def read_converged_bisection_multibead_position_move_info(filepath: Path) -> lis
             upper_level_fraction = float(tokens[1])
             lower_level = int(tokens[2])
 
-            output.append((sim_id, MultibeadPositionMoveInfo(upper_level_fraction, lower_level)))
+            output[sim_id] = MultibeadPositionMoveInfo(upper_level_fraction, lower_level)
 
     return output
 
 
-def read_converged_centre_of_mass_step_size(filepath: Path) -> list[tuple[int, float]]:
-    output: list[tuple[int, float]] = []
+def read_converged_centre_of_mass_step_size(filepath: Path) -> list[int, float]:
+    # NOTE: it is not guaranteed that the simulation IDs are from 0 to some maximum integer, which is
+    # why we use a dictionary instead of a list
+    output: dict[int, float] = {}
 
     with open(filepath, "r") as in_stream:
         for line in in_stream:
@@ -143,6 +147,6 @@ def read_converged_centre_of_mass_step_size(filepath: Path) -> list[tuple[int, f
             sim_id = int(tokens[0])
             com_step_size = float(tokens[1])
 
-            output.append((sim_id, com_step_size))
+            output[sim_id] = com_step_size
 
     return output
