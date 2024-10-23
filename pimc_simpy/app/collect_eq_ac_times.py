@@ -33,17 +33,19 @@ def calculate_autocorrelation(info: ProjectInfo, sim_id: int, n_equilibration_sw
     kinetic_auto_time = autocorrelation_time_from_data(kinetic_data.values)
     n_auto_sweeps = math.ceil(max(potential_auto_time, kinetic_auto_time))
 
-    print(f"potential_auto_time = {potential_auto_time}")
-    print(f"kinetic_auto_time = {kinetic_auto_time}")
+    # print(f"potential_auto_time = {potential_auto_time}")
+    # print(f"kinetic_auto_time = {kinetic_auto_time}")
     print(f"n_autocorrelation_sweeps = {n_auto_sweeps}")
 
 
 if __name__ == "__main__":
-    project_info_toml_filepath = Path("..", "project_info_toml_files", "local_mcmc_param_search_p64.toml")
+    project_info_toml_filepath = Path("..", "project_info_toml_files", "local_eq_ac_search_p960.toml")
     project_info = parse_project_info(project_info_toml_filepath)
 
-    sim_id = int(sys.argv[1])
-    # plot_energies(info, sim_id)
+    # sim_id = int(sys.argv[1])
+    # plot_energies_rescaled(project_info, sim_id)
+    # calculate_autocorrelation(project_info, sim_id, 10)
+
     for sim_id in range(31):
-        print(f"sim_id = {sim_id}")
-        calculate_autocorrelation(project_info, sim_id, 500)
+        #     print(f"sim_id = {sim_id}")
+        calculate_autocorrelation(project_info, sim_id, 10)

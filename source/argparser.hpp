@@ -93,6 +93,7 @@ public:
     std::filesystem::path abs_three_body_filepath {};
     std::filesystem::path abs_four_body_filepath {};
     std::variant<rng::RandomSeedFlag, std::uint64_t> initial_seed_state;
+    bool freeze_monte_carlo_step_sizes_in_equilibrium {false};
 
 private:
     bool parse_success_flag_ {};
@@ -122,6 +123,7 @@ private:
             abs_two_body_filepath = cast_toml_to<std::filesystem::path>(table, "abs_two_body_filepath");
             abs_three_body_filepath = cast_toml_to<std::filesystem::path>(table, "abs_three_body_filepath");
             abs_four_body_filepath = cast_toml_to<std::filesystem::path>(table, "abs_four_body_filepath");
+            freeze_monte_carlo_step_sizes_in_equilibrium = cast_toml_to<bool>(table, "freeze_monte_carlo_step_sizes_in_equilibrium");
 
             parse_seed_(table);
 

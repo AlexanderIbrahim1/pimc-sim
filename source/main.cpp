@@ -63,6 +63,7 @@ auto main(int argc, char** argv) -> int
     }
 
     // const auto n_most_recent_worldlines_to_save = 5;
+    const auto n_save_worldlines_every = std::size_t {10};
 
     const auto toml_input_filename = argv[1];
     const auto parser = argparse::ArgParser<float> {toml_input_filename};
@@ -134,7 +135,7 @@ auto main(int argc, char** argv) -> int
     // clang-format on
 
     const auto lattice_constant = geom::density_to_lattice_constant(parser.density, geom::LatticeType::HCP);
-    const auto box_cutoff_distance = coord::box_cutoff_distance(minimage_box);
+    // const auto box_cutoff_distance = coord::box_cutoff_distance(minimage_box);
     const auto pair_cutoff_distance = static_cast<float>(2.2 * lattice_constant);
     // const auto triplet_cutoff_distance = static_cast<float>(1.1 * lattice_constant);
     // const auto quadruplet_cutoff_distance = static_cast<float>(1.1 * lattice_constant);
@@ -268,11 +269,13 @@ auto main(int argc, char** argv) -> int
             mathtools::io::write_histogram(centroid_dist_histo_filepath, centroid_dist_histo);
 
             /* save the worldlines */
-            worldline_writer.write(i_block, worldlines);
+            if (((i_block + 1) % n_save_worldlines_every) == 0) {
+                worldline_writer.write(i_block, worldlines);
+            }
         }
 
         /* Update the step sizes during equilibration */
-        if (i_block < parser.n_equilibrium_blocks) {
+        if (i_block < parser.n_equilibrium_blocks && !parser.freeze_monte_carlo_step_sizes_in_equilibrium) {
             const auto curr_com_step_size = com_mover.step_size();
             const auto new_com_step_size = com_move_adjuster.adjust_step(curr_com_step_size, com_tracker);
             com_mover.update_step_size(new_com_step_size);
