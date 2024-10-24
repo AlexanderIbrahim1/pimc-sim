@@ -4,21 +4,30 @@ to run the jobs manager.
 """
 
 from pathlib import Path
-import subprocess
 from typing import Any
+import dataclasses
+import subprocess
 
 import numpy as np
 from numpy.typing import NDArray
 
-from pimc_simpy.manage import get_abs_slurm_output_filename
-from pimc_simpy.manage import get_abs_simulations_job_output_dirpath
-from pimc_simpy.manage import get_slurm_bashfile_filepath
-from pimc_simpy.manage import get_toml_filepath
-from pimc_simpy.manage import mkdir_subproject_dirpaths
-from pimc_simpy.manage import mkdir_job_and_output_dirpaths
+from pimc_simpy.manage import ProjectDirectoryFormatter
+from pimc_simpy.manage import BasicProjectDirectoryFormatter
+from pimc_simpy.manage import ProjectDirectoryStructureManager
 
 from pimc_simpy.manage import ProjectInfo
 from pimc_simpy.manage import parse_project_info
+
+
+@dataclasses.dataclass
+class EvaluationID:
+    sim_id: int
+    worldline_index: int
+
+
+class EvaluationDirectoryFormatter(ProjectDirectoryFormatter):
+    def format_sim_id(self, eval_id: EvaluationID) -> str:
+        return f"{eval_id.sim_id:0>3d}_{eval_id.worldline_index:0>5d}"
 
 
 def get_toml_file_contents(contents_map: dict[str, Any]) -> str:
@@ -137,6 +146,10 @@ if __name__ == "__main__":
 
     project_info_toml_filepath = Path("..", "project_info_toml_files", "local_eq_ac_search_p960.toml")
     info = parse_project_info(project_info_toml_filepath)
+    sim_formatter = BasicProjectDirectoryFormatter()
+    sim_manager = ProjectDirectoryStructureManager(info, sim_formatter)
+
+    eval_formatter = EvaluationDirectoryFormatter()
 
     example(info, densities)
     # run_slurm_files(info, n_densities)

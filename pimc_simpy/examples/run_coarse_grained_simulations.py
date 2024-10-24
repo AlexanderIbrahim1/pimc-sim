@@ -13,12 +13,8 @@ from numpy.typing import NDArray
 from pimc_simpy.quick_analysis import read_converged_bisection_multibead_position_move_info
 from pimc_simpy.quick_analysis import read_converged_centre_of_mass_step_size
 
-from pimc_simpy.manage import get_abs_slurm_output_filename
-from pimc_simpy.manage import get_abs_simulations_job_output_dirpath
-from pimc_simpy.manage import get_slurm_bashfile_filepath
-from pimc_simpy.manage import get_toml_filepath
-from pimc_simpy.manage import mkdir_subproject_dirpaths
-from pimc_simpy.manage import mkdir_job_and_output_dirpaths
+from pimc_simpy.manage import BasicProjectDirectoryFormatter
+from pimc_simpy.manage import ProjectDirectoryStructureManager
 
 from pimc_simpy.manage import ProjectInfo
 from pimc_simpy.manage import parse_project_info
@@ -95,7 +91,7 @@ def get_slurm_file_contents(contents_map: dict[str, Any]) -> str:
     return contents
 
 
-def example(info: ProjectInfo, densities: NDArray) -> None:
+def example(manager: ProjectDirectoryStructureManager, densities: NDArray) -> None:
     bisect_info_filepath = Path("..", "playground", "converged_bisection_move_info_p960.dat")
     com_info_filepath = Path("..", "playground", "converged_centre_of_mass_step_size_p960.dat")
 
@@ -117,7 +113,7 @@ def example(info: ProjectInfo, densities: NDArray) -> None:
     slurm_info_map["abs_executable_dirpath"] = info.abs_executable_dirpath
     slurm_info_map["memory_gb"] = 4
 
-    mkdir_subproject_dirpaths(info)
+    manager.mkdir_subproject_dirpaths()
 
     for sim_id, density in enumerate(densities):
         # set the converged monte carlo step sizes
@@ -126,31 +122,31 @@ def example(info: ProjectInfo, densities: NDArray) -> None:
         toml_info_map["bisection_ratio"] = bisection_moves[sim_id].upper_level_fraction
 
         # create the locations for the simulation and the output
-        mkdir_job_and_output_dirpaths(info, sim_id)
+        manager.mkdir_job_and_output_dirpaths(sim_id)
 
         # create the toml file
-        toml_info_map["abs_output_dirpath"] = get_abs_simulations_job_output_dirpath(info, sim_id)
+        toml_info_map["abs_output_dirpath"] = manager.get_abs_simulations_job_output_dirpath(sim_id)
         toml_info_map["density"] = density
 
         toml_file_contents = get_toml_file_contents(toml_info_map)
-        abs_toml_filepath = get_toml_filepath(info, sim_id)
+        abs_toml_filepath = manager.get_toml_filepath(sim_id)
         with open(abs_toml_filepath, "w") as fout:
             fout.write(toml_file_contents)
 
         # create the slurm file (in a separate directory?)
         slurm_info_map["abs_toml_filepath"] = abs_toml_filepath
-        slurm_info_map["abs_slurm_output_filename"] = get_abs_slurm_output_filename(info, sim_id)
+        slurm_info_map["abs_slurm_output_filename"] = manager.get_abs_slurm_output_filename(sim_id)
 
         slurm_file_contents = get_slurm_file_contents(slurm_info_map)
-        abs_slurm_filepath = get_slurm_bashfile_filepath(info, sim_id)
+        abs_slurm_filepath = manager.get_slurm_bashfile_filepath(sim_id)
         with open(abs_slurm_filepath, "w") as fout:
             fout.write(slurm_file_contents)
 
 
-def run_slurm_files(info: ProjectInfo, n_densities: int) -> None:
+def run_slurm_files(manager: ProjectDirectoryStructureManager, n_densities: int) -> None:
     # for sim_id in [0]:
     for sim_id in range(1, n_densities):
-        abs_slurm_filepath = get_slurm_bashfile_filepath(info, sim_id)
+        abs_slurm_filepath = manager.get_slurm_bashfile_filepath(sim_id)
 
         cmd = ["sbatch", str(abs_slurm_filepath)]
         subprocess.run(cmd, check=True)
@@ -162,6 +158,8 @@ if __name__ == "__main__":
 
     project_info_toml_filepath = Path("..", "project_info_toml_files", "local_eq_ac_search_p960.toml")
     info = parse_project_info(project_info_toml_filepath)
+    formatter = BasicProjectDirectoryFormatter()
+    manager = ProjectDirectoryStructureManager(info, formatter)
 
-    example(info, densities)
+    example(manager, densities)
     # run_slurm_files(info, n_densities)
