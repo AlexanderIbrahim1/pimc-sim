@@ -26,11 +26,14 @@ from pimc_simpy.manage.formatting import ProjectDirectoryFormatter
 from pimc_simpy.manage.project_info import ProjectInfo
 
 
-TOML_FILENAME = "sim.toml"  # okay to have it be the same for each simulation; makes commands simpler
+DEFAULT_TOML_FILENAME = "sim.toml"  # okay to have it be the same for each simulation; makes commands simpler
 
 
 class ProjectDirectoryStructureManager:
-    def __init__(self, info: ProjectInfo, formatter: ProjectDirectoryFormatter) -> None:
+    def __init__(
+        self, info: ProjectInfo, formatter: ProjectDirectoryFormatter, toml_filename: str = DEFAULT_TOML_FILENAME
+    ) -> None:
+        self._toml_filename = toml_filename
         self._info = info
         self._formatter = formatter
 
@@ -47,7 +50,7 @@ class ProjectDirectoryStructureManager:
         return self._get_abs_slurm_bashfiles_dirpath() / slurm_filename
 
     def get_toml_filepath(self, sim_id: Any) -> Path:
-        return self._get_abs_simulations_job_dirpath(sim_id) / TOML_FILENAME
+        return self._get_abs_simulations_job_dirpath(sim_id) / self._toml_filename
 
     def mkdir_subproject_dirpaths(self) -> None:
         self._get_abs_simulations_dirpath().mkdir(exist_ok=True)
