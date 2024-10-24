@@ -5,6 +5,8 @@ to run the jobs manager.
 
 from pathlib import Path
 from typing import Any
+from typing import Sequence
+import itertools
 import dataclasses
 import subprocess
 
@@ -15,7 +17,6 @@ from pimc_simpy.manage import ProjectDirectoryFormatter
 from pimc_simpy.manage import BasicProjectDirectoryFormatter
 from pimc_simpy.manage import ProjectDirectoryStructureManager
 
-from pimc_simpy.manage import ProjectInfo
 from pimc_simpy.manage import parse_project_info
 
 
@@ -91,11 +92,14 @@ def get_slurm_file_contents(contents_map: dict[str, Any]) -> str:
     return contents
 
 
-def example(info: ProjectInfo, densities: NDArray) -> None:
+def create_directory_structure(
+    sim_manager: ProjectDirectoryStructureManager,
+    eval_manager: ProjectDirectoryStructureManager,
+    densities: NDArray,
+    worldline_indices: Sequence[int],
+) -> None:
     toml_info_map: dict[str, Any] = {}
-    toml_info_map["abs_repo_dirpath"] = info.abs_external_dirpath
-    toml_info_map["abs_worldlines_dirpath"] = Path(".")  # TODO: put actual path here later
-    toml_info_map["block_index"] = 25
+    toml_info_map["abs_repo_dirpath"] = eval_manager.info.abs_external_dirpath
     toml_info_map["cell_dimensions"] = (5, 3, 3)
     toml_info_map["evaluate_two_body"] = "true"
     toml_info_map["evaluate_three_body"] = "false"
@@ -103,38 +107,48 @@ def example(info: ProjectInfo, densities: NDArray) -> None:
 
     slurm_info_map: dict[str, Any] = {}
     slurm_info_map["executable"] = "evaluate-worldline"
-    slurm_info_map["abs_executable_dirpath"] = info.abs_executable_dirpath
+    slurm_info_map["abs_executable_dirpath"] = eval_manager.info.abs_executable_dirpath
     slurm_info_map["memory_gb"] = 4
 
-    mkdir_subproject_dirpaths(info)
+    eval_manager.mkdir_subproject_dirpaths()
 
     for sim_id, density in enumerate(densities):
-        # create the locations for the simulation and the output
-        mkdir_job_and_output_dirpaths(info, sim_id)
-
-        # create the toml file
-        toml_info_map["abs_output_dirpath"] = get_abs_simulations_job_output_dirpath(info, sim_id)
+        toml_info_map["abs_worldlines_dirpath"] = sim_manager.get_abs_simulations_job_output_dirpath(sim_id)
         toml_info_map["density"] = density
 
-        toml_file_contents = get_toml_file_contents(toml_info_map)
-        abs_toml_filepath = get_toml_filepath(info, sim_id)
-        with open(abs_toml_filepath, "w") as fout:
-            fout.write(toml_file_contents)
+        for i_worldline in worldline_indices:
+            eval_id = EvaluationID(sim_id, i_worldline)
 
-        # create the slurm file (in a separate directory?)
-        slurm_info_map["abs_toml_filepath"] = abs_toml_filepath
-        slurm_info_map["abs_slurm_output_filename"] = get_abs_slurm_output_filename(info, sim_id)
+            # create the locations for the simulation and the output
+            eval_manager.mkdir_job_and_output_dirpaths(eval_id)
 
-        slurm_file_contents = get_slurm_file_contents(slurm_info_map)
-        abs_slurm_filepath = get_slurm_bashfile_filepath(info, sim_id)
-        with open(abs_slurm_filepath, "w") as fout:
-            fout.write(slurm_file_contents)
+            # create the toml file
+            toml_info_map["block_index"] = i_worldline
+            toml_info_map["abs_output_dirpath"] = eval_manager.get_abs_simulations_job_output_dirpath(eval_id)
+
+            toml_file_contents = get_toml_file_contents(toml_info_map)
+            abs_toml_filepath = eval_manager.get_toml_filepath(eval_id)
+            with open(abs_toml_filepath, "w") as fout:
+                fout.write(toml_file_contents)
+
+            # create the slurm file (in a separate directory?)
+            slurm_info_map["abs_toml_filepath"] = abs_toml_filepath
+            slurm_info_map["abs_slurm_output_filename"] = eval_manager.get_abs_slurm_output_filename(eval_id)
+
+            slurm_file_contents = get_slurm_file_contents(slurm_info_map)
+            abs_slurm_filepath = eval_manager.get_slurm_bashfile_filepath(eval_id)
+            with open(abs_slurm_filepath, "w") as fout:
+                fout.write(slurm_file_contents)
 
 
-def run_slurm_files(info: ProjectInfo, n_densities: int) -> None:
-    # for sim_id in [0]:
-    for sim_id in range(1, n_densities):
-        abs_slurm_filepath = get_slurm_bashfile_filepath(info, sim_id)
+def run_slurm_files(
+    eval_manager: ProjectDirectoryStructureManager,
+    n_densities: int,
+    worldline_indices: Sequence[int],
+) -> None:
+    for sim_id, i_worldline in itertools.product(range(n_densities), worldline_indices):
+        eval_id = EvaluationID(sim_id, i_worldline)
+        abs_slurm_filepath = eval_manager.get_slurm_bashfile_filepath(eval_id)
 
         cmd = ["sbatch", str(abs_slurm_filepath)]
         subprocess.run(cmd, check=True)
@@ -143,13 +157,18 @@ def run_slurm_files(info: ProjectInfo, n_densities: int) -> None:
 if __name__ == "__main__":
     n_densities = 31
     densities = np.linspace(0.024, 0.1, n_densities)  # ANG^{-3}
+    worldline_indices = [19 + 10 * i for i in range(32)]
+    exit()
 
-    project_info_toml_filepath = Path("..", "project_info_toml_files", "local_eq_ac_search_p960.toml")
-    info = parse_project_info(project_info_toml_filepath)
+    sim_project_info_toml_filepath = Path("..", "project_info_toml_files", "simulation_project_info.toml")
+    sim_info = parse_project_info(sim_project_info_toml_filepath)
     sim_formatter = BasicProjectDirectoryFormatter()
-    sim_manager = ProjectDirectoryStructureManager(info, sim_formatter)
+    sim_manager = ProjectDirectoryStructureManager(sim_info, sim_formatter)
 
+    eval_project_info_toml_filepath = Path("..", "project_info_toml_files", "evalulation_project_info.toml")
+    eval_info = parse_project_info(eval_project_info_toml_filepath)
     eval_formatter = EvaluationDirectoryFormatter()
+    eval_manager = ProjectDirectoryStructureManager(eval_info, eval_formatter)
 
-    example(info, densities)
+    create_directory_structure(sim_manager, eval_manager, densities, worldline_indices)
     # run_slurm_files(info, n_densities)

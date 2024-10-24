@@ -37,6 +37,10 @@ class ProjectDirectoryStructureManager:
         self._info = info
         self._formatter = formatter
 
+    @property
+    def info(self) -> ProjectInfo:
+        return self._info
+
     def get_abs_simulations_job_output_dirpath(self, sim_id: Any) -> Path:
         return self._get_abs_simulations_job_dirpath(sim_id) / "output"
 

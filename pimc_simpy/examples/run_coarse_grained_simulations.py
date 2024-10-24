@@ -98,7 +98,7 @@ def example(manager: ProjectDirectoryStructureManager, densities: NDArray) -> No
     com_moves = read_converged_centre_of_mass_step_size(com_info_filepath)
 
     toml_info_map: dict[str, Any] = {}
-    toml_info_map["abs_repo_dirpath"] = info.abs_external_dirpath
+    toml_info_map["abs_repo_dirpath"] = manager.info.abs_external_dirpath
     toml_info_map["cell_dimensions"] = (5, 3, 3)
     toml_info_map["seed"] = '"RANDOM"'
     toml_info_map["last_block_index"] = 1000
@@ -109,7 +109,7 @@ def example(manager: ProjectDirectoryStructureManager, densities: NDArray) -> No
 
     slurm_info_map: dict[str, Any] = {}
     slurm_info_map["executable"] = "pimc-sim"
-    slurm_info_map["abs_executable_dirpath"] = info.abs_executable_dirpath
+    slurm_info_map["abs_executable_dirpath"] = manager.info.abs_executable_dirpath
     slurm_info_map["memory_gb"] = 4
 
     manager.mkdir_subproject_dirpaths()
@@ -156,9 +156,9 @@ if __name__ == "__main__":
     densities = np.linspace(0.024, 0.1, n_densities)  # ANG^{-3}
 
     project_info_toml_filepath = Path("..", "project_info_toml_files", "local_eq_ac_search_p960.toml")
-    info = parse_project_info(project_info_toml_filepath)
+    project_info = parse_project_info(project_info_toml_filepath)
     formatter = BasicProjectDirectoryFormatter()
-    manager = ProjectDirectoryStructureManager(info, formatter)
+    manager = ProjectDirectoryStructureManager(project_info, formatter)
 
     example(manager, densities)
     # run_slurm_files(info, n_densities)
