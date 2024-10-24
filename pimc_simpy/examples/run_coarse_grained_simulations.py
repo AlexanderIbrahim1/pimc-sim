@@ -16,7 +16,6 @@ from pimc_simpy.quick_analysis import read_converged_centre_of_mass_step_size
 from pimc_simpy.manage import BasicProjectDirectoryFormatter
 from pimc_simpy.manage import ProjectDirectoryStructureManager
 
-from pimc_simpy.manage import ProjectInfo
 from pimc_simpy.manage import parse_project_info
 
 
