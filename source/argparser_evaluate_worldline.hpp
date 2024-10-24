@@ -65,6 +65,7 @@ public:
     std::filesystem::path abs_two_body_filepath {};
     std::filesystem::path abs_three_body_filepath {};
     std::filesystem::path abs_four_body_filepath {};
+    std::filesystem::path abs_worldlines_dirpath {};
     bool evaluate_two_body {};
     bool evaluate_three_body {};
     bool evaluate_four_body {};
@@ -90,6 +91,7 @@ private:
             abs_two_body_filepath = cast_toml_to<std::filesystem::path>(table, "abs_two_body_filepath");
             abs_three_body_filepath = cast_toml_to<std::filesystem::path>(table, "abs_three_body_filepath");
             abs_four_body_filepath = cast_toml_to<std::filesystem::path>(table, "abs_four_body_filepath");
+            abs_worldlines_dirpath = cast_toml_to<std::filesystem::path>(table, "abs_worldlines_dirpath");
             evaluate_two_body = cast_toml_to<bool>(table, "evaluate_two_body");
             evaluate_three_body = cast_toml_to<bool>(table, "evaluate_three_body");
             evaluate_four_body = cast_toml_to<bool>(table, "evaluate_four_body");

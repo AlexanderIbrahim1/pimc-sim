@@ -41,13 +41,12 @@ auto main(int argc, char** argv) -> int
 
     const auto output_dirpath = parser.abs_output_dirpath;
     const auto block_index = parser.block_index;
-    const auto [n_particles, minimage_box, lattice_site_positions] =
-        build_hcp_lattice_structure(parser.density, parser.n_unit_cells);
+    const auto [n_particles, minimage_box, lattice_site_positions] = build_hcp_lattice_structure(parser.density, parser.n_unit_cells);
 
     /* create the worldlines */
     auto worldlines = [&]()
     {
-        auto worldline_writer = worldline::WorldlineWriter<double, NDIM> {output_dirpath};
+        auto worldline_writer = worldline::WorldlineWriter<double, NDIM> {parser.abs_worldlines_dirpath};
         const auto worldline_filepath = worldline_writer.output_filepath(block_index);
         return worldline::read_worldlines<double, NDIM>(worldline_filepath);
     }();
