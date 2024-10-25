@@ -5,14 +5,15 @@
 #include <string>
 #include <string_view>
 
-// #include <torch/script.h>
+#include <torch/script.h>
 
+#include <common/writers/single_value_writer.hpp>
 #include <coordinates/box_sides.hpp>
 #include <estimators/pimc/three_body_potential.hpp>
 #include <estimators/pimc/two_body_potential.hpp>
-// #include <estimators/pimc/four_body_potential.hpp>
+#include <estimators/pimc/four_body_potential.hpp>
 #include <estimators/writers/default_writers.hpp>
-// #include <interactions/four_body/published_potential.hpp>
+#include <interactions/four_body/published_potential.hpp>
 #include <pimc/writers/default_writers.hpp>
 #include <simulation/timer.hpp>
 #include <worldline/writers/read_worldlines.hpp>
@@ -32,7 +33,7 @@ auto main(int argc, char** argv) -> int
     }
 
     const auto toml_input_filename = argv[1];
-    const auto parser = argparse::EvaluateWorldlineArgParser<double> {toml_input_filename};
+    const auto parser = argparse::EvaluateWorldlineArgParser<float> {toml_input_filename};
     if (!parser.is_valid()) {
         std::cout << "ERROR: argument parser did not parse properly\n";
         std::cout << parser.error_message() << '\n';
@@ -44,18 +45,18 @@ auto main(int argc, char** argv) -> int
     const auto [n_particles, minimage_box, lattice_site_positions] = build_hcp_lattice_structure(parser.density, parser.n_unit_cells);
 
     /* create the worldlines */
-    auto worldlines = [&]()
+    const auto worldlines = [&]()
     {
-        auto worldline_writer = worldline::WorldlineWriter<double, NDIM> {parser.abs_worldlines_dirpath};
+        auto worldline_writer = worldline::WorldlineWriter<float, NDIM> {parser.abs_worldlines_dirpath};
         const auto worldline_filepath = worldline_writer.output_filepath(block_index);
-        return worldline::read_worldlines<double, NDIM>(worldline_filepath);
+        return worldline::read_worldlines<float, NDIM>(worldline_filepath);
     }();
 
     // clang-format off
-    using ReturnType2B = decltype(fsh_potential<double>(minimage_box, parser.abs_two_body_filepath));
+    using ReturnType2B = decltype(fsh_potential<float>(minimage_box, parser.abs_two_body_filepath));
     const auto pot2b = [&]() -> std::optional<ReturnType2B> {
         if (parser.evaluate_two_body) {
-            return std::make_optional(fsh_potential<double>(minimage_box, parser.abs_two_body_filepath));
+            return std::make_optional(fsh_potential<float>(minimage_box, parser.abs_two_body_filepath));
         } else {
             return std::nullopt;
         }
@@ -70,23 +71,25 @@ auto main(int argc, char** argv) -> int
         }
     }();
 
-    /*
+    const long int buffer_size = 1024;
     using ReturnType4B = decltype(interact::get_published_buffered_four_body_potential<NDIM, interact::PermutationTransformerFlag::EXACT>(parser.abs_four_body_filepath, buffer_size));
-    const auto pot4b = [&]() -> std::optional<ReturnType4B> {
+    auto pot4b = [&]() -> std::optional<ReturnType4B> {
         if (parser.evaluate_four_body) {
-            const long int buffer_size = 1024;
-            auto pot4b = interact::get_published_buffered_four_body_potential<NDIM, interact::PermutationTransformerFlag::EXACT>(parser.abs_four_body_filepath, buffer_size);
-            return std::make_optional(std::move(pot4b));
+            auto pot4b_ = interact::get_published_buffered_four_body_potential<NDIM, interact::PermutationTransformerFlag::EXACT>(parser.abs_four_body_filepath, buffer_size);
+            return std::make_optional(std::move(pot4b_));
         } else {
             return std::nullopt;
         }
     }();
-    */
 
     /* create the file writers for the estimators */
-    const auto pair_potential_writer = estim::default_pair_potential_writer<double>(output_dirpath);
-    const auto triplet_potential_writer = estim::default_triplet_potential_writer<double>(output_dirpath);
+    const auto pair_potential_writer = estim::default_pair_potential_writer<float>(output_dirpath);
+    const auto triplet_potential_writer = estim::default_triplet_potential_writer<float>(output_dirpath);
     // const auto quadruplet_potential_writer = estim::default_quadruplet_potential_writer<float>(output_dirpath);
+
+    const auto quadruplet_header = std::string {"# total quadruplet potential energy per timeslice in wavenumbers\n"};
+    const auto quadruplet_filename = estim::writers::DEFAULT_QUADRUPLET_POTENTIAL_OUTPUT_FILENAME;
+    const auto quadruplet_potential_writer = common::writers::SingleValueBlockWriter<float> {output_dirpath / quadruplet_filename, quadruplet_header};
 
     /* create the timer and the corresponding writer to keep track of how long each block takes */
     auto timer = sim::Timer {};
@@ -106,13 +109,15 @@ auto main(int argc, char** argv) -> int
         triplet_potential_writer.write(block_index, total_triplet_potential_energy);
     }
 
-    /*
     if (pot4b) {
         const auto cutoff = coord::box_cutoff_distance(minimage_box);
-        const auto total_quadruplet_potential_energy = estim::calculate_total_four_body_potential_energy_via_shifting(worldlines, pot4b.value(), minimage_box, cutoff);
-        quadruplet_potential_writer.write(block_index, total_quadruplet_potential_energy);
+
+        for (std::size_t i_tslice {0}; i_tslice < worldlines.n_timeslices(); ++i_tslice) {
+            const auto timeslice = worldlines.timeslice(i_tslice);
+            const auto quadruplet_potential_energy = estim::timeslice_quadruplet_potential_energy(timeslice, pot4b.value(), minimage_box, cutoff);
+            quadruplet_potential_writer.write(i_tslice, quadruplet_potential_energy);
+        }
     }
-    */
     // clang-format on
 
     const auto duration = timer.duration_since_last_start();

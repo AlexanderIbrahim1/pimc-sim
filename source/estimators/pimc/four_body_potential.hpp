@@ -78,6 +78,11 @@ auto calculate_four_body_potential_energy_around_reference(
     }
 }
 
+}  // namespace impl_estim
+
+namespace estim
+{
+
 // MODIFIED
 // NOTE: the other estimators assume that we are performing the estimate for the entire worldline at once
 // - but for the four-body PES, we might have to break it up per timeslice!
@@ -98,16 +103,11 @@ auto timeslice_quadruplet_potential_energy(
 
     for (std::size_t i0 {}; i0 < i0_final; ++i0) {
         const auto shifted_particles = coord::shift_points_together(i0, periodic_box, points);
-        calculate_four_body_potential_energy_around_reference<FP, NDIM>(i0, pot, shifted_particles, cutoff_distance_sq);
+        impl_estim::calculate_four_body_potential_energy_around_reference<FP, NDIM>(i0, pot, shifted_particles, cutoff_distance_sq);
     }
 
     return pot.extract_energy();
 }
-
-}  // namespace impl_estim
-
-namespace estim
-{
 
 template <std::floating_point FP, std::size_t NDIM>
 auto total_quadruplet_potential_energy_periodic(
@@ -120,7 +120,7 @@ auto total_quadruplet_potential_energy_periodic(
     auto total_pot = FP {};
     for (std::size_t i_tslice {0}; i_tslice < worldlines.n_timeslices(); ++i_tslice) {
         const auto timeslice = worldlines.timeslice(i_tslice);
-        total_pot += impl_estim::timeslice_quadruplet_potential_energy(timeslice, pot, box, cutoff_distance);
+        total_pot += timeslice_quadruplet_potential_energy(timeslice, pot, box, cutoff_distance);
     }
 
     return total_pot / static_cast<FP>(worldlines.n_timeslices());

@@ -62,8 +62,8 @@ auto main(int argc, char** argv) -> int
         std::exit(EXIT_FAILURE);
     }
 
-    // const auto n_most_recent_worldlines_to_save = 5;
-    const auto n_save_worldlines_every = std::size_t {10};
+    const auto n_most_recent_worldlines_to_save = 1;
+    const auto n_save_worldlines_every = std::size_t {1};
 
     const auto toml_input_filename = argv[1];
     const auto parser = argparse::ArgParser<float> {toml_input_filename};
@@ -296,7 +296,7 @@ auto main(int argc, char** argv) -> int
         /* create or update the continue file */
         continue_file_manager.set_info_and_serialize({i_block, i_block >= parser.n_equilibrium_blocks});
 
-        // worldline::delete_worldlines_file<float, NDIM>(worldline_writer, i_block, n_most_recent_worldlines_to_save);
+        worldline::delete_worldlines_file<float, NDIM>(worldline_writer, i_block, n_most_recent_worldlines_to_save);
 
         rng::save_prng_state(prngw.prng(), prng_state_filepath);
 
