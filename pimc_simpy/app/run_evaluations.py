@@ -150,25 +150,25 @@ def run_slurm_files(
         eval_id = EvaluationID(sim_id, i_worldline)
         abs_slurm_filepath = eval_manager.get_slurm_bashfile_filepath(eval_id)
 
-        cmd = ["sbatch", str(abs_slurm_filepath)]
+        cmd = ["bash", str(abs_slurm_filepath)]
         subprocess.run(cmd, check=True)
+        exit()
 
 
 if __name__ == "__main__":
     n_densities = 31
     densities = np.linspace(0.024, 0.1, n_densities)  # ANG^{-3}
     worldline_indices = [19 + 10 * i for i in range(32)]
-    exit()
 
-    sim_project_info_toml_filepath = Path("..", "project_info_toml_files", "simulation_project_info.toml")
+    sim_project_info_toml_filepath = Path("..", "project_info_toml_files", "p960_coarse_pert2b.toml")
     sim_info = parse_project_info(sim_project_info_toml_filepath)
     sim_formatter = BasicProjectDirectoryFormatter()
     sim_manager = ProjectDirectoryStructureManager(sim_info, sim_formatter)
 
-    eval_project_info_toml_filepath = Path("..", "project_info_toml_files", "evalulation_project_info.toml")
+    eval_project_info_toml_filepath = Path("..", "project_info_toml_files", "p960_coarse_eval_pert2b_fourbody.toml")
     eval_info = parse_project_info(eval_project_info_toml_filepath)
     eval_formatter = EvaluationDirectoryFormatter()
     eval_manager = ProjectDirectoryStructureManager(eval_info, eval_formatter)
 
-    create_directory_structure(sim_manager, eval_manager, densities, worldline_indices)
-    # run_slurm_files(info, n_densities)
+    # create_directory_structure(sim_manager, eval_manager, densities, worldline_indices)
+    run_slurm_files(eval_manager, n_densities, worldline_indices)
