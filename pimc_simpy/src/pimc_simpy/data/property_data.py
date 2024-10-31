@@ -56,13 +56,13 @@ class PropertyData:
         return self.__mul__(other)
 
     def __truediv__(self, other: Any) -> PropertyData:
-        return self._operation_with_number(other, lambda x, y: x / y)
+        return self._operation_with_number(other, lambda x, y: y / x)
 
     def __rtruediv__(self, other: Any) -> PropertyData:
         return self.__truediv__(other)
 
     def __floordiv__(self, other: Any) -> PropertyData:
-        return self._operation_with_number(other, lambda x, y: x // y)
+        return self._operation_with_number(other, lambda x, y: y // x)
 
     def __rfloordiv__(self, other: Any) -> PropertyData:
         return self.__floordiv__(other)
