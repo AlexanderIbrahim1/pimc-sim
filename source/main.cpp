@@ -268,11 +268,10 @@ auto main(int argc, char** argv) -> int
             mathtools::io::write_histogram(centroid_dist_histo_filepath, centroid_dist_histo);
 
             /* save the worldlines */
-            if (((i_block + 1) % n_save_worldlines_every) == 0) {
-                worldline_writer.write(i_block, worldlines);
-            }
+            // if (((i_block + 1) % n_save_worldlines_every) == 0) {
+            //     worldline_writer.write(i_block, worldlines);
+            // }
         }
-
         /* Maybe update the step sizes during equilibration */
         if (i_block < parser.n_equilibrium_blocks && !parser.freeze_monte_carlo_step_sizes_in_equilibrium) {
             const auto curr_com_step_size = com_mover.step_size();
@@ -296,7 +295,7 @@ auto main(int argc, char** argv) -> int
         /* create or update the continue file */
         continue_file_manager.set_info_and_serialize({i_block, i_block >= parser.n_equilibrium_blocks});
 
-        worldline::delete_worldlines_file<float, NDIM>(worldline_writer, i_block, n_most_recent_worldlines_to_save);
+        // worldline::delete_worldlines_file<float, NDIM>(worldline_writer, i_block, n_most_recent_worldlines_to_save);
 
         rng::save_prng_state(prngw.prng(), prng_state_filepath);
 

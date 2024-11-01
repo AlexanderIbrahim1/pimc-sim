@@ -4,11 +4,13 @@ in output files.
 """
 
 import dataclasses
+import statistics
 from pathlib import Path
 from typing import Callable
 
 import numpy as np
 from numpy.typing import NDArray
+import scipy.stats
 
 from pimc_simpy.data import get_property_statistics
 from pimc_simpy.data import PropertyData
@@ -51,6 +53,38 @@ def collect_quadruplet_potential_energy(i_density: int) -> None:
     quadruplet_energies = []
 
     for i_worldline in worldline_indices:
+        if (i_density, i_worldline) in [
+            (14, 39),
+            (14, 49),
+            (14, 199),
+            (14, 279),
+            (17, 239),
+            (17, 249),
+            (17, 289),
+            (17, 309),
+            (17, 319),
+            (17, 329),
+            (18, 199),
+            (18, 219),
+            (23, 479),
+            (23, 489),
+            (24, 379),
+            (24, 389),
+            (24, 409),
+            (24, 419),
+            (25, 469),
+            (25, 479),
+            (25, 489),
+            (26, 339),
+            (26, 349),
+            (26, 369),
+            (26, 379),
+            (27, 439),
+            (27, 489),
+            (28, 359),
+            (28, 419),
+        ]:
+            continue
         eval_id = EvaluationID(i_density, i_worldline)
         energies = reader.read_project_quadruplet_potential_energy(eval_id)
         stats = get_property_statistics(energies)
@@ -105,5 +139,20 @@ def write_2b_3b_kinetic_energies() -> None:
 
 
 if __name__ == "__main__":
-    for i in range(31):
-        collect_quadruplet_potential_energy(i)
+    #     n_densities = 31
+    #     for i in range(28, n_densities):
+    #         collect_quadruplet_potential_energy(i)
+    n_densities = 31
+    densities = np.linspace(0.024, 0.1, n_densities)
+    output_filepath = OUTPUT_DIRPATH / "p960_coarse_quadruplet_potential_energy_data.dat"
+
+    with open(output_filepath, "w") as fout:
+        for i_density, density in enumerate(densities):
+            estimates_filename = f"quadruplet_energies_{i_density:0>3d}.txt"
+            estimates_filepath = QUADRUPLET_ENERGIES_DIRPATH / estimates_filename
+
+            energies = np.loadtxt(estimates_filepath) / 180.0
+            mean = np.mean(energies)
+            sem = scipy.stats.sem(energies)
+
+            fout.write(f"{i_density:>3d}   {density: 12.8f}   {mean: 12.8f}   {sem:12.8f}\n")
