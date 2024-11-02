@@ -41,16 +41,8 @@ auto main(int argc, char** argv) -> int
     }
 
     const auto output_dirpath = parser.abs_output_dirpath;
-    const auto block_index = parser.block_index;
     const auto [n_particles, minimage_box, lattice_site_positions] = build_hcp_lattice_structure(parser.density, parser.n_unit_cells);
-
-    /* create the worldlines */
-    const auto worldlines = [&]()
-    {
-        auto worldline_writer = worldline::WorldlineWriter<float, NDIM> {parser.abs_worldlines_dirpath};
-        const auto worldline_filepath = worldline_writer.output_filepath(block_index);
-        return worldline::read_worldlines<float, NDIM>(worldline_filepath);
-    }();
+    const auto fourbody_cutoff = coord::box_cutoff_distance(minimage_box);
 
     // clang-format off
     using ReturnType2B = decltype(fsh_potential<float>(minimage_box, parser.abs_two_body_filepath));
@@ -85,43 +77,50 @@ auto main(int argc, char** argv) -> int
     /* create the file writers for the estimators */
     const auto pair_potential_writer = estim::default_pair_potential_writer<float>(output_dirpath);
     const auto triplet_potential_writer = estim::default_triplet_potential_writer<float>(output_dirpath);
-    // const auto quadruplet_potential_writer = estim::default_quadruplet_potential_writer<float>(output_dirpath);
+    const auto quadruplet_potential_writer = estim::default_quadruplet_potential_writer<float>(output_dirpath);
 
-    const auto quadruplet_header = std::string {"# total quadruplet potential energy per timeslice in wavenumbers\n"};
-    const auto quadruplet_filename = estim::writers::DEFAULT_QUADRUPLET_POTENTIAL_OUTPUT_FILENAME;
-    const auto quadruplet_potential_writer = common::writers::SingleValueBlockWriter<float> {output_dirpath / quadruplet_filename, quadruplet_header};
+    /* the worldline writer is needed to create the filepaths to the worldline files */
+    auto worldline_writer = worldline::WorldlineWriter<float, NDIM> {parser.abs_worldlines_dirpath};
+
+    // const auto quadruplet_header = std::string {"# total quadruplet potential energy per timeslice in wavenumbers\n"};
+    // const auto quadruplet_filename = estim::writers::DEFAULT_QUADRUPLET_POTENTIAL_OUTPUT_FILENAME;
+    // const auto quadruplet_potential_writer = common::writers::SingleValueBlockWriter<float> {output_dirpath / quadruplet_filename, quadruplet_header};
 
     /* create the timer and the corresponding writer to keep track of how long each block takes */
     auto timer = sim::Timer {};
     const auto timer_writer = sim::default_timer_writer(output_dirpath);
 
-    timer.start();
-    // clang-format off
+    for (auto block_index : parser.block_indices) {
+        /* create the worldlines */
+        const auto worldlines = [&]()
+        {
+            const auto worldline_filepath = worldline_writer.output_filepath(block_index);
+            return worldline::read_worldlines<float, NDIM>(worldline_filepath);
+        }();
 
-    /* run estimators */
-    if (pot2b) {
-        const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic(worldlines, pot2b.value());
-        pair_potential_writer.write(block_index, total_pair_potential_energy);
-    }
+        timer.start();
 
-    if (pot3b) {
-        const auto total_triplet_potential_energy = estim::total_triplet_potential_energy_periodic(worldlines, pot3b.value());
-        triplet_potential_writer.write(block_index, total_triplet_potential_energy);
-    }
-
-    if (pot4b) {
-        const auto cutoff = coord::box_cutoff_distance(minimage_box);
-
-        for (std::size_t i_tslice {0}; i_tslice < worldlines.n_timeslices(); ++i_tslice) {
-            const auto timeslice = worldlines.timeslice(i_tslice);
-            const auto quadruplet_potential_energy = estim::timeslice_quadruplet_potential_energy(timeslice, pot4b.value(), minimage_box, cutoff);
-            quadruplet_potential_writer.write(i_tslice, quadruplet_potential_energy);
+        // clang-format off
+        /* run estimators */
+        if (pot2b) {
+            const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic(worldlines, pot2b.value());
+            pair_potential_writer.write(block_index, total_pair_potential_energy);
         }
-    }
-    // clang-format on
 
-    const auto duration = timer.duration_since_last_start();
-    timer_writer.write(block_index, duration.seconds, duration.milliseconds, duration.microseconds);
+        if (pot3b) {
+            const auto total_triplet_potential_energy = estim::total_triplet_potential_energy_periodic(worldlines, pot3b.value());
+            triplet_potential_writer.write(block_index, total_triplet_potential_energy);
+        }
+
+        if (pot4b) {
+            const auto total_quadruplet_potential_energy = estim::total_quadruplet_potential_energy_periodic(worldlines, pot4b.value(), minimage_box, fourbody_cutoff);
+            quadruplet_potential_writer.write(block_index, total_quadruplet_potential_energy);
+        }
+        // clang-format on
+
+        const auto duration = timer.duration_since_last_start();
+        timer_writer.write(block_index, duration.seconds, duration.milliseconds, duration.microseconds);
+    }
 
     return 0;
 }

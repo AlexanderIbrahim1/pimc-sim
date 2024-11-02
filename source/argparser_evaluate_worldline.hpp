@@ -9,6 +9,7 @@
 #include <string>
 #include <string_view>
 #include <tuple>
+#include <vector>
 
 #include <common/toml_utils.hpp>
 #include <tomlplusplus/toml.hpp>
@@ -59,7 +60,7 @@ public:
 
     std::filesystem::path abs_output_dirpath {};
     std::filesystem::path abs_worldlines_dirpath {};
-    std::size_t block_index {};
+    std::vector<std::size_t> block_indices {};
     FP density {};
     std::tuple<std::size_t, std::size_t, std::size_t> n_unit_cells {};
     std::filesystem::path abs_two_body_filepath {};
@@ -82,7 +83,7 @@ private:
 
             abs_output_dirpath = cast_toml_to<std::filesystem::path>(table, "abs_output_dirpath");
             abs_worldlines_dirpath = cast_toml_to<std::filesystem::path>(table, "abs_worldlines_dirpath");
-            block_index = cast_toml_to<std::size_t>(table, "block_index");
+            parse_block_indices_(table);
             density = cast_toml_to<FP>(table, "density");
             std::get<0>(n_unit_cells) = cast_toml_to<std::size_t>(table, "n_cells_dim0");
             std::get<1>(n_unit_cells) = cast_toml_to<std::size_t>(table, "n_cells_dim1");
@@ -103,6 +104,33 @@ private:
         catch (const std::runtime_error& err) {
             parse_success_flag_ = false;
             error_message_ = err.what();
+        }
+    }
+
+    void parse_block_indices_(const toml::table& table)
+    {
+        if (auto block_indices_array = table["block_indices"].as_array()) {
+            for (auto& element : *block_indices_array) {
+                if (element.is_integer()) {
+                    const auto value = element.value<std::int64_t>();
+                    if (!value) {
+                        throw std::runtime_error {"ERROR: unable to parse integer in 'block_indices'."};
+                    }
+
+                    if (*value < 0) {
+                        throw std::runtime_error {"ERROR: found a negative block index."};
+                    }
+
+                    const auto index = static_cast<std::size_t>(*value);
+                    block_indices.push_back(index);
+                }
+                else {
+                    throw std::runtime_error {"ERROR: found non-integer element in 'block_indices'."};
+                }
+            }
+        }
+        else {
+            throw std::runtime_error {"ERROR: 'block_indices' not found, or not an array in the file."};
         }
     }
 };
