@@ -57,11 +57,11 @@ def get_toml_file_contents(contents_map: dict[str, Any]) -> str:
             f"n_cells_dim2 = {cell_dimensions[2]}",
             f"freeze_monte_carlo_step_sizes_in_equilibrium = {freeze_mc_steps}",
             f"abs_two_body_filepath =   '{str(abs_repo_dirpath)}/potentials/fsh_potential_angstroms_wavenumbers.potext_sq'",
-            f"abs_three_body_filepath = '{str(abs_repo_dirpath)}/pimc_simpy/scripts/pes_files/threebody_126_101_51.dat'",
+            f"abs_three_body_filepath = '{str(abs_repo_dirpath)}/../../large_files/eng.tri'",
             f"abs_four_body_filepath =  '{str(abs_repo_dirpath)}/pimc_simpy/scripts/models/fourbodypara_8_16_16_8.pt'",
         ]
     )
-    # f"abs_three_body_filepath = '{str(abs_repo_dirpath)}/../../large_files/eng.tri'",
+    # f"abs_three_body_filepath = '{str(abs_repo_dirpath)}/pimc_simpy/scripts/pes_files/threebody_126_101_51.dat'",
 
     return contents
 
@@ -152,7 +152,7 @@ def run_slurm_files(manager: ProjectDirectoryStructureManager, n_densities: int)
 
 
 if __name__ == "__main__":
-    n_timeslices = 64
+    n_timeslices = 192
     n_densities = 21
     densities = np.linspace(0.025, 0.027, n_densities)  # ANG^{-3}
 
@@ -165,11 +165,11 @@ if __name__ == "__main__":
     }
 
     project_info_toml_dirpath = Path("..", "project_info_toml_files", "equilibrium_density_files")
-    project_info_toml_filename = f"local_eq_dens_p{n_timeslices:0>3d}.toml"
+    project_info_toml_filename = f"cedar_eq_dens_p{n_timeslices:0>3d}.toml"
     project_info_toml_filepath = project_info_toml_dirpath / project_info_toml_filename
     project_info = parse_project_info(project_info_toml_filepath)
     formatter = BasicProjectDirectoryFormatter()
     manager = ProjectDirectoryStructureManager(project_info, formatter)
 
     example(manager, densities, n_timeslices, step_sizes_map)
-    # run_slurm_files(info, n_densities)
+    run_slurm_files(manager, n_densities)
