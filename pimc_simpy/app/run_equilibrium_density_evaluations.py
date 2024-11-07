@@ -53,7 +53,7 @@ def get_toml_file_contents(contents_map: dict[str, Any]) -> str:
             f"evaluate_four_body = {evaluate_four_body}",
             f"abs_two_body_filepath =   '{str(abs_repo_dirpath)}/potentials/fsh_potential_angstroms_wavenumbers.potext_sq'",
             f"abs_three_body_filepath = '{str(abs_repo_dirpath)}/../../large_files/eng.tri'",
-            f"abs_four_body_filepath =  '{str(abs_repo_dirpath)}/pimc_simpy/scripts/models/fourbodypara_8_16_16_8.pt'",
+            f"abs_four_body_filepath =  '{str(abs_repo_dirpath)}/pimc_simpy/scripts/models/fourbodypara_ssp_64_128_128_64_cpu_eval.pt'",
         ]
     )
     #         f"abs_three_body_filepath = '{str(abs_repo_dirpath)}/pimc_simpy/scripts/pes_files/threebody_126_101_51.dat'",

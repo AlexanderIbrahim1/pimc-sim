@@ -3,24 +3,20 @@ This script contains pseudocode to help me find out what I need to implement to 
 to run the jobs manager.
 """
 
-import dataclasses
-import subprocess
 from pathlib import Path
+import subprocess
 from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
 
+from pimc_simpy.quick_analysis import read_converged_bisection_multibead_position_move_info
+from pimc_simpy.quick_analysis import read_converged_centre_of_mass_step_size
+
 from pimc_simpy.manage import BasicProjectDirectoryFormatter
 from pimc_simpy.manage import ProjectDirectoryStructureManager
+
 from pimc_simpy.manage import parse_project_info
-
-
-@dataclasses.dataclass
-class MCStepSizes:
-    com_step_size: float
-    bisection_upper_level_fraction: float
-    bisection_lower_level: int
 
 
 def get_toml_file_contents(contents_map: dict[str, Any]) -> str:
@@ -94,24 +90,21 @@ def get_slurm_file_contents(contents_map: dict[str, Any]) -> str:
     return contents
 
 
-def example(
-    manager: ProjectDirectoryStructureManager, densities: NDArray, n_timeslices: int, mc_step_size_map: dict[int, MCStepSizes]
-) -> None:
+def create_directories(manager: ProjectDirectoryStructureManager, densities: NDArray) -> None:
     toml_info_map: dict[str, Any] = {}
-
-    mc_step_sizes = mc_step_size_map[n_timeslices]
-    toml_info_map["centre_of_mass_step_size"] = mc_step_sizes.com_step_size
-    toml_info_map["bisection_level"] = mc_step_sizes.bisection_lower_level
-    toml_info_map["bisection_ratio"] = mc_step_sizes.bisection_upper_level_fraction
-
     toml_info_map["abs_repo_dirpath"] = manager.info.abs_external_dirpath
-    toml_info_map["cell_dimensions"] = (5, 3, 3)
+    toml_info_map["cell_dimensions"] = (3, 2, 2)
     toml_info_map["seed"] = '"RANDOM"'
-    toml_info_map["last_block_index"] = 2000
-    toml_info_map["n_equilibrium_blocks"] = 15
-    toml_info_map["n_passes"] = 2
-    toml_info_map["n_timeslices"] = n_timeslices
-    toml_info_map["freeze_mc_steps"] = "true"
+    toml_info_map["last_block_index"] = 1000
+    toml_info_map["n_equilibrium_blocks"] = 1000
+    toml_info_map["n_passes"] = 5
+    toml_info_map["n_timeslices"] = 960
+    toml_info_map["freeze_mc_steps"] = "false"
+
+    # set the initial monte carlo step sizes
+    toml_info_map["centre_of_mass_step_size"] = 0.18
+    toml_info_map["bisection_level"] = 3
+    toml_info_map["bisection_ratio"] = 0.5
 
     slurm_info_map: dict[str, Any] = {}
     slurm_info_map["executable"] = "pimc-sim"
@@ -152,24 +145,13 @@ def run_slurm_files(manager: ProjectDirectoryStructureManager, n_densities: int)
 
 
 if __name__ == "__main__":
-    n_timeslices = 192
-    n_densities = 21
-    densities = np.linspace(0.025, 0.027, n_densities)  # ANG^{-3}
+    n_densities = 31
+    densities = np.linspace(0.024, 0.1, n_densities)  # ANG^{-3}
 
-    step_sizes_map = {
-        64: MCStepSizes(com_step_size=0.180, bisection_upper_level_fraction=0.66, bisection_lower_level=2),
-        80: MCStepSizes(com_step_size=0.175, bisection_upper_level_fraction=0.98, bisection_lower_level=2),
-        96: MCStepSizes(com_step_size=0.175, bisection_upper_level_fraction=0.26, bisection_lower_level=3),
-        128: MCStepSizes(com_step_size=0.170, bisection_upper_level_fraction=0.70, bisection_lower_level=3),
-        192: MCStepSizes(com_step_size=0.170, bisection_upper_level_fraction=0.32, bisection_lower_level=4),
-    }
-
-    project_info_toml_dirpath = Path("..", "project_info_toml_files", "equilibrium_density_files")
-    project_info_toml_filename = f"cedar_eq_dens_p{n_timeslices:0>3d}.toml"
-    project_info_toml_filepath = project_info_toml_dirpath / project_info_toml_filename
+    project_info_toml_filepath = Path("..", "project_info_toml_files", "local_eq_ac_search_p960.toml")
     project_info = parse_project_info(project_info_toml_filepath)
     formatter = BasicProjectDirectoryFormatter()
     manager = ProjectDirectoryStructureManager(project_info, formatter)
 
-    example(manager, densities, n_timeslices, step_sizes_map)
-    run_slurm_files(manager, n_densities)
+    create_directories(manager, densities)
+    # run_slurm_files(info, n_densities)
