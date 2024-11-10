@@ -75,7 +75,7 @@ def get_slurm_file_contents(contents_map: dict[str, Any]) -> str:
             "",
             "#SBATCH --account=rrg-pnroy",
             f"#SBATCH --mem={memory_gb}G",
-            "#SBATCH --time=1-00:00:00",
+            "#SBATCH --time=2-00:00:00",
             "#SBATCH --cpus-per-task=1",
             f"#SBATCH --output={str(abs_slurm_output_filename)}",
             "",
@@ -156,13 +156,13 @@ if __name__ == "__main__":
     n_densities = 31
     densities = np.linspace(0.024, 0.1, n_densities)  # ANG^{-3}
 
-    bisect_info_filepath = Path("..", "playground", "converged_bisection_move_info_p960.dat")
-    com_info_filepath = Path("..", "playground", "converged_centre_of_mass_step_size_p960.dat")
+    bisect_info_filepath = Path("..", "playground", "converged_bisection_move_info_pert2b3b_p960.dat")
+    com_info_filepath = Path("..", "playground", "converged_centre_of_mass_step_size_pert2b3b_p960.dat")
 
-    project_info_toml_filepath = Path("..", "project_info_toml_files", "local_eq_ac_search_p960.toml")
+    project_info_toml_filepath = Path("..", "project_info_toml_files", "p960_coarse_pert2b3b_eq_ac_search.toml")
     project_info = parse_project_info(project_info_toml_filepath)
     formatter = BasicProjectDirectoryFormatter()
     manager = ProjectDirectoryStructureManager(project_info, formatter)
 
-    create_directories(manager, densities, bisect_info_filepath, com_info_filepath)
-    # run_slurm_files(info, n_densities)
+    # create_directories(manager, densities, bisect_info_filepath, com_info_filepath)
+    run_slurm_files(manager, n_densities)

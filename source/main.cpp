@@ -63,7 +63,7 @@ auto main(int argc, char** argv) -> int
     }
 
     // const auto n_most_recent_worldlines_to_save = 1;
-    const auto n_save_worldlines_every = std::size_t {10};
+    // const auto n_save_worldlines_every = std::size_t {10};
 
     const auto toml_input_filename = argv[1];
     const auto parser = argparse::ArgParser<float> {toml_input_filename};
@@ -244,10 +244,10 @@ auto main(int argc, char** argv) -> int
             estim::update_centroid_radial_distribution_function_histogram(centroid_dist_histo, periodic_distance_calculator, worldlines);
             mathtools::io::write_histogram(centroid_dist_histo_filepath, centroid_dist_histo);
 
-            /* save the worldlines */
-            if (((i_block + 1) % n_save_worldlines_every) == 0) {
-                worldline_writer.write(i_block, worldlines);
-            }
+            // /* save the worldlines */
+            // if (((i_block + 1) % n_save_worldlines_every) == 0) {
+            //     worldline_writer.write(i_block, worldlines);
+            // }
         }
         /* Maybe update the step sizes during equilibration */
         if (i_block < parser.n_equilibrium_blocks && !parser.freeze_monte_carlo_step_sizes_in_equilibrium) {
