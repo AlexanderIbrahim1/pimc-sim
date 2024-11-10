@@ -44,13 +44,13 @@ def plot_monte_carlo_steps(reader: ProjectDataReader, sim_id: int) -> None:
     plot_property([upper_fractions, lower_levels, com_step_sizes], labels=["upper_fractions", "lower_levels", "com_step_sizes"])
 
 
-def converged_monte_carlo_steps(reader: ProjectDataReader, sim_id: int, between: tuple[int, int]) -> None:
+def converged_monte_carlo_steps(reader: ProjectDataReader, sim_id: int, n_last: int) -> None:
     upper_fractions, lower_levels = reader.read_project_bisection_multibead_position_move_info(sim_id)
     com_step_sizes = reader.read_project_centre_of_mass_step_size(sim_id)
 
     def print_mean_and_sem(data: PropertyData) -> None:
-        data = between_epochs(between[0], between[1], data)
-        stats = get_property_statistics(data)
+        data_ = last_n_epochs(n_last, data)
+        stats = get_property_statistics(data_)
 
         print(f"(mean, sem) = ({stats.mean}, {stats.stderrmean})")
 
@@ -69,17 +69,17 @@ def get_reader(project_info_toml_filepath: Path) -> ProjectDataReader:
 
 # -----------------------------------------------------------------------------
 
-PROJECT_INFO_TOML_FILEPATH = Path("..", "project_info_toml_files", "local_mcmc_param_search_p960.toml")
+PROJECT_INFO_TOML_FILEPATH = Path("..", "project_info_toml_files", "local_p960_coarse_pert2b3b_mcmc_param_search.toml")
 
 
 def write_converged_move_infos() -> None:
-    bisection_output_filepath = Path("..", "playground", "converged_bisection_move_info_p960.dat")
-    com_output_filepath = Path("..", "playground", "converged_centre_of_mass_step_size_p960.dat")
+    bisection_output_filepath = Path("..", "playground", "converged_bisection_move_info_pert2b3b_p960.dat")
+    com_output_filepath = Path("..", "playground", "converged_centre_of_mass_step_size_pert2b3b_p960.dat")
 
     reader = get_reader(PROJECT_INFO_TOML_FILEPATH)
 
     simulation_indices = list(range(31))
-    n_last: int = 200
+    n_last: int = 50
 
     write_converged_bisection_multibead_position_move_info_last(reader, bisection_output_filepath, simulation_indices, n_last)
     write_converged_centre_of_mass_step_size_last(reader, com_output_filepath, simulation_indices, n_last)
@@ -90,5 +90,10 @@ def plot_move_infos() -> None:
     reader = get_reader(PROJECT_INFO_TOML_FILEPATH)
 
     plot_monte_carlo_acceptance_rates(reader, sim_id)
-    plot_monte_carlo_steps(reader, sim_id)
-    converged_monte_carlo_steps(reader, sim_id, (300, 500))
+    # plot_monte_carlo_steps(reader, sim_id)
+    # converged_monte_carlo_steps(reader, sim_id, 50)
+
+
+if __name__ == "__main__":
+    # plot_move_infos()
+    write_converged_move_infos()
