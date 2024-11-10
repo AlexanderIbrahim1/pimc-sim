@@ -12,10 +12,8 @@ from numpy.typing import NDArray
 
 from pimc_simpy.quick_analysis import read_converged_bisection_multibead_position_move_info
 from pimc_simpy.quick_analysis import read_converged_centre_of_mass_step_size
-
 from pimc_simpy.manage import BasicProjectDirectoryFormatter
 from pimc_simpy.manage import ProjectDirectoryStructureManager
-
 from pimc_simpy.manage import parse_project_info
 
 
@@ -148,10 +146,10 @@ if __name__ == "__main__":
     n_densities = 31
     densities = np.linspace(0.024, 0.1, n_densities)  # ANG^{-3}
 
-    project_info_toml_filepath = Path("..", "project_info_toml_files", "local_eq_ac_search_p960.toml")
+    project_info_toml_filepath = Path("..", "project_info_toml_files", "p960_coarse_pert2b3b_mcmc_param_search.toml")
     project_info = parse_project_info(project_info_toml_filepath)
     formatter = BasicProjectDirectoryFormatter()
     manager = ProjectDirectoryStructureManager(project_info, formatter)
 
-    create_directories(manager, densities)
-    # run_slurm_files(info, n_densities)
+    # create_directories(manager, densities)
+    run_slurm_files(manager, n_densities)
