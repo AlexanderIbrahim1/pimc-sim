@@ -95,13 +95,13 @@ def create_directories(manager: ProjectDirectoryStructureManager, densities: NDA
     toml_info_map["seed"] = '"RANDOM"'
     toml_info_map["last_block_index"] = 1000
     toml_info_map["n_equilibrium_blocks"] = 1000
-    toml_info_map["n_passes"] = 5
-    toml_info_map["n_timeslices"] = 960
+    toml_info_map["n_passes"] = 10
+    toml_info_map["n_timeslices"] = 192
     toml_info_map["freeze_mc_steps"] = "false"
 
     # set the initial monte carlo step sizes
     toml_info_map["centre_of_mass_step_size"] = 0.18
-    toml_info_map["bisection_level"] = 3
+    toml_info_map["bisection_level"] = 2
     toml_info_map["bisection_ratio"] = 0.5
 
     slurm_info_map: dict[str, Any] = {}
@@ -146,10 +146,10 @@ if __name__ == "__main__":
     n_densities = 31
     densities = np.linspace(0.024, 0.1, n_densities)  # ANG^{-3}
 
-    project_info_toml_filepath = Path("..", "project_info_toml_files", "p960_coarse_pert2b3b_mcmc_param_search.toml")
+    project_info_toml_filepath = Path("..", "project_info_toml_files", "equilibrium_density_param_search", "p192_pert2b3b_mcmc_param_search.toml")
     project_info = parse_project_info(project_info_toml_filepath)
     formatter = BasicProjectDirectoryFormatter()
     manager = ProjectDirectoryStructureManager(project_info, formatter)
 
     # create_directories(manager, densities)
-    run_slurm_files(manager, n_densities)
+    # run_slurm_files(manager, n_densities)
