@@ -91,8 +91,8 @@ def get_slurm_file_contents(contents_map: dict[str, Any]) -> str:
 
 
 def example(manager: ProjectDirectoryStructureManager, densities: NDArray) -> None:
-    bisect_info_filepath = Path("..", "playground", "converged_bisection_move_info_p960.dat")
-    com_info_filepath = Path("..", "playground", "converged_centre_of_mass_step_size_p960.dat")
+    bisect_info_filepath = Path("..", "playground", "converged_bisection_move_info_pert2b3b_p960.dat")
+    com_info_filepath = Path("..", "playground", "converged_centre_of_mass_step_size_pert2b3b_p960.dat")
 
     bisection_moves = read_converged_bisection_multibead_position_move_info(bisect_info_filepath)
     com_moves = read_converged_centre_of_mass_step_size(com_info_filepath)
@@ -102,7 +102,7 @@ def example(manager: ProjectDirectoryStructureManager, densities: NDArray) -> No
     toml_info_map["cell_dimensions"] = (5, 3, 3)
     toml_info_map["seed"] = '"RANDOM"'
     toml_info_map["last_block_index"] = 1000
-    toml_info_map["n_equilibrium_blocks"] = 10
+    toml_info_map["n_equilibrium_blocks"] = 15
     toml_info_map["n_passes"] = 2
     toml_info_map["n_timeslices"] = 960
     toml_info_map["freeze_mc_steps"] = "true"
@@ -143,8 +143,7 @@ def example(manager: ProjectDirectoryStructureManager, densities: NDArray) -> No
 
 
 def run_slurm_files(manager: ProjectDirectoryStructureManager, n_densities: int) -> None:
-    # for sim_id in [0]:
-    for sim_id in range(1, n_densities):
+    for sim_id in range(n_densities):
         abs_slurm_filepath = manager.get_slurm_bashfile_filepath(sim_id)
 
         cmd = ["sbatch", str(abs_slurm_filepath)]
@@ -152,13 +151,18 @@ def run_slurm_files(manager: ProjectDirectoryStructureManager, n_densities: int)
 
 
 if __name__ == "__main__":
+    version = 2
     n_densities = 31
     densities = np.linspace(0.024, 0.1, n_densities)  # ANG^{-3}
 
-    project_info_toml_filepath = Path("..", "project_info_toml_files", "local_eq_ac_search_p960.toml")
+    project_info_toml_filepath = Path("..", "project_info_toml_files", "p960_coarse_pert2b3b_tmpl.toml")
     project_info = parse_project_info(project_info_toml_filepath)
+
+    project_info.abs_subproject_dirpath = Path(f"{str(project_info.abs_subproject_dirpath)}{version}")
+    project_info.subproject_name = f"{project_info.subproject_name}_{version}"
+
     formatter = BasicProjectDirectoryFormatter()
     manager = ProjectDirectoryStructureManager(project_info, formatter)
 
-    example(manager, densities)
-    # run_slurm_files(info, n_densities)
+    # example(manager, densities)
+    run_slurm_files(manager, n_densities)

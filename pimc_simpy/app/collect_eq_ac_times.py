@@ -27,15 +27,18 @@ def plot_energies_rescaled(reader: ProjectDataReader, sim_id: int) -> None:
 
 
 def calculate_autocorrelation(reader: ProjectDataReader, sim_id: int, n_equilibration_sweeps: int) -> None:
-    potential_data = reader.read_project_pair_potential_energy(sim_id)
+    pair_potential_data = reader.read_project_pair_potential_energy(sim_id)
+    triplet_potential_data = reader.read_project_triplet_potential_energy(sim_id)
     kinetic_data = reader.read_project_kinetic_energy(sim_id)
 
-    potential_data = between_epochs(n_equilibration_sweeps, potential_data.values.size, potential_data)
+    pair_potential_data = between_epochs(n_equilibration_sweeps, pair_potential_data.values.size, pair_potential_data)
+    triplet_potential_data = between_epochs(n_equilibration_sweeps, triplet_potential_data.values.size, triplet_potential_data)
     kinetic_data = between_epochs(n_equilibration_sweeps, kinetic_data.values.size, kinetic_data)
 
-    potential_auto_time = autocorrelation_time_from_data(potential_data.values)
+    pair_potential_auto_time = autocorrelation_time_from_data(pair_potential_data.values)
+    triplet_potential_auto_time = autocorrelation_time_from_data(triplet_potential_data.values)
     kinetic_auto_time = autocorrelation_time_from_data(kinetic_data.values)
-    n_auto_sweeps = math.ceil(max(potential_auto_time, kinetic_auto_time))
+    n_auto_sweeps = math.ceil(max(pair_potential_auto_time, triplet_potential_auto_time, kinetic_auto_time))
 
     # print(f"potential_auto_time = {potential_auto_time}")
     # print(f"kinetic_auto_time = {kinetic_auto_time}")
@@ -43,7 +46,7 @@ def calculate_autocorrelation(reader: ProjectDataReader, sim_id: int, n_equilibr
 
 
 if __name__ == "__main__":
-    project_info_toml_filepath = Path("..", "project_info_toml_files", "local_eq_ac_search_p960.toml")
+    project_info_toml_filepath = Path("..", "project_info_toml_files", "p960_coarse_pert2b3b_eq_ac_search.toml")
     info = parse_project_info(project_info_toml_filepath)
     formatter = BasicProjectDirectoryFormatter()
     manager = ProjectDirectoryStructureManager(info, formatter)
@@ -54,5 +57,5 @@ if __name__ == "__main__":
     # calculate_autocorrelation(project_info, sim_id, 10)
 
     for sim_id in range(31):
-        #     print(f"sim_id = {sim_id}")
-        calculate_autocorrelation(reader, sim_id, 10)
+        print(f"sim_id = {sim_id}")
+        calculate_autocorrelation(reader, sim_id, 15)
