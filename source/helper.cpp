@@ -96,19 +96,6 @@ auto create_histogram(
     }
 }
 
-auto read_simulation_most_recent_completed_block_index(
-    const sim::ContinueFileManager& continue_file_manager,
-    const argparse::ArgParser<float>& parser
-) -> std::size_t
-{
-    if (continue_file_manager.file_exists()) {
-        return continue_file_manager.get_info().most_recent_block_index;
-    }
-    else {
-        return parser.first_block_index;
-    }
-}
-
 auto read_simulation_first_block_index(
     const sim::ContinueFileManager& continue_file_manager,
     const argparse::ArgParser<float>& parser
@@ -117,7 +104,11 @@ auto read_simulation_first_block_index(
     if (continue_file_manager.file_exists()) {
         // the continue file contains the most recently completed block, so we want the simulation
         // to start at the next block, hence the offset of 1 below
-        return 1 + continue_file_manager.get_info().most_recent_block_index;
+        if (continue_file_manager.get_info().is_at_least_one_worldline_index_saved) {
+            return 1 + continue_file_manager.get_info().most_recent_saved_worldline_index;
+        } else {
+            return parser.first_block_index;
+        }
     }
     else {
         return parser.first_block_index;
@@ -157,14 +148,19 @@ template <std::floating_point FP, std::size_t NDIM>
 auto read_simulation_worldlines(
     const sim::ContinueFileManager& continue_file_manager,
     const worldline::WorldlineWriter<FP, NDIM>& worldline_writer,
-    std::size_t most_recent_completed_block_index,
     std::size_t n_timeslices,
     const std::vector<coord::Cartesian<FP, NDIM>>& lattice_site_positions
 ) -> worldline::Worldlines<FP, NDIM>
 {
     if (continue_file_manager.is_continued()) {
-        const auto worldline_filepath = worldline_writer.output_filepath(most_recent_completed_block_index);
-        return worldline::read_worldlines<FP, NDIM>(worldline_filepath);
+        const auto info = continue_file_manager.get_info();
+
+        if (info.is_at_least_one_worldline_index_saved) {
+            const auto worldline_filepath = worldline_writer.output_filepath(info.most_recent_saved_worldline_index);
+            return worldline::read_worldlines<FP, NDIM>(worldline_filepath);
+        } else {
+            return worldline::worldlines_from_positions<FP, NDIM>(lattice_site_positions, n_timeslices);
+        }
     }
     else {
         return worldline::worldlines_from_positions<FP, NDIM>(lattice_site_positions, n_timeslices);

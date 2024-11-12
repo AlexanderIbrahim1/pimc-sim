@@ -83,6 +83,8 @@ public:
     std::size_t n_equilibrium_blocks {};
     std::size_t n_passes {};
     std::size_t n_timeslices {};
+    bool save_worldlines {true};
+    std::size_t n_save_worldlines_every {};
     FP centre_of_mass_step_size {};
     std::size_t bisection_level {};
     FP bisection_ratio {};
@@ -112,6 +114,13 @@ private:
             n_equilibrium_blocks = cast_toml_to<std::size_t>(table, "n_equilibrium_blocks");
             n_passes = cast_toml_to<std::size_t>(table, "n_passes");
             n_timeslices = cast_toml_to<std::size_t>(table, "n_timeslices");
+
+            save_worldlines = cast_toml_to<bool>(table, "save_worldlines");
+            n_save_worldlines_every = cast_toml_to<std::size_t>(table, "n_save_worldlines_every");
+            if (save_worldlines && (n_save_worldlines_every == 0)) {
+                throw std::runtime_error {"ERROR: 'n_save_worldlines_every' must be a positive integer if worldlines are being saved."};
+            }
+
             centre_of_mass_step_size = cast_toml_to<FP>(table, "centre_of_mass_step_size");
             bisection_level = cast_toml_to<std::size_t>(table, "bisection_level");
             bisection_ratio = cast_toml_to<FP>(table, "bisection_ratio");

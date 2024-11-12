@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -18,6 +19,8 @@ namespace sim
 struct SimulationContinueInfo
 {
     std::size_t most_recent_block_index;
+    std::size_t most_recent_saved_worldline_index;
+    bool is_at_least_one_worldline_index_saved;
     bool is_equilibration_complete;
 };
 
@@ -44,9 +47,16 @@ public:
         const auto table = toml::parse(toml_stream);
 
         const auto most_recent_block_index = cast_toml_to<std::size_t>(table, most_recent_block_index_name_);
+        const auto most_recent_saved_worldline_index = cast_toml_to<std::size_t>(table, most_recent_saved_worldline_index_name_);
+        const auto is_at_least_one_worldline_index_saved = cast_toml_to<bool>(table, is_at_least_one_worldline_index_saved_name_);
         const auto is_equilibration_complete = cast_toml_to<bool>(table, is_equilibration_complete_name_);
 
-        return sim::SimulationContinueInfo {most_recent_block_index, is_equilibration_complete};
+        return sim::SimulationContinueInfo {
+            most_recent_block_index,
+            most_recent_saved_worldline_index,
+            is_at_least_one_worldline_index_saved,
+            is_equilibration_complete
+        };
     }
 
     void serialize(std::ostream& toml_stream, const sim::SimulationContinueInfo& continue_info) const
@@ -56,9 +66,12 @@ public:
         // tomlplusplus requires that "Integral value initializers must be losslessly convertible to int64_t"
         // - we already know that `i_block` must be positive, so we don't really lose information here
         const auto most_recent_block_index = static_cast<std::int64_t>(continue_info.most_recent_block_index);
+        const auto most_recent_saved_worldline_index = static_cast<std::int64_t>(continue_info.most_recent_saved_worldline_index);
 
         const auto table = toml::table {
-            {most_recent_block_index_name_,   most_recent_block_index                },
+            {most_recent_block_index_name_, most_recent_block_index},
+            {most_recent_saved_worldline_index_name_, most_recent_saved_worldline_index},
+            {is_at_least_one_worldline_index_saved_name_, continue_info.is_at_least_one_worldline_index_saved},
             {is_equilibration_complete_name_, continue_info.is_equilibration_complete}
         };
 
@@ -67,6 +80,8 @@ public:
 
 private:
     std::string_view most_recent_block_index_name_ {"most_recent_block_index"};
+    std::string_view most_recent_saved_worldline_index_name_ {"most_recent_saved_worldline_index"};
+    std::string_view is_at_least_one_worldline_index_saved_name_ {"is_at_least_one_worldline_index_saved"};
     std::string_view is_equilibration_complete_name_ {"is_equilibration_complete"};
 };
 

@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
+#include <optional>
 #include <random>
 #include <string>
 #include <string_view>
@@ -63,7 +64,6 @@ auto main(int argc, char** argv) -> int
     }
 
     // const auto n_most_recent_worldlines_to_save = 1;
-    const auto n_save_worldlines_every = std::size_t {10};
 
     const auto toml_input_filename = argv[1];
     const auto parser = argparse::ArgParser<float> {toml_input_filename};
@@ -85,22 +85,19 @@ auto main(int argc, char** argv) -> int
     const auto com_step_size = parser.centre_of_mass_step_size;
     const auto bisect_move_info = pimc::BisectionLevelMoveInfo {parser.bisection_ratio, parser.bisection_level};
 
+    // clang-format off
     const auto last_block_index = parser.last_block_index;
     const auto first_block_index = read_simulation_first_block_index(continue_file_manager, parser);
-    const auto most_recent_completed_block_index =
-        read_simulation_most_recent_completed_block_index(continue_file_manager, parser);
 
-    const auto [n_particles, minimage_box, lattice_site_positions] =
-        build_hcp_lattice_structure(parser.density, parser.n_unit_cells);
+    const auto [n_particles, minimage_box, lattice_site_positions] = build_hcp_lattice_structure(parser.density, parser.n_unit_cells);
 
-    // clang-format off
     const auto periodic_distance_calculator = coord::PeriodicDistanceMeasureWrapper<float, NDIM> {minimage_box};
     const auto periodic_distance_squared_calculator = coord::PeriodicDistanceSquaredMeasureWrapper<float, NDIM> {minimage_box};
     // clang-format on
 
     /* create the worldlines and worldline writer*/
     auto worldline_writer = worldline::WorldlineWriter<float, NDIM> {output_dirpath};
-    auto worldlines = read_simulation_worldlines(continue_file_manager, worldline_writer, most_recent_completed_block_index, n_timeslices, lattice_site_positions);
+    auto worldlines = read_simulation_worldlines(continue_file_manager, worldline_writer, n_timeslices, lattice_site_positions);
 
     sim::write_box_sides(output_dirpath / "box_sides.dat", minimage_box);
 
@@ -184,6 +181,8 @@ auto main(int argc, char** argv) -> int
     auto timer = sim::Timer {};
     const auto timer_writer = sim::default_timer_writer(output_dirpath);
 
+    auto i_most_recent_saved_worldline = std::optional<std::size_t> {std::nullopt};
+
     /* perform the simulation loop */
     for (std::size_t i_block {first_block_index}; i_block < last_block_index; ++i_block) {
         timer.start();
@@ -245,8 +244,9 @@ auto main(int argc, char** argv) -> int
             mathtools::io::write_histogram(centroid_dist_histo_filepath, centroid_dist_histo);
 
             /* save the worldlines */
-            if (((i_block + 1) % n_save_worldlines_every) == 0) {
+            if (parser.save_worldlines && ((i_block % parser.n_save_worldlines_every) == 0)) {
                 worldline_writer.write(i_block, worldlines);
+                i_most_recent_saved_worldline = i_block;
             }
         }
         /* Maybe update the step sizes during equilibration */
@@ -270,7 +270,12 @@ auto main(int argc, char** argv) -> int
         multi_bead_tracker.reset();
 
         /* create or update the continue file */
-        continue_file_manager.set_info_and_serialize({i_block, i_block >= parser.n_equilibrium_blocks});
+        if (i_most_recent_saved_worldline) {
+            const auto worldline_index = i_most_recent_saved_worldline.value();
+            continue_file_manager.set_info_and_serialize({i_block, worldline_index, true, i_block >= parser.n_equilibrium_blocks});
+        } else {
+            continue_file_manager.set_info_and_serialize({i_block, 0, false, i_block >= parser.n_equilibrium_blocks});
+        }
 
         // worldline::delete_worldlines_file<float, NDIM>(worldline_writer, i_block, n_most_recent_worldlines_to_save);
 
