@@ -33,6 +33,8 @@ def get_toml_file_contents(contents_map: dict[str, Any]) -> str:
     n_equilibrium_blocks = contents_map["n_equilibrium_blocks"]
     n_passes = contents_map["n_passes"]
     n_timeslices = contents_map["n_timeslices"]
+    save_worldlines: str = contents_map["save_worldlines"]
+    n_save_worldlines_every: int = contents_map["n_save_worldlines_every"]
     freeze_mc_steps: bool = contents_map["freeze_mc_steps"]
     centre_of_mass_step_size = contents_map["centre_of_mass_step_size"]
     bisection_level = contents_map["bisection_level"]
@@ -46,6 +48,8 @@ def get_toml_file_contents(contents_map: dict[str, Any]) -> str:
             f"n_equilibrium_blocks = {n_equilibrium_blocks}",
             f"n_passes = {n_passes}",
             f"n_timeslices = {n_timeslices}",
+            f"save_worldlines = {save_worldlines}",
+            f"n_save_worldlines_every = {n_save_worldlines_every}",
             f"centre_of_mass_step_size = {centre_of_mass_step_size}",
             f"bisection_level = {bisection_level}",
             f"bisection_ratio = {bisection_ratio}",
@@ -79,7 +83,7 @@ def get_slurm_file_contents(contents_map: dict[str, Any]) -> str:
             "",
             "#SBATCH --account=rrg-pnroy",
             f"#SBATCH --mem={memory_gb}G",
-            "#SBATCH --time=1-00:00:00",
+            "#SBATCH --time=2-00:00:00",
             "#SBATCH --cpus-per-task=1",
             f"#SBATCH --output={str(abs_slurm_output_filename)}",
             "",
@@ -111,6 +115,8 @@ def example(
     toml_info_map["n_equilibrium_blocks"] = 15
     toml_info_map["n_passes"] = 2
     toml_info_map["n_timeslices"] = n_timeslices
+    toml_info_map["save_worldlines"] = "false"
+    toml_info_map["n_save_worldlines_every"] = 1
     toml_info_map["freeze_mc_steps"] = "true"
 
     slurm_info_map: dict[str, Any] = {}
@@ -152,24 +158,31 @@ def run_slurm_files(manager: ProjectDirectoryStructureManager, n_densities: int)
 
 
 if __name__ == "__main__":
-    n_timeslices = 192
     n_densities = 21
     densities = np.linspace(0.025, 0.027, n_densities)  # ANG^{-3}
 
     step_sizes_map = {
-        64: MCStepSizes(com_step_size=0.180, bisection_upper_level_fraction=0.66, bisection_lower_level=2),
-        80: MCStepSizes(com_step_size=0.175, bisection_upper_level_fraction=0.98, bisection_lower_level=2),
-        96: MCStepSizes(com_step_size=0.175, bisection_upper_level_fraction=0.26, bisection_lower_level=3),
-        128: MCStepSizes(com_step_size=0.170, bisection_upper_level_fraction=0.70, bisection_lower_level=3),
-        192: MCStepSizes(com_step_size=0.170, bisection_upper_level_fraction=0.32, bisection_lower_level=4),
+        64: MCStepSizes(com_step_size=0.175,  bisection_upper_level_fraction=0.71, bisection_lower_level=2),
+        80: MCStepSizes(com_step_size=0.175,  bisection_upper_level_fraction=0.03, bisection_lower_level=3),
+        96: MCStepSizes(com_step_size=0.175,  bisection_upper_level_fraction=0.31, bisection_lower_level=3),
+        128: MCStepSizes(com_step_size=0.170, bisection_upper_level_fraction=0.71, bisection_lower_level=3),
+        192: MCStepSizes(com_step_size=0.170, bisection_upper_level_fraction=0.33, bisection_lower_level=4),
     }
 
-    project_info_toml_dirpath = Path("..", "project_info_toml_files", "equilibrium_density_files")
-    project_info_toml_filename = f"cedar_eq_dens_p{n_timeslices:0>3d}.toml"
-    project_info_toml_filepath = project_info_toml_dirpath / project_info_toml_filename
-    project_info = parse_project_info(project_info_toml_filepath)
-    formatter = BasicProjectDirectoryFormatter()
-    manager = ProjectDirectoryStructureManager(project_info, formatter)
+    all_n_timeslices = [64, 80, 96, 128, 192]
+    all_versions = list(range(10))
 
-    example(manager, densities, n_timeslices, step_sizes_map)
-    run_slurm_files(manager, n_densities)
+    for n_timeslices in all_n_timeslices:
+        for version in all_versions:
+            project_info_toml_dirpath = Path("..", "project_info_toml_files", "equilibrium_density_files")
+            project_info_toml_filename = f"pert2b3b_eq_dens_tmpl.toml"
+            project_info_toml_filepath = project_info_toml_dirpath / project_info_toml_filename
+            project_info = parse_project_info(project_info_toml_filepath)
+            project_info.abs_subproject_dirpath = project_info.abs_subproject_dirpath / f"p{n_timeslices:0>3d}" / f"version{version}"
+            project_info.subproject_name = f"eq_dens_p{n_timeslices:0>3d}_version{version}"
+
+            formatter = BasicProjectDirectoryFormatter()
+            manager = ProjectDirectoryStructureManager(project_info, formatter)
+
+            # example(manager, densities, n_timeslices, step_sizes_map)
+            run_slurm_files(manager, n_densities)
