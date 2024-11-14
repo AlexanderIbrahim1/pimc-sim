@@ -46,23 +46,30 @@ def check_job(job_id: int, manager: ProjectDirectoryStructureManager, most_recen
 
 
 def main() -> None:
-    most_recent_block_index = 1000
-    version = 0
-    job_ids = list(range(31))
+    all_n_timeslices: list[int] = [64, 80, 96, 128, 192]
+    all_versions: list[int] = list(range(10))
 
-    project_info_toml_filepath = Path("..", "project_info_toml_files", "p960_coarse_pert2b3b_tmpl.toml")
-    info = parse_project_info(project_info_toml_filepath)
-    info.abs_subproject_dirpath = Path(f"{str(info.abs_subproject_dirpath)}{version}")
-    info.subproject_name = f"{info.subproject_name}_{version}"
+    most_recent_block_index = 1999
+    job_ids = list(range(21))
 
-    formatter = BasicProjectDirectoryFormatter()
-    manager = ProjectDirectoryStructureManager(info, formatter)
+    for n_timeslices in all_n_timeslices:
+        for version in all_versions:
+            print(f"CHECKING: ({n_timeslices:0>3d}, {version})")
+            project_info_toml_dirpath = Path("..", "project_info_toml_files", "equilibrium_density_files")
+            project_info_toml_filename = f"pert2b3b_eq_dens_tmpl.toml"
+            project_info_toml_filepath = project_info_toml_dirpath / project_info_toml_filename
+            project_info = parse_project_info(project_info_toml_filepath)
+            project_info.abs_subproject_dirpath = project_info.abs_subproject_dirpath / f"p{n_timeslices:0>3d}" / f"version{version}"
+            project_info.subproject_name = f"eq_dens_p{n_timeslices:0>3d}_version{version}"
 
-    for job_id in job_ids:
-        try:
-            check_job(job_id, manager, most_recent_block_index)
-        except JobSuccessException as exc:
-            print(f"{job_id:0>3d} : {exc}")
+            formatter = BasicProjectDirectoryFormatter()
+            manager = ProjectDirectoryStructureManager(project_info, formatter)
+
+            for job_id in job_ids:
+                try:
+                    check_job(job_id, manager, most_recent_block_index)
+                except JobSuccessException as exc:
+                    print(f"({n_timeslices:0>3d}, {version}, {job_id:0>3d}) : {exc}")
 
 
 if __name__ == "__main__":
