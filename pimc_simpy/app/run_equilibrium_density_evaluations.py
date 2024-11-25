@@ -53,10 +53,11 @@ def get_toml_file_contents(contents_map: dict[str, Any]) -> str:
             f"evaluate_four_body = {evaluate_four_body}",
             f"abs_two_body_filepath =   '{str(abs_repo_dirpath)}/potentials/fsh_potential_angstroms_wavenumbers.potext_sq'",
             f"abs_three_body_filepath = '{str(abs_repo_dirpath)}/../../large_files/eng.tri'",
-            f"abs_four_body_filepath =  '{str(abs_repo_dirpath)}/pimc_simpy/scripts/models/fourbodypara_ssp_64_128_128_64_cpu_eval.pt'",
+            f"abs_four_body_filepath =  '{str(abs_repo_dirpath)}/../../large_files/published_fourbody_torch_models/fourbodypara_ssp_64_128_128_64_cpu_eval.pt'",
         ]
     )
-    #         f"abs_three_body_filepath = '{str(abs_repo_dirpath)}/pimc_simpy/scripts/pes_files/threebody_126_101_51.dat'",
+    # f"abs_three_body_filepath = '{str(abs_repo_dirpath)}/pimc_simpy/scripts/pes_files/threebody_126_101_51.dat'",
+    # f"abs_four_body_filepath =  '{str(abs_repo_dirpath)}/pimc_simpy/scripts/models/fourbodypara_ssp_64_128_128_64_cpu_eval.pt'",
 
     return contents
 
@@ -98,9 +99,9 @@ def create_directory_structure(
     toml_info_map: dict[str, Any] = {}
     toml_info_map["abs_repo_dirpath"] = eval_manager.info.abs_external_dirpath
     toml_info_map["cell_dimensions"] = (5, 3, 3)
-    toml_info_map["evaluate_two_body"] = "true"
+    toml_info_map["evaluate_two_body"] = "false"
     toml_info_map["evaluate_three_body"] = "false"
-    toml_info_map["evaluate_four_body"] = "false"
+    toml_info_map["evaluate_four_body"] = "true"
     toml_info_map["block_indices"] = worldline_indices
 
     slurm_info_map: dict[str, Any] = {}
@@ -140,51 +141,66 @@ def run_slurm_files(eval_manager: ProjectDirectoryStructureManager, n_densities:
 
         cmd = ["sbatch", str(abs_slurm_filepath)]
         subprocess.run(cmd, check=True)
-        exit()
 
 
-def create_worldline_indices_map(i_start: int, gap_size: int) -> dict[int, list[int]]:
-    def indices(n_timeslices: int) -> list[int]:
-        n_worldlines = number_of_worldline_files(n_timeslices)
-        start = i_start
-        stop = 1 + i_start + gap_size * n_worldlines
-        step = gap_size
+# def create_worldline_indices_map(i_start: int, gap_size: int) -> dict[int, list[int]]:
+#     def indices(n_timeslices: int) -> list[int]:
+#         n_worldlines = number_of_worldline_files(n_timeslices)
+#         start = i_start
+#         stop = 1 + i_start + gap_size * n_worldlines
+#         step = gap_size
+# 
+#         return list(range(start, stop, step))
+# 
+#     worldline_indices_map: dict[int, list[int]] = {
+#         64: indices(64),
+#         80: indices(80),
+#         96: indices(96),
+#         128: indices(128),
+#         192: indices(192),
+#     }
+# 
+#     return worldline_indices_map
 
-        return list(range(start, stop, step))
 
-    worldline_indices_map: dict[int, list[int]] = {
-        64: indices(64),
-        80: indices(80),
-        96: indices(96),
-        128: indices(128),
-        192: indices(192),
-    }
+def get_worldline_indices_batch(n_timeslices: int, all_worldline_indices: list[int], i_batch: int) -> list[int]:
+    n_worldlines = number_of_worldline_files(n_timeslices)
+    i_start = i_batch * n_worldlines
+    i_end = i_start + n_worldlines
 
-    return worldline_indices_map
+    if (i_end >= len(all_worldline_indices)):
+        raise ValueError("ERROR: requested batch goes beyond the possible indices.")
+
+    return all_worldline_indices[i_start:i_end]
 
 
 if __name__ == "__main__":
-    n_timeslices = 64
-    worldlines_start = 19
+    all_worldline_indices = list(range(20, 2000, 10))
+    densities = np.linspace(0.025, 0.027, 21)  # ANG^{-3}
 
-    gap_size = 10
-    n_densities = 21
-    densities = np.linspace(0.025, 0.027, n_densities)  # ANG^{-3}
+    for n_timeslices in [64, 80, 96, 128, 192]:
+        # create the simulation project manager
+        sim_info_toml_filename = "pert2b3b_eq_dens_tmpl.toml"
+        sim_info_toml_dirpath = Path("..", "project_info_toml_files", "equilibrium_density_files")
+        sim_info_toml_filepath = sim_info_toml_dirpath / sim_info_toml_filename
+        sim_info = parse_project_info(sim_info_toml_filepath)
+        sim_info.abs_subproject_dirpath = sim_info.abs_subproject_dirpath / f"p{n_timeslices:0>3d}" / f"version0"
+        sim_info.subproject_name = f"eq_dens_p{n_timeslices:0>3d}_version0"
+        sim_formatter = BasicProjectDirectoryFormatter()
+        sim_manager = ProjectDirectoryStructureManager(sim_info, sim_formatter)
+    
+        for i_batch in range(8):
+            worldline_indices = get_worldline_indices_batch(n_timeslices, all_worldline_indices, i_batch)
+        
+            # create the evaluation project manager
+            eval_project_info_toml_filepath = Path("..", "project_info_toml_files", "eval_eq_dens_pert2b3b_tmpl.toml")
+            eval_info = parse_project_info(eval_project_info_toml_filepath)
+            eval_info.abs_subproject_dirpath = eval_info.abs_subproject_dirpath / f"version{i_batch}" / f"p{n_timeslices:0>3d}"
+            eval_info.subproject_name += f"_p{n_timeslices:0>3d}_v{i_batch}"
+            eval_formatter = BasicProjectDirectoryFormatter()
+            eval_manager = ProjectDirectoryStructureManager(eval_info, eval_formatter)
+        
+            # create_directory_structure(sim_manager, eval_manager, densities, worldline_indices)
+            run_slurm_files(eval_manager, len(densities))
 
-    worldline_indices_map = create_worldline_indices_map(worldlines_start, gap_size)
-    worldline_indices = worldline_indices_map[n_timeslices]
 
-    # TODO: CHANGE
-    sim_project_info_toml_filepath = Path("..", "project_info_toml_files", "p960_coarse_pert2b.toml")
-    sim_info = parse_project_info(sim_project_info_toml_filepath)
-    sim_formatter = BasicProjectDirectoryFormatter()
-    sim_manager = ProjectDirectoryStructureManager(sim_info, sim_formatter)
-
-    # TODO: CHANGE
-    eval_project_info_toml_filepath = Path("..", "project_info_toml_files", "p960_coarse_eval_pert2b_fourbody.toml")
-    eval_info = parse_project_info(eval_project_info_toml_filepath)
-    eval_formatter = BasicProjectDirectoryFormatter()
-    eval_manager = ProjectDirectoryStructureManager(eval_info, eval_formatter)
-
-    create_directory_structure(sim_manager, eval_manager, densities, worldline_indices)
-    # run_slurm_files(eval_manager, n_densities)

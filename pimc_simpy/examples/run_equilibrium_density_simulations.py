@@ -62,7 +62,7 @@ def get_toml_file_contents(contents_map: dict[str, Any]) -> str:
             f"freeze_monte_carlo_step_sizes_in_equilibrium = {freeze_mc_steps}",
             f"abs_two_body_filepath =   '{str(abs_repo_dirpath)}/potentials/fsh_potential_angstroms_wavenumbers.potext_sq'",
             f"abs_three_body_filepath = '{str(abs_repo_dirpath)}/../../large_files/eng.tri'",
-            f"abs_four_body_filepath =  '{str(abs_repo_dirpath)}/pimc_simpy/scripts/models/fourbodypara_ssp_64_128_128_64_cpu_eval.pt'",
+            f"abs_four_body_filepath =  '{str(abs_repo_dirpath)}/../../large_files/published_fourbody_torch_models/fourbodypara_ssp_64_128_128_64_cpu_eval.pt'",
         ]
     )
     # f"abs_three_body_filepath = '{str(abs_repo_dirpath)}/pimc_simpy/scripts/pes_files/threebody_126_101_51.dat'",
@@ -111,7 +111,7 @@ def example(
     toml_info_map["abs_repo_dirpath"] = manager.info.abs_external_dirpath
     toml_info_map["cell_dimensions"] = (5, 3, 3)
     toml_info_map["seed"] = '"RANDOM"'
-    toml_info_map["last_block_index"] = 2000
+    toml_info_map["last_block_index"] = 10000
     toml_info_map["n_equilibrium_blocks"] = 15
     toml_info_map["n_passes"] = 2
     toml_info_map["n_timeslices"] = n_timeslices
@@ -120,7 +120,7 @@ def example(
     toml_info_map["freeze_mc_steps"] = "true"
 
     slurm_info_map: dict[str, Any] = {}
-    slurm_info_map["executable"] = "pimc-sim"
+    slurm_info_map["executable"] = "perturbative2b"
     slurm_info_map["abs_executable_dirpath"] = manager.info.abs_executable_dirpath
     slurm_info_map["memory_gb"] = 4
 
@@ -161,6 +161,7 @@ if __name__ == "__main__":
     n_densities = 21
     densities = np.linspace(0.025, 0.027, n_densities)  # ANG^{-3}
 
+    # NOTE: these values are essentially the same for the pert-2b and pert-2b3b simulations
     step_sizes_map = {
         64: MCStepSizes(com_step_size=0.175,  bisection_upper_level_fraction=0.71, bisection_lower_level=2),
         80: MCStepSizes(com_step_size=0.175,  bisection_upper_level_fraction=0.03, bisection_lower_level=3),
@@ -175,11 +176,11 @@ if __name__ == "__main__":
     for n_timeslices in all_n_timeslices:
         for version in all_versions:
             project_info_toml_dirpath = Path("..", "project_info_toml_files", "equilibrium_density_files")
-            project_info_toml_filename = f"pert2b3b_eq_dens_tmpl.toml"
+            project_info_toml_filename = f"pert2b_eq_dens_tmpl.toml"
             project_info_toml_filepath = project_info_toml_dirpath / project_info_toml_filename
             project_info = parse_project_info(project_info_toml_filepath)
-            project_info.abs_subproject_dirpath = project_info.abs_subproject_dirpath / f"p{n_timeslices:0>3d}" / f"version{version}"
-            project_info.subproject_name = f"eq_dens_p{n_timeslices:0>3d}_version{version}"
+            project_info.abs_subproject_dirpath = project_info.abs_subproject_dirpath / f"version{version}" / f"p{n_timeslices:0>3d}"
+            project_info.subproject_name = f"eq_dens_p{n_timeslices:0>3d}_v{version}"
 
             formatter = BasicProjectDirectoryFormatter()
             manager = ProjectDirectoryStructureManager(project_info, formatter)
