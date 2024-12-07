@@ -1,8 +1,10 @@
 #include <cstddef>
 #include <filesystem>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <tuple>
+#include <vector>
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
@@ -13,6 +15,28 @@
 
 
 namespace cw = common::writers;
+
+auto check_file_contents(const std::filesystem::path& filepath, const std::vector<std::string>& expected_lines) -> void
+{
+    auto in_stream = std::ifstream {filepath};
+    if (!in_stream.is_open()) {
+        auto err_msg = std::stringstream {};
+        err_msg << "Unable to open file '" << filepath.c_str() << "' to assert file contents.\n";
+        throw std::runtime_error {err_msg.str()};
+    }
+
+    std::string line;
+    auto actual_lines = std::vector<std::string> {};
+    while (std::getline(in_stream, line)) {
+        actual_lines.push_back(line);
+    }
+
+    CHECK(actual_lines.size() == expected_lines.size());
+
+    for (std::size_t i {0}; i < actual_lines.size(); ++i) {
+        CHECK(actual_lines[i] == expected_lines[i]);
+    }
+}
 
 constexpr auto default_format_info1() noexcept -> cw::FormatInfo<1>
 {
@@ -228,35 +252,78 @@ TEST_CASE("BlockValueWriter")
 
     SECTION("single_value_example0")
     {
-        const auto rel_dirpath = fs::path{"test"} / "test_io" / "buffered_writer" / "single_value_example0";
         const auto filename = "test_single_value_example0.txt";
-        const auto abs_filepath = test_utils::resolve_project_path(rel_dirpath) / filename;
+        const auto rel_dirpath = fs::path{"test"} / "test_io";
+        const auto abs_dirpath = test_utils::resolve_project_path(rel_dirpath);
 
+        const auto test_dirpath = abs_dirpath / "buffered_writer_single_value_example0";
+        if (!fs::exists(test_dirpath)) {
+            try {
+                fs::create_directory(test_dirpath);
+            } catch (const fs::filesystem_error& error) {
+                INFO("Failed to create directory for 'single_value_example0'; cannot continue");
+                REQUIRE(false);
+            }
+        }
+        
+        const auto abs_filepath = test_dirpath / filename;
         const auto header = std::string {"# dummy header\n"};
 
         auto writer = cw::BlockValueWriter<int> {abs_filepath, header};
 
-        REQUIRE(!fs::exists(abs_filepath));
-    }
-    // PLAN
-    // create an instance
-    // define (but don't explicitly create) a file in the new directory for the I/O testing
-    //   - (unfortunately, it looks like I need to perform I/O to test this class!)
-    // CHECK: file doesn't exist yet
-    // accumulate some data
-    // CHECK: file doesn't exist yet
-    // accumulate some more data
-    // CHECK: file doesn't exist yet
-    // write_and_clear
-    // CHECK: file exists
-    // CHECK: file contents are as expected
-    // accumulate some more data
-    // CHECK: file exists
-    // CHECK: file contents are unchanged
-    // accumulate some more data
-    // CHECK: file exists
-    // CHECK: file contents are changed
+        // CHECK: file should not exist before the first write
+        CHECK(!fs::exists(abs_filepath));
 
-    // to perform these tests
-    // - new function to check the file contents
+        writer.accumulate({0, 101});
+        writer.accumulate({1, 202});
+        writer.accumulate({2, 303});
+
+        // CHECK: accumulating data does not count as a write; file should still not exist
+        CHECK(!fs::exists(abs_filepath));
+
+        writer.write_and_clear();
+
+        const auto expected_contents_after_first_write = std::vector<std::string> {
+            std::string{"# dummy header"},
+            std::string{"00000"} + "   " + "     101",
+            std::string{"00001"} + "   " + "     202",
+            std::string{"00002"} + "   " + "     303"
+        };
+
+        // CHECK: file should now exist, and have the expected contents
+        CHECK(fs::exists(abs_filepath));
+        check_file_contents(abs_filepath, expected_contents_after_first_write);
+
+        writer.accumulate({3, 404});
+        writer.accumulate({4, 505});
+        writer.accumulate({5,  66});
+
+        // CHECK: accumulating data does not count as a write; file contents should remain unchanged
+        check_file_contents(abs_filepath, expected_contents_after_first_write);
+
+        writer.write_and_clear();
+
+        const auto expected_contents_after_second_write = std::vector<std::string> {
+            std::string{"# dummy header"},
+            std::string{"00000"} + "   " + "     101",
+            std::string{"00001"} + "   " + "     202",
+            std::string{"00002"} + "   " + "     303",
+            std::string{"00003"} + "   " + "     404",
+            std::string{"00004"} + "   " + "     505",
+            std::string{"00005"} + "   " + "      66"
+        };
+
+        // CHECK: file should still exist, and have updated contents
+        CHECK(fs::exists(abs_filepath));
+        check_file_contents(abs_filepath, expected_contents_after_second_write);
+
+        if (fs::exists(test_dirpath)) {
+            try {
+                fs::remove(abs_filepath);
+            } catch (const fs::filesystem_error& error) {
+                INFO("Failed to delete output file for 'single_value_example0'");
+                REQUIRE(false);
+            }
+        }
+    }
 }
