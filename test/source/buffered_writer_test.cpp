@@ -245,6 +245,8 @@ TEST_CASE("BufferedStreamValueWriter")
     }
 }
 
+// NOTE: the lines checked in this unit test depend on the defaults, which might change
+// - I should change the BlockValueWriter to accept a custom FormatInfo instance
 TEST_CASE("BlockValueWriter")
 {
     namespace fs = std::filesystem;
