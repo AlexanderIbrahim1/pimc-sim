@@ -59,23 +59,21 @@ class BufferedStreamValueWriter
 {
 public:
     using Data = std::tuple<std::size_t, Number...>;
+    static constexpr auto NumValues = std::tuple_size<Data>::value - std::size_t {1};
 
-    static_assert(std::tuple_size<Data>::value >= 2, "Data must contain at least two elements.");
+    static_assert(NumValues >= 1, "Data must contain at least two elements.");
 
     void accumulate(const Data& data)
     {
         buffered_data_.emplace_back(data);
     }
 
-    template <std::size_t N>
-    void write_and_clear(std::ostream& out_stream, const FormatInfo<N>& format_info)
+    void write_and_clear(std::ostream& out_stream, const FormatInfo<NumValues>& format_info)
     {
-        static_assert(N + 1 == std::tuple_size<Data>::value, "FormatInfo must be the correct size to be able to format lines.");
-
         auto lines_stream = std::stringstream {};
 
         for (const auto& data : buffered_data_) {
-            lines_stream << formatted_line_(data);
+            lines_stream << formatted_line_(data, format_info);
         }
 
         out_stream << lines_stream.str();
@@ -84,16 +82,16 @@ public:
     }
 
 private:
-    std::string spacing_ {"   "};
     std::vector<Data> buffered_data_ {};
 
-    template <std::size_t N>
-    auto formatted_line_(const Data& data, const FormatInfo<N>& format_info) const -> std::string
+    auto formatted_line_(const Data& data, const FormatInfo<NumValues>& format_info) const -> std::string
     {
         auto line_stream = std::stringstream {};
         line_stream << std::setw(format_info.block_index_padding) << std::setfill('0') << std::right << std::get<0>(data);
 
-        format_value<1, N, Data>(line_stream, data, format_info);
+        format_value<1, NumValues, Data>(line_stream, data, format_info);
+
+        line_stream << '\n';
 
         return line_stream.str();
     }
