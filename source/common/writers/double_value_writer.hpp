@@ -9,7 +9,7 @@
 
 #include <common/common_utils.hpp>
 #include <common/io_utils.hpp>
-#include <common/writers/writer_utils.hpp>
+#include <common/writer_utils.hpp>
 
 namespace common
 {
@@ -57,8 +57,8 @@ public:
     int block_index_padding {common::writers::DEFAULT_WRITER_BLOCK_INDEX_PADDING};
     int value1_integer_padding {common::writers::DEFAULT_WRITER_INTEGER_PADDING};
     int value2_integer_padding {common::writers::DEFAULT_WRITER_INTEGER_PADDING};
-    int value1_floating_point_precision {common::writers::DEFAULT_WRITER_SINGLE_VALUE_PRECISION};
-    int value2_floating_point_precision {common::writers::DEFAULT_WRITER_SINGLE_VALUE_PRECISION};
+    int value1_floating_point_precision {common::writers::DEFAULT_WRITER_FLOATING_POINT_PRECISION};
+    int value2_floating_point_precision {common::writers::DEFAULT_WRITER_FLOATING_POINT_PRECISION};
 
 private:
     std::filesystem::path filepath_;

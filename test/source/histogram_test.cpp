@@ -7,7 +7,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include "common/writers/writer_utils.hpp"
+#include "common/writer_utils.hpp"
 #include "mathtools/histogram/histogram.hpp"
 #include "mathtools/io/histogram.hpp"
 

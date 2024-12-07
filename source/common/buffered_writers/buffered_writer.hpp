@@ -11,6 +11,8 @@
 #include <vector>
 
 #include <common/common_utils.hpp>
+#include <common/io_utils.hpp>
+#include <common/writer_utils.hpp>
 
 namespace common
 {
@@ -26,6 +28,25 @@ struct FormatInfo
     std::array<int, N> integer_padding;
     std::array<int, N> floating_point_precision;
 };
+
+template <std::size_t N>
+auto default_format_info() noexcept -> FormatInfo<N>
+{
+    static_assert(N >= 1, "FormatInfo<N> must be constructed with at least one argument.");
+
+    namespace cw = common::writers;
+
+    const auto block_index_padding = cw::DEFAULT_WRITER_BLOCK_INDEX_PADDING;
+    const auto spacing = cw::DEFAULT_SPACING;
+
+    auto integer_padding = std::array<int, N> {};
+    integer_padding.fill(cw::DEFAULT_WRITER_INTEGER_PADDING);
+
+    auto floating_point_precision = std::array<int, N> {};
+    floating_point_precision.fill(cw::DEFAULT_WRITER_FLOATING_POINT_PRECISION);
+
+    return FormatInfo<N> {block_index_padding, spacing, integer_padding, floating_point_precision};
+}
 
 template <std::size_t Index, std::size_t N, typename Tuple>
 void format_value(std::ostream& stream, const Tuple& tuple, const FormatInfo<N> format_info) {
@@ -94,6 +115,74 @@ private:
         line_stream << '\n';
 
         return line_stream.str();
+    }
+};
+
+template <common::Numeric... Number>
+class BlockValueWriter
+{
+public:
+    using Data = std::tuple<std::size_t, Number...>;
+    static constexpr auto NumValues = std::tuple_size<Data>::value - std::size_t {1};
+
+    static_assert(NumValues >= 1, "Data must contain at least two elements.");
+
+    BlockValueWriter(std::filesystem::path filepath, std::string header_contents = std::string {})
+        : filepath_ {std::move(filepath)}
+        , header_contents_ {std::move(header_contents)}
+        , stream_writer_ {}
+        , format_info_ {default_format_info<NumValues>()}
+    {}
+
+    void accumulate(const Data& data)
+    {
+        stream_writer_.accumulate(data);
+    }
+
+    void write_and_clear()
+    {
+        // performs an atomic write of the new data
+        namespace fs = std::filesystem;
+
+        auto temp_filepath = filepath_;
+        temp_filepath += common::writers::DEFAULT_TEMPORARY_SUFFIX;
+
+        if (!fs::exists(filepath_)) {
+            write_first_();
+        }
+
+        fs::copy_file(filepath_, temp_filepath, fs::copy_options::overwrite_existing);
+        write_and_clear_(temp_filepath);
+        fs::rename(temp_filepath, filepath_);
+    }
+
+    void write_nonatomic()
+    {
+        namespace fs = std::filesystem;
+
+        if (!fs::exists(filepath_)) {
+            write_first_();
+        }
+
+        write_and_clear_(filepath_);
+    }
+
+private:
+    std::filesystem::path filepath_;
+    std::string header_contents_;
+    BufferedStreamValueWriter<Number...> stream_writer_;
+    FormatInfo<NumValues> format_info_ {};
+
+    void write_and_clear_(const std::filesystem::path& filepath)
+    {
+        auto out_stream = common::io::open_append_filestream_checked(filepath);
+        stream_writer_.write_and_clear(out_stream, format_info_);
+    }
+
+    void write_first_() const
+    {
+        auto out_stream = common::io::open_output_filestream_checked(filepath_);
+        out_stream << header_contents_;
     }
 };
 

@@ -9,7 +9,7 @@
 #include <sstream>
 #include <stdexcept>
 
-#include <common/writers/writer_utils.hpp>
+#include <common/writer_utils.hpp>
 
 namespace geom_utils
 {
@@ -18,7 +18,7 @@ template <std::floating_point FP>
 void check_lattice_constant_is_positive(FP lattice_constant)
 {
     if (lattice_constant <= FP {0.0}) {
-        const auto precision = common::writers::DEFAULT_WRITER_SINGLE_VALUE_PRECISION;
+        const auto precision = common::writers::DEFAULT_WRITER_FLOATING_POINT_PRECISION;
 
         auto err_msg = std::stringstream {};
         err_msg << "The lattice constant must be positive. Found: ";

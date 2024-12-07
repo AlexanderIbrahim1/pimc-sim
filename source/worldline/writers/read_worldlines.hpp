@@ -9,7 +9,7 @@
 #include <utility>
 #include <vector>
 
-#include <common/writers/writer_utils.hpp>
+#include <common/writer_utils.hpp>
 #include <coordinates/cartesian.hpp>
 #include <worldline/worldline.hpp>
 #include <worldline/writers/worldline_writer.hpp>

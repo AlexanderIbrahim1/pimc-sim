@@ -8,7 +8,7 @@
 #include <string>
 
 #include <common/io_utils.hpp>
-#include <common/writers/writer_utils.hpp>
+#include <common/writer_utils.hpp>
 #include <mathtools/histogram/histogram.hpp>
 
 namespace impl_mathtools
@@ -29,7 +29,7 @@ auto histogram_file_header_(const mathtools::Histogram<FP>& histogram) -> std::s
     header << static_cast<int>(histogram.policy()) << '\n';
     header << histogram.bins().size() << '\n';
 
-    auto precision = common::writers::DEFAULT_WRITER_SINGLE_VALUE_PRECISION;
+    auto precision = common::writers::DEFAULT_WRITER_FLOATING_POINT_PRECISION;
 
     header << std::scientific << std::setprecision(precision);
     header << histogram.min() << '\n';

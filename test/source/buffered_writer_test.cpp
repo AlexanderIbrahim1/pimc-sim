@@ -1,11 +1,15 @@
 #include <cstddef>
+#include <filesystem>
 #include <sstream>
+#include <string>
 #include <tuple>
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <common/buffered_writers/buffered_writer.hpp>
+
+#include "../test_utils/test_utils.hpp"
 
 
 namespace cw = common::writers;
@@ -215,4 +219,44 @@ TEST_CASE("BufferedStreamValueWriter")
 
         REQUIRE(post_actual == post_expected);
     }
+}
+
+TEST_CASE("BlockValueWriter")
+{
+    namespace fs = std::filesystem;
+    namespace cw = common::writers;
+
+    SECTION("single_value_example0")
+    {
+        const auto rel_dirpath = fs::path{"test"} / "test_io" / "buffered_writer" / "single_value_example0";
+        const auto filename = "test_single_value_example0.txt";
+        const auto abs_filepath = test_utils::resolve_project_path(rel_dirpath) / filename;
+
+        const auto header = std::string {"# dummy header\n"};
+
+        auto writer = cw::BlockValueWriter<int> {abs_filepath, header};
+
+        REQUIRE(!fs::exists(abs_filepath));
+    }
+    // PLAN
+    // create an instance
+    // define (but don't explicitly create) a file in the new directory for the I/O testing
+    //   - (unfortunately, it looks like I need to perform I/O to test this class!)
+    // CHECK: file doesn't exist yet
+    // accumulate some data
+    // CHECK: file doesn't exist yet
+    // accumulate some more data
+    // CHECK: file doesn't exist yet
+    // write_and_clear
+    // CHECK: file exists
+    // CHECK: file contents are as expected
+    // accumulate some more data
+    // CHECK: file exists
+    // CHECK: file contents are unchanged
+    // accumulate some more data
+    // CHECK: file exists
+    // CHECK: file contents are changed
+
+    // to perform these tests
+    // - new function to check the file contents
 }

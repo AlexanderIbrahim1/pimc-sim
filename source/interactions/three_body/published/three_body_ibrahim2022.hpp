@@ -8,7 +8,7 @@
 #include <optional>
 #include <vector>
 
-#include <common/writers/writer_utils.hpp>
+#include <common/writer_utils.hpp>
 #include <constants/constants.hpp>
 #include <interactions/three_body/three_body_parah2.hpp>
 #include <mathtools/grid/grid3d.hpp>

@@ -12,7 +12,7 @@
 #include <vector>
 
 #include <common/io_utils.hpp>
-#include <common/writers/writer_utils.hpp>
+#include <common/writer_utils.hpp>
 #include <coordinates/box_sides.hpp>
 #include <coordinates/cartesian.hpp>
 #include <environment/environment.hpp>
@@ -24,7 +24,7 @@ namespace impl_worldline
 template <std::floating_point FP, std::size_t NDIM>
 auto formatted_cartesian_line_for_worldline_file_(const coord::Cartesian<FP, NDIM>& point) -> std::string
 {
-    const auto precision = common::writers::DEFAULT_WRITER_SINGLE_VALUE_PRECISION;
+    const auto precision = common::writers::DEFAULT_WRITER_FLOATING_POINT_PRECISION;
 
     auto formatted_cartesian = std::stringstream {};
     formatted_cartesian << std::scientific << std::setprecision(precision);
