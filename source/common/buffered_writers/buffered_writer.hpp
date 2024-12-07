@@ -22,35 +22,36 @@ template <std::size_t N>
 struct FormatInfo
 {
     int block_index_padding;
-    int spacing;
+    std::size_t spacing;
     std::array<int, N> integer_padding;
     std::array<int, N> floating_point_precision;
 };
 
 template <std::size_t Index, std::size_t N, typename Tuple>
 void format_value(std::ostream& stream, const Tuple& tuple, const FormatInfo<N> format_info) {
-    static_assert(N + 1 == std::tuple_size<Data>::value, "FormatInfo must be the correct size to be able to format lines.");
+    static_assert(N + 1 == std::tuple_size<Tuple>::value, "FormatInfo must be the correct size to be able to format lines.");
 
     // avoid iterating beyond the end of the tuple
-    if constexpr (Index >= std::tuple_size<Tuple>::value) {
-        return;
-    }
+    if constexpr (Index < std::tuple_size<Tuple>::value) {
+        // the value that we want to write
+        const auto value = std::get<Index>(tuple);
 
-    // the value that we want to write
-    const auto value = std::get<Index>(tuple);
+        // the padding comes first
+        stream << std::string (format_info.spacing, ' ');
 
-    // apply different types of formatting, depending on whether the output is a floating-point type or an integer
-    using ElementType = typename std::tuple_element<Index, Tuple>::type;
-    if constexpr (std::is_floating_point<ElementType>::value) {
-        const auto precision = format_info.floating_point_precision[Index - 1];
-        line_stream << std::scientific << std::setprecision(precision) << value << '\n';
-    }
-    else {
-        const auto padding = format_info.integer_padding[Index - 1];
-        line_stream << std::setw(padding) << std::setfill(' ') << std::right << value << '\n';
-    }
+        // apply different types of formatting, depending on whether the output is a floating-point type or an integer
+        using ElementType = typename std::tuple_element<Index, Tuple>::type;
+        if constexpr (std::is_floating_point<ElementType>::value) {
+            const auto precision = format_info.floating_point_precision[Index - 1];
+            stream << std::scientific << std::setprecision(precision) << value;
+        }
+        else {
+            const auto padding = format_info.integer_padding[Index - 1];
+            stream << std::setw(padding) << std::setfill(' ') << std::right << value;
+        }
 
-    format_value<Index + 1, N, Tuple>(stream, tuple, format_info);
+        format_value<Index + 1, N, Tuple>(stream, tuple, format_info);
+    }
 }
 
 template <common::Numeric... Number>
@@ -90,10 +91,11 @@ private:
     auto formatted_line_(const Data& data, const FormatInfo<N>& format_info) const -> std::string
     {
         auto line_stream = std::stringstream {};
-        line_stream << std::setw(format_info.block_index_padding) << std::setfill('0') << std::right;
-        line_stream << std::get<0>(data) << format_info.spacing;
+        line_stream << std::setw(format_info.block_index_padding) << std::setfill('0') << std::right << std::get<0>(data);
 
         format_value<1, N, Data>(line_stream, data, format_info);
+
+        return line_stream.str();
     }
 };
 

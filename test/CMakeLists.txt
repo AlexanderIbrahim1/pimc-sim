@@ -115,6 +115,7 @@ add_test_target(TARGET attard_test SOURCES "source/attard_test.cpp")
 add_test_target(TARGET composite_handler_test SOURCES "source/composite_handler_test.cpp")
 add_test_target(TARGET dispersion_potential_test SOURCES "source/dispersion_potential_test.cpp")
 add_test_target(TARGET prng_state_test SOURCES "source/prng_state_test.cpp")
+add_test_target(TARGET buffered_writer_test SOURCES "source/buffered_writer_test.cpp")
 
 # compiling the transformer and four_body tests requires torch, which bloats the compile times;
 # as a result, I try to run these tests only every once in a while
