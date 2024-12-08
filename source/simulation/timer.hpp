@@ -7,7 +7,7 @@
 #include <string>
 #include <string_view>
 
-#include <common/writers/triple_value_writer.hpp>
+#include <common/buffered_writers/buffered_writer.hpp>
 
 /*
 NOTES:
@@ -90,12 +90,12 @@ private:
 };
 
 inline auto default_timer_writer(const std::filesystem::path& output_dirpath)
-    -> common::writers::TripleValueBlockWriter<std::size_t, std::size_t, std::size_t>
+    -> common::writers::BlockValueWriter<std::size_t, std::size_t, std::size_t>
 {
     const auto filepath = output_dirpath / impl_timer_sim::DEFAULT_TIMER_FILENAME;
     const auto header = impl_timer_sim::timer_file_header();
 
-    return common::writers::TripleValueBlockWriter<std::size_t, std::size_t, std::size_t> {filepath, header};
+    return common::writers::BlockValueWriter<std::size_t, std::size_t, std::size_t> {filepath, header};
 }
 
 }  // namespace sim

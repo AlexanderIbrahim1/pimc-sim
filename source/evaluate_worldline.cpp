@@ -7,7 +7,6 @@
 
 #include <torch/script.h>
 
-#include <common/writers/single_value_writer.hpp>
 #include <coordinates/box_sides.hpp>
 #include <estimators/pimc/three_body_potential.hpp>
 #include <estimators/pimc/two_body_potential.hpp>
@@ -88,7 +87,7 @@ auto main(int argc, char** argv) -> int
 
     /* create the timer and the corresponding writer to keep track of how long each block takes */
     auto timer = sim::Timer {};
-    const auto timer_writer = sim::default_timer_writer(output_dirpath);
+    auto timer_writer = sim::default_timer_writer(output_dirpath);
 
     for (auto block_index : parser.block_indices) {
         /* create the worldlines */
@@ -119,7 +118,8 @@ auto main(int argc, char** argv) -> int
         // clang-format on
 
         const auto duration = timer.duration_since_last_start();
-        timer_writer.write(block_index, duration.seconds, duration.milliseconds, duration.microseconds);
+        timer_writer.accumulate({block_index, duration.seconds, duration.milliseconds, duration.microseconds});
+        timer_writer.write_and_clear();
     }
 
     return 0;

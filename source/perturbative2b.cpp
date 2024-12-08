@@ -164,7 +164,7 @@ auto main(int argc, char** argv) -> int
 
     /* create the timer and the corresponding writer to keep track of how long each block takes */
     auto timer = sim::Timer {};
-    const auto timer_writer = sim::default_timer_writer(output_dirpath);
+    auto timer_writer = sim::default_timer_writer(output_dirpath);
 
     auto i_most_recent_saved_worldline = std::optional<std::size_t> {std::nullopt};
 
@@ -265,8 +265,14 @@ auto main(int argc, char** argv) -> int
         rng::save_prng_state(prngw.prng(), prng_state_filepath);
 
         const auto duration = timer.duration_since_last_start();
-        timer_writer.write(i_block, duration.seconds, duration.milliseconds, duration.microseconds);
+        timer_writer.accumulate({i_block, duration.seconds, duration.milliseconds, duration.microseconds});
+
+        if (i_block % 10 == 0) {
+            timer_writer.write_and_clear();
+        }
     }
+
+    timer_writer.write_and_clear();
 
     return 0;
 }
