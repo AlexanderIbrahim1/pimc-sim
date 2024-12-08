@@ -90,6 +90,7 @@ public:
     FP bisection_ratio {};
     FP density {};
     FP temperature {};
+    std::size_t writer_batch_size {};
     std::tuple<std::size_t, std::size_t, std::size_t> n_unit_cells {};
     std::filesystem::path abs_two_body_filepath {};
     std::filesystem::path abs_three_body_filepath {};
@@ -115,6 +116,7 @@ private:
             n_passes = cast_toml_to<std::size_t>(table, "n_passes");
             n_timeslices = cast_toml_to<std::size_t>(table, "n_timeslices");
 
+            writer_batch_size = cast_toml_to<std::size_t>(table, "writer_batch_size");
             save_worldlines = cast_toml_to<bool>(table, "save_worldlines");
             n_save_worldlines_every = cast_toml_to<std::size_t>(table, "n_save_worldlines_every");
             if (save_worldlines && (n_save_worldlines_every == 0)) {

@@ -135,8 +135,8 @@ auto main(int argc, char** argv) -> int
     const auto bisect_move_adjuster = create_bisect_move_adjuster(0.3f, 0.4f);
 
     // clang-format off
-    const auto com_step_size_writer = pimc::default_centre_of_mass_position_move_step_size_writer<float>(output_dirpath);
-    const auto multi_bead_move_info_writer = pimc::default_bisection_multibead_position_move_info_writer<float>(output_dirpath);
+    auto com_step_size_writer = pimc::default_centre_of_mass_position_move_step_size_writer<float>(output_dirpath);
+    auto multi_bead_move_info_writer = pimc::default_bisection_multibead_position_move_info_writer<float>(output_dirpath);
     // clang-format on
 
     /* create the move acceptance rate trackers for the move performers */
@@ -144,16 +144,16 @@ auto main(int argc, char** argv) -> int
     auto single_bead_tracker = pimc::MoveSuccessTracker {};
     auto multi_bead_tracker = pimc::MoveSuccessTracker {};
 
-    const auto com_move_writer = pimc::default_centre_of_mass_position_move_success_writer(output_dirpath);
-    const auto single_bead_move_writer = pimc::default_single_bead_position_move_success_writer(output_dirpath);
-    const auto multi_bead_move_writer = pimc::default_bisection_multibead_position_move_success_writer(output_dirpath);
+    auto com_move_writer = pimc::default_centre_of_mass_position_move_success_writer(output_dirpath);
+    auto single_bead_move_writer = pimc::default_single_bead_position_move_success_writer(output_dirpath);
+    auto multi_bead_move_writer = pimc::default_bisection_multibead_position_move_success_writer(output_dirpath);
 
     /* create the file writers for the estimators */
-    const auto kinetic_writer = estim::default_kinetic_writer<float>(output_dirpath);
-    const auto pair_potential_writer = estim::default_pair_potential_writer<float>(output_dirpath);
-    const auto triplet_potential_writer = estim::default_triplet_potential_writer<float>(output_dirpath);
-    const auto rms_centroid_writer = estim::default_rms_centroid_distance_writer<float>(output_dirpath);
-    const auto abs_centroid_writer = estim::default_absolute_centroid_distance_writer<float>(output_dirpath);
+    auto kinetic_writer = estim::default_kinetic_writer<float>(output_dirpath);
+    auto pair_potential_writer = estim::default_pair_potential_writer<float>(output_dirpath);
+    auto triplet_potential_writer = estim::default_triplet_potential_writer<float>(output_dirpath);
+    auto rms_centroid_writer = estim::default_rms_centroid_distance_writer<float>(output_dirpath);
+    auto abs_centroid_writer = estim::default_absolute_centroid_distance_writer<float>(output_dirpath);
 
     /* create the histogram and the histogram writers */
     const auto radial_dist_histo_filepath = output_dirpath / "radial_dist_histo.dat";
@@ -167,6 +167,43 @@ auto main(int argc, char** argv) -> int
     auto timer_writer = sim::default_timer_writer(output_dirpath);
 
     auto i_most_recent_saved_worldline = std::optional<std::size_t> {std::nullopt};
+
+    const auto write_estimates = [&]() {
+        kinetic_writer.write_and_clear();
+        pair_potential_writer.write_and_clear();
+        triplet_potential_writer.write_and_clear();
+        rms_centroid_writer.write_and_clear();
+        abs_centroid_writer.write_and_clear();
+    };
+
+    const auto write_moves = [&]() {
+        com_move_writer.write_and_clear();
+        single_bead_move_writer.write_and_clear();
+        multi_bead_move_writer.write_and_clear();
+        com_step_size_writer.write_and_clear();
+        multi_bead_move_info_writer.write_and_clear();
+    };
+
+    const auto write_timer = [&]() {
+        timer_writer.write_and_clear();
+    };
+
+    const auto write_histograms = [&]() {
+        mathtools::io::write_histogram(radial_dist_histo_filepath, radial_dist_histo);
+        mathtools::io::write_histogram(centroid_dist_histo_filepath, centroid_dist_histo);
+    };
+
+    const auto write_continue_and_prng = [&](std::size_t i_block) {
+        /* create or update the continue file */
+        if (i_most_recent_saved_worldline) {
+            const auto worldline_index = i_most_recent_saved_worldline.value();
+            continue_file_manager.set_info_and_serialize({i_block, worldline_index, true, i_block >= parser.n_equilibrium_blocks});
+        } else {
+            continue_file_manager.set_info_and_serialize({i_block, 0, false, i_block >= parser.n_equilibrium_blocks});
+        }
+
+        rng::save_prng_state(prngw.prng(), prng_state_filepath);
+    };
 
     /* perform the simulation loop */
     for (std::size_t i_block {first_block_index}; i_block < last_block_index; ++i_block) {
@@ -195,13 +232,13 @@ auto main(int argc, char** argv) -> int
 
         /* save move acceptance rates */
         const auto [com_accept, com_reject] = com_tracker.get_accept_and_reject();
-        com_move_writer.write(i_block, com_accept, com_reject);
+        com_move_writer.accumulate({i_block, com_accept, com_reject});
 
         const auto [sb_accept, sb_reject] = single_bead_tracker.get_accept_and_reject();
-        single_bead_move_writer.write(i_block, sb_accept, sb_reject);
+        single_bead_move_writer.accumulate({i_block, sb_accept, sb_reject});
 
         const auto [mb_accept, mb_reject] = multi_bead_tracker.get_accept_and_reject();
-        multi_bead_move_writer.write(i_block, mb_accept, mb_reject);
+        multi_bead_move_writer.accumulate({i_block, mb_accept, mb_reject});
 
         // clang-format off
         if (i_block >= parser.n_equilibrium_blocks) {
@@ -214,19 +251,16 @@ auto main(int argc, char** argv) -> int
             const auto rms_centroid_dist = estim::rms_centroid_distance(worldlines);
             const auto abs_centroid_dist = estim::absolute_centroid_distance(worldlines);
 
-            /* save estimators */
-            kinetic_writer.write(i_block, total_kinetic_energy);
-            pair_potential_writer.write(i_block, total_pair_potential_energy);
-            triplet_potential_writer.write(i_block, total_triplet_potential_energy);
-            rms_centroid_writer.write(i_block, rms_centroid_dist);
-            abs_centroid_writer.write(i_block, abs_centroid_dist);
+            /* accumulate estimators */
+            kinetic_writer.accumulate({i_block, total_kinetic_energy});
+            pair_potential_writer.accumulate({i_block, total_pair_potential_energy});
+            triplet_potential_writer.accumulate({i_block, total_triplet_potential_energy});
+            rms_centroid_writer.accumulate({i_block, rms_centroid_dist});
+            abs_centroid_writer.accumulate({i_block, abs_centroid_dist});
 
-            /* save radial distribution function histogram */
+            /* update radial distribution function histogram */
             estim::update_radial_distribution_function_histogram(radial_dist_histo, periodic_distance_calculator, worldlines);
-            mathtools::io::write_histogram(radial_dist_histo_filepath, radial_dist_histo);
-
             estim::update_centroid_radial_distribution_function_histogram(centroid_dist_histo, periodic_distance_calculator, worldlines);
-            mathtools::io::write_histogram(centroid_dist_histo_filepath, centroid_dist_histo);
 
             /* save the worldlines */
             if (parser.save_worldlines && ((i_block % parser.n_save_worldlines_every) == 0)) {
@@ -240,13 +274,12 @@ auto main(int argc, char** argv) -> int
             const auto new_com_step_size = com_move_adjuster.adjust_step(curr_com_step_size, com_tracker);
             com_mover.update_step_size(new_com_step_size);
 
-            com_step_size_writer.write(i_block, new_com_step_size);
-
             const auto curr_bisect_move_info = multi_bead_mover.bisection_level_move_info();
             const auto new_bisect_move_info = bisect_move_adjuster.adjust_step(curr_bisect_move_info, multi_bead_tracker);
             multi_bead_mover.update_bisection_level_move_info(new_bisect_move_info);
 
-            multi_bead_move_info_writer.write(i_block, new_bisect_move_info.upper_level_frac, new_bisect_move_info.lower_level);
+            com_step_size_writer.accumulate({i_block, new_com_step_size});
+            multi_bead_move_info_writer.accumulate({i_block, new_bisect_move_info.upper_level_frac, new_bisect_move_info.lower_level});
         }
         // clang-format on
 
@@ -254,25 +287,24 @@ auto main(int argc, char** argv) -> int
         single_bead_tracker.reset();
         multi_bead_tracker.reset();
 
-        /* create or update the continue file */
-        if (i_most_recent_saved_worldline) {
-            const auto worldline_index = i_most_recent_saved_worldline.value();
-            continue_file_manager.set_info_and_serialize({i_block, worldline_index, true, i_block >= parser.n_equilibrium_blocks});
-        } else {
-            continue_file_manager.set_info_and_serialize({i_block, 0, false, i_block >= parser.n_equilibrium_blocks});
-        }
-
-        rng::save_prng_state(prngw.prng(), prng_state_filepath);
-
         const auto duration = timer.duration_since_last_start();
         timer_writer.accumulate({i_block, duration.seconds, duration.milliseconds, duration.microseconds});
 
-        if (i_block % 10 == 0) {
-            timer_writer.write_and_clear();
+        /* write out the batch of estimates and update the histogram files */
+        if ((i_block % parser.writer_batch_size) == 0) {
+            write_estimates();
+            write_moves();
+            write_histograms();
+            write_timer();
+            write_continue_and_prng(i_block);
         }
     }
 
-    timer_writer.write_and_clear();
+    write_estimates();
+    write_moves();
+    write_histograms();
+    write_timer();
+    write_continue_and_prng(last_block_index);
 
     return 0;
 }

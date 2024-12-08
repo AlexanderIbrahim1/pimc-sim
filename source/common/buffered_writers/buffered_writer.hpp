@@ -94,6 +94,11 @@ public:
         buffered_data_.clear();
     }
 
+    auto is_buffer_empty() const noexcept -> bool
+    {
+        return buffered_data_.empty();
+    }
+
 private:
     std::vector<Data> buffered_data_ {};
 
@@ -143,6 +148,10 @@ public:
 
     void write_and_clear()
     {
+        if (stream_writer_.is_buffer_empty()) {
+            return;
+        }
+
         // performs an atomic write of the new data
         namespace fs = std::filesystem;
 

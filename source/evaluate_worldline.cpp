@@ -74,9 +74,9 @@ auto main(int argc, char** argv) -> int
     }();
 
     /* create the file writers for the estimators */
-    const auto pair_potential_writer = estim::default_pair_potential_writer<float>(output_dirpath);
-    const auto triplet_potential_writer = estim::default_triplet_potential_writer<float>(output_dirpath);
-    const auto quadruplet_potential_writer = estim::default_quadruplet_potential_writer<float>(output_dirpath);
+    auto pair_potential_writer = estim::default_pair_potential_writer<float>(output_dirpath);
+    auto triplet_potential_writer = estim::default_triplet_potential_writer<float>(output_dirpath);
+    auto quadruplet_potential_writer = estim::default_quadruplet_potential_writer<float>(output_dirpath);
 
     /* the worldline writer is needed to create the filepaths to the worldline files */
     auto worldline_writer = worldline::WorldlineWriter<float, NDIM> {parser.abs_worldlines_dirpath};
@@ -103,17 +103,20 @@ auto main(int argc, char** argv) -> int
         /* run estimators */
         if (pot2b) {
             const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic(worldlines, pot2b.value());
-            pair_potential_writer.write(block_index, total_pair_potential_energy);
+            pair_potential_writer.accumulate({block_index, total_pair_potential_energy});
+            pair_potential_writer.write_and_clear();
         }
 
         if (pot3b) {
             const auto total_triplet_potential_energy = estim::total_triplet_potential_energy_periodic(worldlines, pot3b.value());
-            triplet_potential_writer.write(block_index, total_triplet_potential_energy);
+            triplet_potential_writer.accumulate({block_index, total_triplet_potential_energy});
+            triplet_potential_writer.write_and_clear();
         }
 
         if (pot4b) {
             const auto total_quadruplet_potential_energy = estim::total_quadruplet_potential_energy_periodic(worldlines, pot4b.value(), minimage_box, fourbody_cutoff);
-            quadruplet_potential_writer.write(block_index, total_quadruplet_potential_energy);
+            quadruplet_potential_writer.accumulate({block_index, total_quadruplet_potential_energy});
+            quadruplet_potential_writer.write_and_clear();
         }
         // clang-format on
 
