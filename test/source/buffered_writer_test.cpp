@@ -10,11 +10,13 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <common/buffered_writers/buffered_writer.hpp>
+#include <common/buffered_writers/format_info.hpp>
 
 #include "../test_utils/test_utils.hpp"
 
 
 namespace cw = common::writers;
+namespace ibvl = impl_block_value_writer;
 
 auto check_file_contents(const std::filesystem::path& filepath, const std::vector<std::string>& expected_lines) -> void
 {
@@ -82,7 +84,7 @@ TEST_CASE("format_value")
 
         auto stream = std::stringstream {};
         const auto data = Tuple {1, 10};
-        cw::format_value<1, 1, Tuple>(stream, data, format_info1);
+        ibvl::format_value<1, 1, Tuple>(stream, data, format_info1);
         const auto actual = stream.str();
 
         // clang-format off
@@ -98,7 +100,7 @@ TEST_CASE("format_value")
 
         auto stream = std::stringstream {};
         const auto data = Tuple {1, 10, 2.5};
-        cw::format_value<1, 2, Tuple>(stream, data, format_info2);
+        ibvl::format_value<1, 2, Tuple>(stream, data, format_info2);
         const auto actual = stream.str();
 
         // clang-format off
@@ -115,7 +117,7 @@ TEST_CASE("format_value")
 
         auto stream = std::stringstream {};
         const auto data = Tuple {1, 10, 123};
-        cw::format_value<1, 2, Tuple>(stream, data, format_info2);
+        ibvl::format_value<1, 2, Tuple>(stream, data, format_info2);
         const auto actual = stream.str();
 
         // clang-format off
@@ -132,7 +134,7 @@ TEST_CASE("format_value")
 
         auto stream = std::stringstream {};
         const auto data = Tuple {1, 123.456, 654.321};
-        cw::format_value<1, 2, Tuple>(stream, data, format_info2);
+        ibvl::format_value<1, 2, Tuple>(stream, data, format_info2);
         const auto actual = stream.str();
 
         // clang-format off
@@ -149,7 +151,7 @@ TEST_CASE("format_value")
 
         auto stream = std::stringstream {};
         const auto data = Tuple {1, 2.5, 15};
-        cw::format_value<1, 2, Tuple>(stream, data, format_info2);
+        ibvl::format_value<1, 2, Tuple>(stream, data, format_info2);
         const auto actual = stream.str();
 
         // clang-format off
@@ -167,7 +169,7 @@ TEST_CASE("format_value")
         auto stream = std::stringstream {};
         const auto data = Tuple {1, 10, 123, 456};
 
-        cw::format_value<1, 3, Tuple>(stream, data, format_info3);
+        ibvl::format_value<1, 3, Tuple>(stream, data, format_info3);
         const auto actual = stream.str();
 
         // clang-format off
@@ -190,7 +192,7 @@ TEST_CASE("BufferedStreamValueWriter")
 
     SECTION("int, int, 3 lines")
     {
-        auto buffered_writer = cw::BufferedStreamValueWriter<int, int> {};
+        auto buffered_writer = ibvl::BufferedStreamValueWriter<int, int> {};
         buffered_writer.accumulate({0, 10, 20});
         buffered_writer.accumulate({1, 30, 40});
         buffered_writer.accumulate({2, 50, 60});
@@ -219,7 +221,7 @@ TEST_CASE("BufferedStreamValueWriter")
 
     SECTION("double, 2 lines")
     {
-        auto buffered_writer = cw::BufferedStreamValueWriter<double> {};
+        auto buffered_writer = ibvl::BufferedStreamValueWriter<double> {};
         buffered_writer.accumulate({0, 123.456});
         buffered_writer.accumulate({1, 654.321});
 
