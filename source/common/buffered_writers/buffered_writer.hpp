@@ -127,11 +127,15 @@ public:
 
     static_assert(NumValues >= 1, "Data must contain at least two elements.");
 
-    BlockValueWriter(std::filesystem::path filepath, std::string header_contents = std::string {})
+    BlockValueWriter(
+        std::filesystem::path filepath,
+        std::string header_contents = std::string {},
+        FormatInfo<NumValues> format_info = default_format_info<NumValues>()
+    )
         : filepath_ {std::move(filepath)}
         , header_contents_ {std::move(header_contents)}
+        , format_info_ {std::move(format_info)}
         , stream_writer_ {}
-        , format_info_ {default_format_info<NumValues>()}
     {}
 
     void accumulate(const Data& data)
@@ -170,8 +174,8 @@ public:
 private:
     std::filesystem::path filepath_;
     std::string header_contents_;
+    FormatInfo<NumValues> format_info_;
     BufferedStreamValueWriter<Number...> stream_writer_;
-    FormatInfo<NumValues> format_info_ {};
 
     void write_and_clear_(const std::filesystem::path& filepath)
     {

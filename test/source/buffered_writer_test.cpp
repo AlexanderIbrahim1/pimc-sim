@@ -271,7 +271,7 @@ TEST_CASE("BlockValueWriter")
         const auto abs_filepath = test_dirpath / filename;
         const auto header = std::string {"# dummy header\n"};
 
-        auto writer = cw::BlockValueWriter<int> {abs_filepath, header};
+        auto writer = cw::BlockValueWriter<int> {abs_filepath, header, default_format_info1()};
 
         // CHECK: file should not exist before the first write
         CHECK(!fs::exists(abs_filepath));
@@ -287,9 +287,9 @@ TEST_CASE("BlockValueWriter")
 
         const auto expected_contents_after_first_write = std::vector<std::string> {
             std::string{"# dummy header"},
-            std::string{"00000"} + "   " + "     101",
-            std::string{"00001"} + "   " + "     202",
-            std::string{"00002"} + "   " + "     303"
+            std::string{"00000"} + "   " + "  101",
+            std::string{"00001"} + "   " + "  202",
+            std::string{"00002"} + "   " + "  303"
         };
 
         // CHECK: file should now exist, and have the expected contents
@@ -307,12 +307,12 @@ TEST_CASE("BlockValueWriter")
 
         const auto expected_contents_after_second_write = std::vector<std::string> {
             std::string{"# dummy header"},
-            std::string{"00000"} + "   " + "     101",
-            std::string{"00001"} + "   " + "     202",
-            std::string{"00002"} + "   " + "     303",
-            std::string{"00003"} + "   " + "     404",
-            std::string{"00004"} + "   " + "     505",
-            std::string{"00005"} + "   " + "      66"
+            std::string{"00000"} + "   " + "  101",
+            std::string{"00001"} + "   " + "  202",
+            std::string{"00002"} + "   " + "  303",
+            std::string{"00003"} + "   " + "  404",
+            std::string{"00004"} + "   " + "  505",
+            std::string{"00005"} + "   " + "   66"
         };
 
         // CHECK: file should still exist, and have updated contents
