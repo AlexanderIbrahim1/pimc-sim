@@ -63,42 +63,45 @@ auto threebodyparah2_potential(auto minimage_box, auto three_body_filepath)
     return interact::PeriodicThreeBodyPointPotential {std::move(distance_pot), minimage_box};
 }
 
-auto create_com_move_adjuster(float lower_range_limit, float upper_range_limit) noexcept
-    -> pimc::SingleValueMoveAdjuster<float>
+template <std::floating_point FP>
+auto create_com_move_adjuster(FP lower_range_limit, FP upper_range_limit) noexcept
+    -> pimc::SingleValueMoveAdjuster<FP>
 {
-    const auto com_accept_range = pimc::AcceptPercentageRange<float> {lower_range_limit, upper_range_limit};
-    const auto com_adjust_step = 0.005f;
+    const auto com_accept_range = pimc::AcceptPercentageRange<FP> {lower_range_limit, upper_range_limit};
+    const auto com_adjust_step = FP {0.005};
     const auto com_direction = pimc::DirectionIfAcceptTooLow::NEGATIVE;
-    const auto com_limits = pimc::MoveLimits<float> {0.0, std::nullopt};
-    return pimc::SingleValueMoveAdjuster<float> {com_accept_range, com_adjust_step, com_direction, com_limits};
+    const auto com_limits = pimc::MoveLimits<FP> {FP {0.0}, std::nullopt};
+    return pimc::SingleValueMoveAdjuster<FP> {com_accept_range, com_adjust_step, com_direction, com_limits};
 }
 
-auto create_bisect_move_adjuster(float lower_range_limit, float upper_range_limit) noexcept
-    -> pimc::BisectionLevelMoveAdjuster<float>
+template <std::floating_point FP>
+auto create_bisect_move_adjuster(FP lower_range_limit, FP upper_range_limit) noexcept
+    -> pimc::BisectionLevelMoveAdjuster<FP>
 {
-    const auto com_accept_range = pimc::AcceptPercentageRange<float> {lower_range_limit, upper_range_limit};
-    const auto com_adjust_step = 0.01f;
-    return pimc::BisectionLevelMoveAdjuster<float> {com_accept_range, com_adjust_step};
+    const auto com_accept_range = pimc::AcceptPercentageRange<FP> {lower_range_limit, upper_range_limit};
+    const auto com_adjust_step = FP{0.01};
+    return pimc::BisectionLevelMoveAdjuster<FP> {com_accept_range, com_adjust_step};
 }
 
-template <std::size_t NDIM>
+template <std::floating_point FP, std::size_t NDIM>
 auto create_histogram(
     const std::filesystem::path& histogram_filepath,
     const sim::ContinueFileManager& manager,
-    const coord::BoxSides<float, NDIM>& minimage_box
+    const coord::BoxSides<FP, NDIM>& minimage_box
 )
 {
     if (manager.file_exists() && manager.get_info().is_equilibration_complete) {
-        return mathtools::io::read_histogram<float>(histogram_filepath);
+        return mathtools::io::read_histogram<FP>(histogram_filepath);
     }
     else {
-        return mathtools::Histogram<float> {0.0, coord::box_cutoff_distance(minimage_box), 1024};
+        return mathtools::Histogram<FP> {FP{0.0}, coord::box_cutoff_distance(minimage_box), 1024};
     }
 }
 
+template <std::floating_point FP>
 auto read_simulation_first_block_index(
     const sim::ContinueFileManager& continue_file_manager,
-    const argparse::ArgParser<float>& parser
+    const argparse::ArgParser<FP>& parser
 ) -> std::size_t
 {
     if (continue_file_manager.file_exists()) {

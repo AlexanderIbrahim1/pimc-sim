@@ -61,7 +61,7 @@ auto main(int argc, char** argv) -> int
     }
 
     const auto toml_input_filename = argv[1];
-    const auto parser = argparse::ArgParser<float> {toml_input_filename};
+    const auto parser = argparse::ArgParser<double> {toml_input_filename};
     if (!parser.is_valid()) {
         std::cout << "ERROR: argument parser did not parse properly\n";
         std::cout << parser.error_message() << '\n';
@@ -86,17 +86,17 @@ auto main(int argc, char** argv) -> int
 
     const auto [n_particles, minimage_box, lattice_site_positions] = build_hcp_lattice_structure(parser.density, parser.n_unit_cells);
 
-    const auto periodic_distance_calculator = coord::PeriodicDistanceMeasureWrapper<float, NDIM> {minimage_box};
-    const auto periodic_distance_squared_calculator = coord::PeriodicDistanceSquaredMeasureWrapper<float, NDIM> {minimage_box};
+    const auto periodic_distance_calculator = coord::PeriodicDistanceMeasureWrapper<double, NDIM> {minimage_box};
+    const auto periodic_distance_squared_calculator = coord::PeriodicDistanceSquaredMeasureWrapper<double, NDIM> {minimage_box};
     // clang-format on
 
     /* create the worldlines and worldline writer*/
-    auto worldline_writer = worldline::WorldlineWriter<float, NDIM> {output_dirpath};
+    auto worldline_writer = worldline::WorldlineWriter<double, NDIM> {output_dirpath};
     auto worldlines = read_simulation_worldlines(continue_file_manager, worldline_writer, n_timeslices, lattice_site_positions);
 
     sim::write_box_sides(output_dirpath / "box_sides.dat", minimage_box);
 
-    const auto pot = fsh_potential<float>(minimage_box, parser.abs_two_body_filepath);
+    const auto pot = fsh_potential<double>(minimage_box, parser.abs_two_body_filepath);
     const auto pot3b = threebodyparah2_potential(minimage_box, parser.abs_three_body_filepath);
 
     // const long int buffer_size = 1024;
@@ -104,20 +104,20 @@ auto main(int argc, char** argv) -> int
     // clang-format on
 
     /* create the environment object */
-    const auto h2_mass = constants::H2_MASS_IN_AMU<float>;
+    const auto h2_mass = constants::H2_MASS_IN_AMU<double>;
     const auto environment = envir::create_environment(temperature, h2_mass, n_timeslices, n_particles);
 
     /* create the interaction handler */
 
     // clang-format off
-    using InteractionHandler = interact::NearestNeighbourPairInteractionHandler<decltype(pot), float, NDIM>;
+    using InteractionHandler = interact::NearestNeighbourPairInteractionHandler<decltype(pot), double, NDIM>;
     auto interaction_handler = InteractionHandler {pot, n_particles};
     // clang-format on
 
     const auto lattice_constant = geom::density_to_lattice_constant(parser.density, geom::LatticeType::HCP);
-    const auto pair_cutoff_distance = static_cast<float>(2.2 * lattice_constant);
+    const auto pair_cutoff_distance = static_cast<double>(2.2 * lattice_constant);
 
-    interact::update_centroid_adjacency_matrix<float, NDIM>(
+    interact::update_centroid_adjacency_matrix<double, NDIM>(
         worldlines, periodic_distance_squared_calculator, interaction_handler.adjacency_matrix(), pair_cutoff_distance
     );
 
@@ -126,17 +126,17 @@ auto main(int argc, char** argv) -> int
     auto prngw = create_prngw(prng_state_filepath, parser.initial_seed_state);
 
     /* create the move performers */
-    auto com_mover = pimc::CentreOfMassMovePerformer<float, NDIM> {n_timeslices, com_step_size};
-    auto single_bead_mover = pimc::SingleBeadPositionMovePerformer<float, NDIM> {n_timeslices};
-    auto multi_bead_mover = pimc::BisectionMultibeadPositionMovePerformer<float, NDIM> {bisect_move_info};
+    auto com_mover = pimc::CentreOfMassMovePerformer<double, NDIM> {n_timeslices, com_step_size};
+    auto single_bead_mover = pimc::SingleBeadPositionMovePerformer<double, NDIM> {n_timeslices};
+    auto multi_bead_mover = pimc::BisectionMultibeadPositionMovePerformer<double, NDIM> {bisect_move_info};
 
     /* create the move adjusters */
-    const auto com_move_adjuster = create_com_move_adjuster(0.3f, 0.4f);
-    const auto bisect_move_adjuster = create_bisect_move_adjuster(0.3f, 0.4f);
+    const auto com_move_adjuster = create_com_move_adjuster(0.3, 0.4);
+    const auto bisect_move_adjuster = create_bisect_move_adjuster(0.3, 0.4);
 
     // clang-format off
-    auto com_step_size_writer = pimc::default_centre_of_mass_position_move_step_size_writer<float>(output_dirpath);
-    auto multi_bead_move_info_writer = pimc::default_bisection_multibead_position_move_info_writer<float>(output_dirpath);
+    auto com_step_size_writer = pimc::default_centre_of_mass_position_move_step_size_writer<double>(output_dirpath);
+    auto multi_bead_move_info_writer = pimc::default_bisection_multibead_position_move_info_writer<double>(output_dirpath);
     // clang-format on
 
     /* create the move acceptance rate trackers for the move performers */
@@ -149,15 +149,15 @@ auto main(int argc, char** argv) -> int
     auto multi_bead_move_writer = pimc::default_bisection_multibead_position_move_success_writer(output_dirpath);
 
     /* create the file writers for the estimators */
-    auto kinetic_writer = estim::default_kinetic_writer<float>(output_dirpath);
-    auto pair_potential_writer = estim::default_pair_potential_writer<float>(output_dirpath);
-    auto triplet_potential_writer = estim::default_triplet_potential_writer<float>(output_dirpath);
-    auto rms_centroid_writer = estim::default_rms_centroid_distance_writer<float>(output_dirpath);
-    auto abs_centroid_writer = estim::default_absolute_centroid_distance_writer<float>(output_dirpath);
+    auto kinetic_writer = estim::default_kinetic_writer<double>(output_dirpath);
+    auto pair_potential_writer = estim::default_pair_potential_writer<double>(output_dirpath);
+    auto triplet_potential_writer = estim::default_triplet_potential_writer<double>(output_dirpath);
+    auto rms_centroid_writer = estim::default_rms_centroid_distance_writer<double>(output_dirpath);
+    auto abs_centroid_writer = estim::default_absolute_centroid_distance_writer<double>(output_dirpath);
 
     /* create the histogram and the histogram writers */
     const auto radial_dist_histo_filepath = output_dirpath / "radial_dist_histo.dat";
-    auto radial_dist_histo = create_histogram<NDIM>(radial_dist_histo_filepath, continue_file_manager, minimage_box);
+    auto radial_dist_histo = create_histogram(radial_dist_histo_filepath, continue_file_manager, minimage_box);
 
     const auto centroid_dist_histo_filepath = output_dirpath / "centroid_radial_dist_histo.dat";
     auto centroid_dist_histo = create_histogram(centroid_dist_histo_filepath, continue_file_manager, minimage_box);
