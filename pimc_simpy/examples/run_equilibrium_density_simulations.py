@@ -33,6 +33,7 @@ def get_toml_file_contents(contents_map: dict[str, Any]) -> str:
     n_equilibrium_blocks = contents_map["n_equilibrium_blocks"]
     n_passes = contents_map["n_passes"]
     n_timeslices = contents_map["n_timeslices"]
+    writer_batch_size: int = contents_map["writer_batch_size"]
     save_worldlines: str = contents_map["save_worldlines"]
     n_save_worldlines_every: int = contents_map["n_save_worldlines_every"]
     freeze_mc_steps: bool = contents_map["freeze_mc_steps"]
@@ -48,6 +49,7 @@ def get_toml_file_contents(contents_map: dict[str, Any]) -> str:
             f"n_equilibrium_blocks = {n_equilibrium_blocks}",
             f"n_passes = {n_passes}",
             f"n_timeslices = {n_timeslices}",
+            f"writer_batch_size = {writer_batch_size}",
             f"save_worldlines = {save_worldlines}",
             f"n_save_worldlines_every = {n_save_worldlines_every}",
             f"centre_of_mass_step_size = {centre_of_mass_step_size}",
@@ -83,7 +85,7 @@ def get_slurm_file_contents(contents_map: dict[str, Any]) -> str:
             "",
             "#SBATCH --account=rrg-pnroy",
             f"#SBATCH --mem={memory_gb}G",
-            "#SBATCH --time=2-00:00:00",
+            "#SBATCH --time=3-00:00:00",
             "#SBATCH --cpus-per-task=1",
             f"#SBATCH --output={str(abs_slurm_output_filename)}",
             "",
@@ -98,7 +100,7 @@ def get_slurm_file_contents(contents_map: dict[str, Any]) -> str:
     return contents
 
 
-def example(
+def make_directories(
     manager: ProjectDirectoryStructureManager, densities: NDArray, n_timeslices: int, mc_step_size_map: dict[int, MCStepSizes]
 ) -> None:
     toml_info_map: dict[str, Any] = {}
@@ -111,16 +113,17 @@ def example(
     toml_info_map["abs_repo_dirpath"] = manager.info.abs_external_dirpath
     toml_info_map["cell_dimensions"] = (5, 3, 3)
     toml_info_map["seed"] = '"RANDOM"'
-    toml_info_map["last_block_index"] = 10000
+    toml_info_map["last_block_index"] = 15000
     toml_info_map["n_equilibrium_blocks"] = 15
     toml_info_map["n_passes"] = 2
     toml_info_map["n_timeslices"] = n_timeslices
+    toml_info_map["writer_batch_size"] = 100
     toml_info_map["save_worldlines"] = "false"
     toml_info_map["n_save_worldlines_every"] = 1
     toml_info_map["freeze_mc_steps"] = "true"
 
     slurm_info_map: dict[str, Any] = {}
-    slurm_info_map["executable"] = "perturbative2b"
+    slurm_info_map["executable"] = "pimc-sim"
     slurm_info_map["abs_executable_dirpath"] = manager.info.abs_executable_dirpath
     slurm_info_map["memory_gb"] = 4
 
@@ -176,7 +179,7 @@ if __name__ == "__main__":
     for n_timeslices in all_n_timeslices:
         for version in all_versions:
             project_info_toml_dirpath = Path("..", "project_info_toml_files", "equilibrium_density_files")
-            project_info_toml_filename = f"pert2b_eq_dens_tmpl.toml"
+            project_info_toml_filename = f"pert2b3b_double_eq_dens_tmpl.toml"
             project_info_toml_filepath = project_info_toml_dirpath / project_info_toml_filename
             project_info = parse_project_info(project_info_toml_filepath)
             project_info.abs_subproject_dirpath = project_info.abs_subproject_dirpath / f"version{version}" / f"p{n_timeslices:0>3d}"
@@ -185,5 +188,5 @@ if __name__ == "__main__":
             formatter = BasicProjectDirectoryFormatter()
             manager = ProjectDirectoryStructureManager(project_info, formatter)
 
-            # example(manager, densities, n_timeslices, step_sizes_map)
+            # make_directories(manager, densities, n_timeslices, step_sizes_map)
             run_slurm_files(manager, n_densities)
