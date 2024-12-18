@@ -117,3 +117,40 @@ target_link_libraries(
     perturbative2b_exe
     PRIVATE "${TORCH_LIBRARIES}"
 )
+
+# ---- Declare executable and alias name for perturbative2b3b4b ----
+
+add_executable(
+    perturbative2b3b4b_exe
+    perturbative2b3b4b.cpp
+)
+
+add_executable(
+    perturbative2b3b4b::exe
+    ALIAS perturbative2b3b4b_exe
+)
+
+# ---- Modify executable properties ----
+
+set_property(
+    TARGET perturbative2b3b4b_exe
+    PROPERTY OUTPUT_NAME perturbative2b3b4b
+)
+
+target_compile_features(
+    perturbative2b3b4b_exe
+    PRIVATE cxx_std_20
+)
+
+target_include_directories(
+    perturbative2b3b4b_exe
+    ${warning_guard}
+    SYSTEM PRIVATE "${TORCH_INCLUDE_DIRS}"
+    PUBLIC "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/source>"
+    PUBLIC "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/extern>"
+)
+
+target_link_libraries(
+    perturbative2b3b4b_exe
+    PRIVATE "${TORCH_LIBRARIES}"
+)

@@ -75,12 +75,11 @@ auto create_com_move_adjuster(FP lower_range_limit, FP upper_range_limit) noexce
 }
 
 template <std::floating_point FP>
-auto create_bisect_move_adjuster(FP lower_range_limit, FP upper_range_limit) noexcept
+auto create_bisect_move_adjuster(FP lower_range_limit, FP upper_range_limit, FP bisect_adjust_step) noexcept
     -> pimc::BisectionLevelMoveAdjuster<FP>
 {
-    const auto com_accept_range = pimc::AcceptPercentageRange<FP> {lower_range_limit, upper_range_limit};
-    const auto com_adjust_step = FP{0.01};
-    return pimc::BisectionLevelMoveAdjuster<FP> {com_accept_range, com_adjust_step};
+    const auto bisect_accept_range = pimc::AcceptPercentageRange<FP> {lower_range_limit, upper_range_limit};
+    return pimc::BisectionLevelMoveAdjuster<FP> {bisect_accept_range, bisect_adjust_step};
 }
 
 template <std::floating_point FP, std::size_t NDIM>

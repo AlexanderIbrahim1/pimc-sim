@@ -132,7 +132,7 @@ auto main(int argc, char** argv) -> int
 
     /* create the move adjusters */
     const auto com_move_adjuster = create_com_move_adjuster(0.3, 0.4);
-    const auto bisect_move_adjuster = create_bisect_move_adjuster(0.3, 0.4);
+    const auto bisect_move_adjuster = create_bisect_move_adjuster(0.3, 0.4, 0.05);
 
     // clang-format off
     auto com_step_size_writer = pimc::default_centre_of_mass_position_move_step_size_writer<double>(output_dirpath);
