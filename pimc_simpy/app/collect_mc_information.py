@@ -69,12 +69,12 @@ def get_reader(project_info_toml_filepath: Path) -> ProjectDataReader:
 
 # -----------------------------------------------------------------------------
 
-PROJECT_INFO_TOML_FILEPATH = Path("..", "project_info_toml_files", "local_p960_coarse_pert2b3b_mcmc_param_search.toml")
+PROJECT_INFO_TOML_FILEPATH = Path("..", "project_info_toml_files", "p64_coarse_pert2b3b.toml")
 
 
 def write_converged_move_infos() -> None:
-    bisection_output_filepath = Path("..", "playground", "converged_bisection_move_info_pert2b3b_p960.dat")
-    com_output_filepath = Path("..", "playground", "converged_centre_of_mass_step_size_pert2b3b_p960.dat")
+    bisection_output_filepath = Path("..", "playground", "converged_bisection_move_info_pert2b3b_p64.dat")
+    com_output_filepath = Path("..", "playground", "converged_centre_of_mass_step_size_pert2b3b_p64.dat")
 
     reader = get_reader(PROJECT_INFO_TOML_FILEPATH)
 
