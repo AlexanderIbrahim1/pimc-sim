@@ -68,7 +68,7 @@ auto create_com_move_adjuster(FP lower_range_limit, FP upper_range_limit) noexce
     -> pimc::SingleValueMoveAdjuster<FP>
 {
     const auto com_accept_range = pimc::AcceptPercentageRange<FP> {lower_range_limit, upper_range_limit};
-    const auto com_adjust_step = FP {0.005};
+    const auto com_adjust_step = FP {0.01};
     const auto com_direction = pimc::DirectionIfAcceptTooLow::NEGATIVE;
     const auto com_limits = pimc::MoveLimits<FP> {FP {0.0}, std::nullopt};
     return pimc::SingleValueMoveAdjuster<FP> {com_accept_range, com_adjust_step, com_direction, com_limits};

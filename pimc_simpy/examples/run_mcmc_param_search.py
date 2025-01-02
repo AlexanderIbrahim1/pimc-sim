@@ -10,6 +10,7 @@ from typing import Any
 import numpy as np
 from numpy.typing import NDArray
 
+from pimc_simpy.data import MultibeadPositionMoveInfo
 from pimc_simpy.quick_analysis import read_converged_bisection_multibead_position_move_info
 from pimc_simpy.quick_analysis import read_converged_centre_of_mass_step_size
 from pimc_simpy.manage import BasicProjectDirectoryFormatter
@@ -27,6 +28,9 @@ def get_toml_file_contents(contents_map: dict[str, Any]) -> str:
     n_equilibrium_blocks = contents_map["n_equilibrium_blocks"]
     n_passes = contents_map["n_passes"]
     n_timeslices = contents_map["n_timeslices"]
+    writer_batch_size: int = contents_map["writer_batch_size"]
+    save_worldlines: str = contents_map["save_worldlines"]
+    n_save_worldlines_every: int = contents_map["n_save_worldlines_every"]
     freeze_mc_steps: bool = contents_map["freeze_mc_steps"]
     centre_of_mass_step_size = contents_map["centre_of_mass_step_size"]
     bisection_level = contents_map["bisection_level"]
@@ -40,6 +44,9 @@ def get_toml_file_contents(contents_map: dict[str, Any]) -> str:
             f"n_equilibrium_blocks = {n_equilibrium_blocks}",
             f"n_passes = {n_passes}",
             f"n_timeslices = {n_timeslices}",
+            f"writer_batch_size = {writer_batch_size}",
+            f"save_worldlines = {save_worldlines}",
+            f"n_save_worldlines_every = {n_save_worldlines_every}",
             f"centre_of_mass_step_size = {centre_of_mass_step_size}",
             f"bisection_level = {bisection_level}",
             f"bisection_ratio = {bisection_ratio}",
@@ -52,10 +59,9 @@ def get_toml_file_contents(contents_map: dict[str, Any]) -> str:
             f"freeze_monte_carlo_step_sizes_in_equilibrium = {freeze_mc_steps}",
             f"abs_two_body_filepath =   '{str(abs_repo_dirpath)}/potentials/fsh_potential_angstroms_wavenumbers.potext_sq'",
             f"abs_three_body_filepath = '{str(abs_repo_dirpath)}/../../large_files/eng.tri'",
-            f"abs_four_body_filepath =  '{str(abs_repo_dirpath)}/pimc_simpy/scripts/models/fourbodypara_ssp_64_128_128_64_cpu_eval.pt'",
+            f"abs_four_body_filepath =  '{str(abs_repo_dirpath)}/../../large_files/published_fourbody_torch_models/fourbodypara_ssp_64_128_128_64_cpu_eval.pt'",
         ]
     )
-    # f"abs_three_body_filepath = '{str(abs_repo_dirpath)}/pimc_simpy/scripts/pes_files/threebody_126_101_51.dat'",
 
     return contents
 
@@ -73,7 +79,7 @@ def get_slurm_file_contents(contents_map: dict[str, Any]) -> str:
             "",
             "#SBATCH --account=rrg-pnroy",
             f"#SBATCH --mem={memory_gb}G",
-            "#SBATCH --time=1-00:00:00",
+            "#SBATCH --time=1-12:00:00",
             "#SBATCH --cpus-per-task=1",
             f"#SBATCH --output={str(abs_slurm_output_filename)}",
             "",
@@ -88,24 +94,27 @@ def get_slurm_file_contents(contents_map: dict[str, Any]) -> str:
     return contents
 
 
-def create_directories(manager: ProjectDirectoryStructureManager, densities: NDArray) -> None:
+def create_directories(
+    manager: ProjectDirectoryStructureManager,
+    densities: NDArray,
+    bisection_moves: dict[int, MultibeadPositionMoveInfo],
+    com_moves: dict[int, float],
+) -> None:
     toml_info_map: dict[str, Any] = {}
     toml_info_map["abs_repo_dirpath"] = manager.info.abs_external_dirpath
     toml_info_map["cell_dimensions"] = (3, 2, 2)
     toml_info_map["seed"] = '"RANDOM"'
-    toml_info_map["last_block_index"] = 1000
-    toml_info_map["n_equilibrium_blocks"] = 1000
-    toml_info_map["n_passes"] = 10
-    toml_info_map["n_timeslices"] = 192
+    toml_info_map["last_block_index"] = 500
+    toml_info_map["n_equilibrium_blocks"] = 500
+    toml_info_map["n_passes"] = 2
+    toml_info_map["n_timeslices"] = 64
+    toml_info_map["writer_batch_size"] = 1
+    toml_info_map["save_worldlines"] = "false"
+    toml_info_map["n_save_worldlines_every"] = 1
     toml_info_map["freeze_mc_steps"] = "false"
 
-    # set the initial monte carlo step sizes
-    toml_info_map["centre_of_mass_step_size"] = 0.18
-    toml_info_map["bisection_level"] = 2
-    toml_info_map["bisection_ratio"] = 0.5
-
     slurm_info_map: dict[str, Any] = {}
-    slurm_info_map["executable"] = "pimc-sim"
+    slurm_info_map["executable"] = "perturbative2b3b4b"
     slurm_info_map["abs_executable_dirpath"] = manager.info.abs_executable_dirpath
     slurm_info_map["memory_gb"] = 4
 
@@ -118,6 +127,11 @@ def create_directories(manager: ProjectDirectoryStructureManager, densities: NDA
         # create the toml file
         toml_info_map["abs_output_dirpath"] = manager.get_abs_simulations_job_output_dirpath(sim_id)
         toml_info_map["density"] = density
+
+        # set the initial monte carlo step sizes
+        toml_info_map["centre_of_mass_step_size"] = com_moves[sim_id]
+        toml_info_map["bisection_level"] = bisection_moves[sim_id].lower_level
+        toml_info_map["bisection_ratio"] = bisection_moves[sim_id].upper_level_fraction
 
         toml_file_contents = get_toml_file_contents(toml_info_map)
         abs_toml_filepath = manager.get_toml_filepath(sim_id)
@@ -146,10 +160,17 @@ if __name__ == "__main__":
     n_densities = 31
     densities = np.linspace(0.024, 0.1, n_densities)  # ANG^{-3}
 
-    project_info_toml_filepath = Path("..", "project_info_toml_files", "equilibrium_density_param_search", "p192_pert2b3b_mcmc_param_search.toml")
+    bisect_info_filepath = Path("..", "playground", "recent_bisection_move_info_pert2b3b4b.dat")
+    com_info_filepath = Path("..", "playground", "recent_centre_of_mass_step_size_pert2b3b4b.dat")
+    bisection_moves = read_converged_bisection_multibead_position_move_info(bisect_info_filepath)
+    com_moves = read_converged_centre_of_mass_step_size(com_info_filepath)
+
+    project_info_toml_filepath = Path(
+        "..", "project_info_toml_files", "p64_coarse", "p64_coarse_pert2b3b4b_more_mcmc_param_search.toml"
+    )
     project_info = parse_project_info(project_info_toml_filepath)
     formatter = BasicProjectDirectoryFormatter()
     manager = ProjectDirectoryStructureManager(project_info, formatter)
 
-    # create_directories(manager, densities)
-    # run_slurm_files(manager, n_densities)
+    # create_directories(manager, densities, bisection_moves, com_moves)
+    run_slurm_files(manager, n_densities)

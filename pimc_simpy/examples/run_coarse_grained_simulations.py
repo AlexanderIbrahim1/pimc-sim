@@ -106,17 +106,17 @@ def make_directories(
     toml_info_map["abs_repo_dirpath"] = manager.info.abs_external_dirpath
     toml_info_map["cell_dimensions"] = (5, 3, 3)
     toml_info_map["seed"] = '"RANDOM"'
-    toml_info_map["last_block_index"] = 15000
+    toml_info_map["last_block_index"] = 10500
     toml_info_map["n_equilibrium_blocks"] = 200
-    toml_info_map["n_passes"] = 1
+    toml_info_map["n_passes"] = 2
     toml_info_map["n_timeslices"] = 64
     toml_info_map["writer_batch_size"] = 100
     toml_info_map["save_worldlines"] = "true"
-    toml_info_map["n_save_worldlines_every"] = 25
+    toml_info_map["n_save_worldlines_every"] = 1
     toml_info_map["freeze_mc_steps"] = "false"
 
     slurm_info_map: dict[str, Any] = {}
-    slurm_info_map["executable"] = "pimc-sim"
+    slurm_info_map["executable"] = "perturbative2b"
     slurm_info_map["abs_executable_dirpath"] = manager.info.abs_executable_dirpath
     slurm_info_map["memory_gb"] = 4
 
@@ -158,14 +158,41 @@ def run_slurm_files(manager: ProjectDirectoryStructureManager, n_densities: int)
         subprocess.run(cmd, check=True)
 
 
-if __name__ == "__main__":
-    n_densities = 31
-    densities = np.linspace(0.024, 0.1, n_densities)  # ANG^{-3}
+# if __name__ == "__main__":
+#     n_densities = 31
+#     densities = np.linspace(0.024, 0.1, n_densities)  # ANG^{-3}
+# 
+#     # bisect_info_filepath = Path("..", "playground", "converged_bisection_move_info_p960.dat")
+#     # com_info_filepath = Path("..", "playground", "converged_centre_of_mass_step_size_p960.dat")
+#     # bisection_moves = read_converged_bisection_multibead_position_move_info(bisect_info_filepath)
+#     # com_moves = read_converged_centre_of_mass_step_size(com_info_filepath)
+# 
+#     bisection_moves = dict([
+#         (i, MultibeadPositionMoveInfo(0.5, 2))
+#         for i in range(n_densities)
+#     ])
+# 
+#     com_moves = dict([
+#         (i, 0.15)
+#         for i in range(n_densities)
+#     ])
+# 
+#     project_info_toml_filepath = Path("..", "project_info_toml_files", "p64_coarse_pert2b3b.toml")
+#     project_info = parse_project_info(project_info_toml_filepath)
+# 
+#     # project_info.abs_subproject_dirpath = Path(f"{str(project_info.abs_subproject_dirpath)}{version}")
+#     # project_info.subproject_name = f"{project_info.subproject_name}_{version}"
+# 
+#     formatter = BasicProjectDirectoryFormatter()
+#     manager = ProjectDirectoryStructureManager(project_info, formatter)
+# 
+#     # make_directories(manager, densities, bisection_moves, com_moves)
+#     run_slurm_files(manager, n_densities)
 
-    # bisect_info_filepath = Path("..", "playground", "converged_bisection_move_info_p960.dat")
-    # com_info_filepath = Path("..", "playground", "converged_centre_of_mass_step_size_p960.dat")
-    # bisection_moves = read_converged_bisection_multibead_position_move_info(bisect_info_filepath)
-    # com_moves = read_converged_centre_of_mass_step_size(com_info_filepath)
+
+if __name__ == "__main__":
+    n_densities = 1
+    densities = [0.1]
 
     bisection_moves = dict([
         (i, MultibeadPositionMoveInfo(0.5, 2))
@@ -177,14 +204,16 @@ if __name__ == "__main__":
         for i in range(n_densities)
     ])
 
-    project_info_toml_filepath = Path("..", "project_info_toml_files", "p64_coarse_pert2b3b.toml")
+    project_info_toml_filepath = Path("..", "project_info_toml_files", "p64_coarse", "p64_worldline_seed_dens_030.toml")
     project_info = parse_project_info(project_info_toml_filepath)
-
-    # project_info.abs_subproject_dirpath = Path(f"{str(project_info.abs_subproject_dirpath)}{version}")
-    # project_info.subproject_name = f"{project_info.subproject_name}_{version}"
-
     formatter = BasicProjectDirectoryFormatter()
     manager = ProjectDirectoryStructureManager(project_info, formatter)
 
     # make_directories(manager, densities, bisection_moves, com_moves)
     run_slurm_files(manager, n_densities)
+
+
+
+
+
+

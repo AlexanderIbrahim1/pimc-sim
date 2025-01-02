@@ -242,25 +242,25 @@ auto main(int argc, char** argv) -> int
 
         // clang-format off
         if (i_block >= parser.n_equilibrium_blocks) {
-            auto& threebody_pot = pot3b;
+            // auto& threebody_pot = pot3b;
 
-            /* run estimators */
-            const auto total_kinetic_energy = estim::total_primitive_kinetic_energy(worldlines, environment);
-            const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic(worldlines, pot);
-            const auto total_triplet_potential_energy = estim::total_triplet_potential_energy_periodic(worldlines, threebody_pot);
-            const auto rms_centroid_dist = estim::rms_centroid_distance(worldlines);
-            const auto abs_centroid_dist = estim::absolute_centroid_distance(worldlines);
+            // /* run estimators */
+            // const auto total_kinetic_energy = estim::total_primitive_kinetic_energy(worldlines, environment);
+            // const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic(worldlines, pot);
+            // const auto total_triplet_potential_energy = estim::total_triplet_potential_energy_periodic(worldlines, threebody_pot);
+            // const auto rms_centroid_dist = estim::rms_centroid_distance(worldlines);
+            // const auto abs_centroid_dist = estim::absolute_centroid_distance(worldlines);
 
-            /* accumulate estimators */
-            kinetic_writer.accumulate({i_block, total_kinetic_energy});
-            pair_potential_writer.accumulate({i_block, total_pair_potential_energy});
-            triplet_potential_writer.accumulate({i_block, total_triplet_potential_energy});
-            rms_centroid_writer.accumulate({i_block, rms_centroid_dist});
-            abs_centroid_writer.accumulate({i_block, abs_centroid_dist});
+            // /* accumulate estimators */
+            // kinetic_writer.accumulate({i_block, total_kinetic_energy});
+            // pair_potential_writer.accumulate({i_block, total_pair_potential_energy});
+            // triplet_potential_writer.accumulate({i_block, total_triplet_potential_energy});
+            // rms_centroid_writer.accumulate({i_block, rms_centroid_dist});
+            // abs_centroid_writer.accumulate({i_block, abs_centroid_dist});
 
-            /* update radial distribution function histogram */
-            estim::update_radial_distribution_function_histogram(radial_dist_histo, periodic_distance_calculator, worldlines);
-            estim::update_centroid_radial_distribution_function_histogram(centroid_dist_histo, periodic_distance_calculator, worldlines);
+            // /* update radial distribution function histogram */
+            // estim::update_radial_distribution_function_histogram(radial_dist_histo, periodic_distance_calculator, worldlines);
+            // estim::update_centroid_radial_distribution_function_histogram(centroid_dist_histo, periodic_distance_calculator, worldlines);
 
             /* save the worldlines */
             if (parser.save_worldlines && ((i_block % parser.n_save_worldlines_every) == 0)) {
@@ -292,17 +292,17 @@ auto main(int argc, char** argv) -> int
 
         /* write out the batch of estimates and update the histogram files */
         if ((i_block % parser.writer_batch_size) == 0) {
-            write_estimates();
-            write_moves();
-            write_histograms();
+            // write_estimates();
+            // write_moves();
+            // write_histograms();
             write_timer();
             write_continue_and_prng(i_block);
         }
     }
 
-    write_estimates();
-    write_moves();
-    write_histograms();
+    // write_estimates();
+    // write_moves();
+    // write_histograms();
     write_timer();
     write_continue_and_prng(last_block_index);
 
