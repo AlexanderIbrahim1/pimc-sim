@@ -22,8 +22,12 @@ from pimc_simpy.statistics import autocorrelation_time_from_data
 
 def plot_energies_rescaled(reader: ProjectDataReader, sim_id: int) -> None:
     pair_potential_energies = reader.read_project_pair_potential_energy(sim_id)
+    triplet_potential_energies = reader.read_project_triplet_potential_energy(sim_id)
     kinetic_energies = reader.read_project_kinetic_energy(sim_id)
-    plot_property_rescaled([pair_potential_energies, kinetic_energies], labels=["potential", "kinetic"])
+    plot_property_rescaled(
+        [pair_potential_energies, triplet_potential_energies, kinetic_energies],
+        labels=["pair", "triplet", "kinetic"],
+    )
 
 
 def calculate_autocorrelation(reader: ProjectDataReader, sim_id: int, n_equilibration_sweeps: int) -> None:
@@ -40,22 +44,23 @@ def calculate_autocorrelation(reader: ProjectDataReader, sim_id: int, n_equilibr
     kinetic_auto_time = autocorrelation_time_from_data(kinetic_data.values)
     n_auto_sweeps = math.ceil(max(pair_potential_auto_time, triplet_potential_auto_time, kinetic_auto_time))
 
-    # print(f"potential_auto_time = {potential_auto_time}")
-    # print(f"kinetic_auto_time = {kinetic_auto_time}")
+    print(f"pair_potential_auto_time = {pair_potential_auto_time}")
+    print(f"triplet_potential_auto_time = {triplet_potential_auto_time}")
+    print(f"kinetic_auto_time = {kinetic_auto_time}")
     print(f"n_autocorrelation_sweeps = {n_auto_sweeps}")
 
 
 if __name__ == "__main__":
-    project_info_toml_filepath = Path("..", "project_info_toml_files", "p960_coarse_pert2b3b_eq_ac_search.toml")
-    info = parse_project_info(project_info_toml_filepath)
+    project_info_filepath = Path("..", "playground", "cedar_files", "pert2b_p64_coarse_double", "pert2b_p64_coarse.toml")
+    info = parse_project_info(project_info_filepath)
     formatter = BasicProjectDirectoryFormatter()
     manager = ProjectDirectoryStructureManager(info, formatter)
     reader = ProjectDataReader(manager)
 
-    # sim_id = int(sys.argv[1])
-    # plot_energies_rescaled(project_info, sim_id)
-    # calculate_autocorrelation(project_info, sim_id, 10)
+    sim_id = int(sys.argv[1])
+    # plot_energies_rescaled(reader, sim_id)
+    calculate_autocorrelation(reader, sim_id, 200)
 
-    for sim_id in range(31):
-        print(f"sim_id = {sim_id}")
-        calculate_autocorrelation(reader, sim_id, 15)
+    # for sim_id in range(31):
+    #     print(f"sim_id = {sim_id}")
+    #     calculate_autocorrelation(reader, sim_id, 15)
