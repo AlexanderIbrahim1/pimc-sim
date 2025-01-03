@@ -69,14 +69,6 @@ def get_reader(project_info_toml_filepath: Path) -> ProjectDataReader:
 
 # -----------------------------------------------------------------------------
 
-<<<<<<< Updated upstream
-PROJECT_INFO_TOML_FILEPATH = Path("..", "project_info_toml_files", "p64_coarse_pert2b3b.toml")
-
-
-def write_converged_move_infos() -> None:
-    bisection_output_filepath = Path("..", "playground", "converged_bisection_move_info_pert2b3b_p64.dat")
-    com_output_filepath = Path("..", "playground", "converged_centre_of_mass_step_size_pert2b3b_p64.dat")
-=======
 # PROJECT_INFO_TOML_FILEPATH = Path("..", "project_info_toml_files", "local_p960_coarse_pert2b3b_mcmc_param_search.toml")
 PERT2B3B4B_PARAM_SEARCH_DIRPATH = Path("..", "playground", "cedar_files", "mcmc_param_search_pert2b3b4b")
 PROJECT_INFO_TOML_FILEPATH = PERT2B3B4B_PARAM_SEARCH_DIRPATH / "local_mcmc_param_search_p64.toml"
@@ -87,7 +79,6 @@ def write_converged_move_infos() -> None:
     # com_output_filepath = Path("..", "playground", "converged_centre_of_mass_step_size_pert2b3b_p960.dat")
     bisection_output_filepath = PERT2B3B4B_PARAM_SEARCH_DIRPATH / "recent_bisection_move_info_pert2b3b4b.dat"
     com_output_filepath = PERT2B3B4B_PARAM_SEARCH_DIRPATH / "recent_centre_of_mass_step_size_pert2b3b4b"
->>>>>>> Stashed changes
 
     reader = get_reader(PROJECT_INFO_TOML_FILEPATH)
 
