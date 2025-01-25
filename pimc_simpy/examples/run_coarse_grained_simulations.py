@@ -30,22 +30,22 @@ def make_directories(
 ) -> None:
     toml_info_map: dict[str, Any] = {}
     toml_info_map["abs_repo_dirpath"] = manager.info.abs_external_dirpath
-    toml_info_map["cell_dimensions"] = (5, 3, 3)
+    toml_info_map["cell_dimensions"] = (3, 2, 2)
     toml_info_map["seed"] = '"RANDOM"'
-    toml_info_map["last_block_index"] = 10500
-    toml_info_map["n_equilibrium_blocks"] = 200
-    toml_info_map["n_passes"] = 2
-    toml_info_map["n_timeslices"] = 64
-    toml_info_map["writer_batch_size"] = 100
+    toml_info_map["last_block_index"] = 1000
+    toml_info_map["n_equilibrium_blocks"] = 0
+    toml_info_map["n_passes"] = 1
+    toml_info_map["n_timeslices"] = 960
+    toml_info_map["writer_batch_size"] = 1
     toml_info_map["save_worldlines"] = "true"
     toml_info_map["n_save_worldlines_every"] = 1
-    toml_info_map["freeze_mc_steps"] = "false"
+    toml_info_map["freeze_mc_steps"] = "true"
 
     slurm_info_map: dict[str, Any] = {}
-    slurm_info_map["executable"] = "perturbative2b"
+    slurm_info_map["executable"] = "perturbative2b3b4b"
     slurm_info_map["abs_executable_dirpath"] = manager.info.abs_executable_dirpath
     slurm_info_map["memory_gb"] = 4
-    slurm_info_map["time"] = "1-00:00:00"
+    slurm_info_map["time"] = "2-00:00:00"
 
     manager.mkdir_subproject_dirpaths()
 
@@ -121,14 +121,14 @@ if __name__ == "__main__":
     n_densities = 1
     densities = [0.1]
 
-    bisection_moves = dict([(i, MultibeadPositionMoveInfo(0.5, 2)) for i in range(n_densities)])
+    bisection_moves = dict([(i, MultibeadPositionMoveInfo(0.9, 3)) for i in range(n_densities)])
 
-    com_moves = dict([(i, 0.15) for i in range(n_densities)])
+    com_moves = dict([(i, 0.0238) for i in range(n_densities)])
 
-    project_info_toml_filepath = Path("..", "project_info_toml_files", "p64_coarse", "p64_worldline_seed_dens_030.toml")
+    project_info_toml_filepath = Path("..", "project_info_toml_files", "pert2b3b4b", "n48_p960_pert2b3b4b_simulation.toml")
     project_info = parse_project_info(project_info_toml_filepath)
     formatter = BasicProjectDirectoryFormatter()
     manager = ProjectDirectoryStructureManager(project_info, formatter)
 
     # make_directories(manager, densities, bisection_moves, com_moves)
-    run_slurm_files(manager, n_densities)
+    # run_slurm_files(manager, n_densities)

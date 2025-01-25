@@ -176,7 +176,7 @@ auto main(int argc, char** argv) -> int
     auto kinetic_writer = estim::default_kinetic_writer<float>(output_dirpath);
     auto pair_potential_writer = estim::default_pair_potential_writer<float>(output_dirpath);
     auto triplet_potential_writer = estim::default_triplet_potential_writer<float>(output_dirpath);
-    auto quadruplet_potential_writer = estim::default_quadruplet_potential_writer<float>(output_dirpath);
+    // auto quadruplet_potential_writer = estim::default_quadruplet_potential_writer<float>(output_dirpath);
     auto rms_centroid_writer = estim::default_rms_centroid_distance_writer<float>(output_dirpath);
     auto abs_centroid_writer = estim::default_absolute_centroid_distance_writer<float>(output_dirpath);
 
@@ -197,7 +197,7 @@ auto main(int argc, char** argv) -> int
         kinetic_writer.write_and_clear();
         pair_potential_writer.write_and_clear();
         triplet_potential_writer.write_and_clear();
-        quadruplet_potential_writer.write_and_clear();
+        // quadruplet_potential_writer.write_and_clear();
         rms_centroid_writer.write_and_clear();
         abs_centroid_writer.write_and_clear();
     };
@@ -234,10 +234,8 @@ auto main(int argc, char** argv) -> int
     /* perform the simulation loop */
     for (std::size_t i_block {first_block_index}; i_block < last_block_index; ++i_block) {
         timer.start();
-        std::cout << "i_block = " << i_block << '\n';
         /* the number of passes is chosen such that the autocorrelation time between blocks is passed */
         for (std::size_t i_pass {0}; i_pass < parser.n_passes; ++i_pass) {
-            std::cout << "(i_block, i_pass) = (" << i_block << ", " << i_pass << ")\n";
             /* perform COM move for each particle */
             for (std::size_t i_part {0}; i_part < n_particles; ++i_part) {
                 com_mover(i_part, worldlines, prngw, interaction_handler, environment, &com_tracker);
@@ -268,20 +266,18 @@ auto main(int argc, char** argv) -> int
         const auto [mb_accept, mb_reject] = multi_bead_tracker.get_accept_and_reject();
         multi_bead_move_writer.accumulate({i_block, mb_accept, mb_reject});
 
-        std::cout << "running estimators\n";
-
         // clang-format off
         if (i_block >= parser.n_equilibrium_blocks) {
             const auto& threebody_pot = interaction_handler.get<1>();
 
-            const auto box_cutoff = coord::box_cutoff_distance(minimage_box);
-            auto& fourbody_pot = interaction_handler.get<2>();
+            // const auto box_cutoff = coord::box_cutoff_distance(minimage_box);
+            // auto& fourbody_pot = interaction_handler.get<2>();
 
             /* run estimators */
             const auto total_kinetic_energy = estim::total_primitive_kinetic_energy(worldlines, environment);
             const auto total_pair_potential_energy = estim::total_pair_potential_energy_periodic(worldlines, pot);
             const auto total_triplet_potential_energy = estim::total_triplet_potential_energy_periodic(worldlines, threebody_pot.point_potential());
-            const auto total_quadruplet_potential_energy = estim::total_quadruplet_potential_energy_periodic(worldlines, fourbody_pot.point_potential(), minimage_box, box_cutoff);
+            // const auto total_quadruplet_potential_energy = estim::total_quadruplet_potential_energy_periodic(worldlines, fourbody_pot.point_potential(), minimage_box, box_cutoff);
             const auto rms_centroid_dist = estim::rms_centroid_distance(worldlines);
             const auto abs_centroid_dist = estim::absolute_centroid_distance(worldlines);
 
@@ -289,7 +285,7 @@ auto main(int argc, char** argv) -> int
             kinetic_writer.accumulate({i_block, total_kinetic_energy});
             pair_potential_writer.accumulate({i_block, total_pair_potential_energy});
             triplet_potential_writer.accumulate({i_block, total_triplet_potential_energy});
-            quadruplet_potential_writer.accumulate({i_block, total_quadruplet_potential_energy});
+            // quadruplet_potential_writer.accumulate({i_block, total_quadruplet_potential_energy});
             rms_centroid_writer.accumulate({i_block, rms_centroid_dist});
             abs_centroid_writer.accumulate({i_block, abs_centroid_dist});
 

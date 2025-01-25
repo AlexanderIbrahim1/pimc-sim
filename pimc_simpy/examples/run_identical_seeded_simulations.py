@@ -115,7 +115,7 @@ def make_directories(
 
 
 def run_slurm_files(manager: ProjectDirectoryStructureManager, n_jobs: int) -> None:
-    for sim_id in range(n_jobs):
+    for sim_id in range(1, n_jobs):
         abs_slurm_filepath = manager.get_slurm_bashfile_filepath(sim_id)
 
         cmd = ["sbatch", str(abs_slurm_filepath)]
@@ -125,26 +125,26 @@ def run_slurm_files(manager: ProjectDirectoryStructureManager, n_jobs: int) -> N
 if __name__ == "__main__":
     density = 0.1
     bisection_move = MultibeadPositionMoveInfo(0.0, 1)
-    com_step_size = 0.02
+    com_step_size = 2.66666804e-02
+    worldline_index_pairs = [(i, 0) for i in range(200, 1200)]
 
-    project_info_toml_filepath = Path("..", "project_info_toml_files", "seeded_example.toml")
+    project_info_toml_filepath = Path("..", "project_info_toml_files", "p64_coarse", "pert2b3b4b_dens_030.toml")
     project_info = parse_project_info(project_info_toml_filepath)
     formatter = BasicProjectDirectoryFormatter()
     manager = ProjectDirectoryStructureManager(project_info, formatter)
 
     continue_seed_dirpath = Path("..", "playground", "run_identical_seeded_simulations")
-    worldline_seed_dirpath = Path("..", "..", "playground", "seeder")
-    worldline_index_pairs = [(i, 0) for i in [16, 18, 20, 22, 24]]
+    worldline_seed_dirpath = Path("/home/a68ibrah/projects/def-pnroy/a68ibrah/pimc_simulations/simulations/twothreefour_body/p64_coarse/worldline_seeds/dens_030/simulations/job_000/output")
 
-    make_directories(
-        manager,
-        continue_seed_dirpath,
-        worldline_seed_dirpath,
-        worldline_index_pairs,
-        density,
-        bisection_move,
-        com_step_size,
-    )
+    # make_directories(
+    #     manager,
+    #     continue_seed_dirpath,
+    #     worldline_seed_dirpath,
+    #     worldline_index_pairs,
+    #     density,
+    #     bisection_move,
+    #     com_step_size,
+    # )
 
     n_jobs = len(worldline_index_pairs)
     run_slurm_files(manager, n_jobs)
