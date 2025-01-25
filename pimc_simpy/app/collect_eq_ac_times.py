@@ -8,15 +8,11 @@ import sys
 from pathlib import Path
 
 from pimc_simpy.data import between_epochs
-
 from pimc_simpy.quick_analysis import ProjectDataReader
-
 from pimc_simpy.manage import BasicProjectDirectoryFormatter
 from pimc_simpy.manage import ProjectDirectoryStructureManager
 from pimc_simpy.manage import parse_project_info
-
 from pimc_simpy.plotting import plot_property_rescaled
-
 from pimc_simpy.statistics import autocorrelation_time_from_data
 
 
@@ -44,23 +40,24 @@ def calculate_autocorrelation(reader: ProjectDataReader, sim_id: int, n_equilibr
     kinetic_auto_time = autocorrelation_time_from_data(kinetic_data.values)
     n_auto_sweeps = math.ceil(max(pair_potential_auto_time, triplet_potential_auto_time, kinetic_auto_time))
 
-    print(f"pair_potential_auto_time = {pair_potential_auto_time}")
-    print(f"triplet_potential_auto_time = {triplet_potential_auto_time}")
-    print(f"kinetic_auto_time = {kinetic_auto_time}")
-    print(f"n_autocorrelation_sweeps = {n_auto_sweeps}")
+    print(kinetic_auto_time)
+    # print(f"pair_potential_auto_time = {pair_potential_auto_time}")
+    # print(f"triplet_potential_auto_time = {triplet_potential_auto_time}")
+    # print(f"kinetic_auto_time = {kinetic_auto_time}")
+    # print(f"n_autocorrelation_sweeps = {n_auto_sweeps}")
 
 
 if __name__ == "__main__":
-    project_info_filepath = Path("..", "playground", "cedar_files", "pert2b_p64_coarse_double", "pert2b_p64_coarse.toml")
+    project_info_filepath = Path("..", "playground", "cedar_files", "pert2b3b_p64_coarse_double", "pert2b3b_p64_coarse.toml")
     info = parse_project_info(project_info_filepath)
     formatter = BasicProjectDirectoryFormatter()
     manager = ProjectDirectoryStructureManager(info, formatter)
     reader = ProjectDataReader(manager)
 
-    sim_id = int(sys.argv[1])
+    # sim_id = int(sys.argv[1])
     # plot_energies_rescaled(reader, sim_id)
-    calculate_autocorrelation(reader, sim_id, 200)
+    # calculate_autocorrelation(reader, sim_id, 200)
 
-    # for sim_id in range(31):
-    #     print(f"sim_id = {sim_id}")
-    #     calculate_autocorrelation(reader, sim_id, 15)
+    for sim_id in range(31):
+        # print(f"sim_id = {sim_id}")
+        calculate_autocorrelation(reader, sim_id, 200)
