@@ -1,0 +1,9 @@
+# this file contains information about the sides of the periodic box used in the simulation
+# the first uncommented line contains the number of dimensions
+# the following lines contain the side lengths, in order of the axis they belong to
+# for example, in 3D there would be 4 lines:
+# the first has the integer 3, and the next three are the x-axis, y-axis, and z-axis lengths, respectively
+3
+1.20913553e+01
+1.25657043e+01
+1.18470602e+01

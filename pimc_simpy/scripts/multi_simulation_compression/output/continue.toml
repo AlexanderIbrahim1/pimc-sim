@@ -1,0 +1,5 @@
+# this file contains the information needed to continue a simulation
+is_at_least_one_worldline_index_saved = true
+is_equilibration_complete = true
+most_recent_block_index = 2
+most_recent_saved_worldline_index = 1
