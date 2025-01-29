@@ -8,6 +8,8 @@ indices (between 000 and however many jobs completed).
 from pathlib import Path
 from io import TextIOWrapper
 
+from common import get_abs_jobs_dirpath
+
 BLOCK_INDEX_FILEPATH: Path = Path(".", "block_to_job_index_map.txt")
 
 
@@ -28,13 +30,6 @@ def read_block_to_job_index_map() -> dict[int, int]:
     return jobs_to_blocks
 
 
-def _get_abs_jobs_dirpath() -> Path:
-    abs_local_repo_dirpath = Path("/home/a68ibrah/research/simulations/pimc-sim")
-    rel_jobs_dirpath = Path("pimc_simpy/playground/twothreefour_body/pert2b3b4b/n180_pert2b3b4b_round1/simulations")
-
-    return abs_local_repo_dirpath / rel_jobs_dirpath
-
-
 def _get_abs_indicator_filepath(i_job: int, abs_jobs_dirpath: Path) -> Path:
     rel_output_dirpath = Path(f"job_{i_job:0>3d}", "output")
     indicator_filename = "quadruplet_potential.dat"
@@ -50,7 +45,7 @@ def _write_block_index_map(outstream: TextIOWrapper, finished_jobs: list[int]) -
 
 
 def main() -> None:
-    abs_jobs_dirpath = _get_abs_jobs_dirpath()
+    abs_jobs_dirpath = get_abs_jobs_dirpath()
 
     n_jobs = 1000
     finished_jobs: list[int] = []
