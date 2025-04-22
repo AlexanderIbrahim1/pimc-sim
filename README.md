@@ -2,6 +2,9 @@
 
 This is the pimc-sim project.
 
+## TODO:
+- make this repository a little more presentable for viewers
+
 # Building and installing
 
 See the [BUILDING](BUILDING.md) document.
